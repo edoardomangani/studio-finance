@@ -1,0 +1,75 @@
+<script setup lang="ts">
+/**
+ * ConfirmDialog — Mini dialog pre-cucinato per conferme (delete, archive,
+ * azioni distruttive).
+ *
+ * Compone DialogContent size="mini" + DialogStandardHeader + DialogBody
+ * (con il messaggio) + DialogStandardFooter (Annulla ghost + Conferma
+ * primary o destructive).
+ *
+ *   <ConfirmDialog
+ *     v-model:open="deleteOpen"
+ *     code="M.DEL"
+ *     title="Eliminare il cliente?"
+ *     description="Tutte le associazioni a progetti verranno mantenute, ma il cliente non sarà più visibile in elenco."
+ *     confirm-label="Elimina"
+ *     destructive
+ *     @confirm="performDelete"
+ *   />
+ */
+import { Button } from '@/components/ui/button'
+import Dialog from './Dialog.vue'
+import DialogBody from './DialogBody.vue'
+import DialogContent from './DialogContent.vue'
+import DialogStandardFooter from './DialogStandardFooter.vue'
+import DialogStandardHeader from './DialogStandardHeader.vue'
+
+withDefaults(
+    defineProps<{
+        open: boolean
+        /** Code-pill identificatore della modale (es. M.DEL). Obbligatorio. */
+        code: string
+        /** Titolo conferma (es. "Eliminare il cliente?"). */
+        title: string
+        /** Messaggio descrittivo (opzionale, ma consigliato per le distruttive). */
+        description?: string
+        /** Label del bottone di conferma. Default "Conferma". */
+        confirmLabel?: string
+        /** Label del bottone di annulla. Default "Annulla". */
+        cancelLabel?: string
+        /** Stile destructive (rosso) sul bottone conferma. */
+        destructive?: boolean
+    }>(),
+    {
+        confirmLabel: 'Conferma',
+        cancelLabel: 'Annulla',
+        destructive: false,
+    },
+)
+
+defineEmits<{
+    (e: 'update:open', open: boolean): void
+    (e: 'confirm'): void
+}>()
+</script>
+
+<template>
+    <Dialog :open="open" @update:open="(v) => $emit('update:open', v)">
+        <DialogContent size="mini" :show-close-button="false">
+            <DialogStandardHeader :code="code" :title="title" />
+            <DialogBody v-if="description">
+                <p class="text-13 leading-relaxed text-muted-foreground">
+                    {{ description }}
+                </p>
+            </DialogBody>
+            <DialogStandardFooter :cancel-label="cancelLabel">
+                <Button
+                    :variant="destructive ? 'destructive' : 'default'"
+                    @click="$emit('confirm')"
+                >
+                    {{ confirmLabel }}
+                </Button>
+            </DialogStandardFooter>
+        </DialogContent>
+    </Dialog>
+</template>

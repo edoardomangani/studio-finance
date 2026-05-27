@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import type { DialogContentEmits, DialogContentProps } from "reka-ui"
 import type { HTMLAttributes } from "vue"
+import { cva, type VariantProps } from "class-variance-authority"
 import { reactiveOmit } from "@vueuse/core"
-import { X } from "lucide-vue-next"
+import { PhX } from "@phosphor-icons/vue"
 import {
   DialogClose,
   DialogContent,
@@ -12,16 +13,48 @@ import {
 import { cn } from "@/lib/utils"
 import DialogOverlay from "./DialogOverlay.vue"
 
+/**
+ * Dialog sizes — 4 varianti documentate nel DS:
+ *  - mini       ~460px (conferme, alert, scelte rapide)
+ *  - default    ~580px (form rapidi: edit cliente, nuova categoria)
+ *  - wide       ~760px (form complessi: nuovo progetto, edit denso)
+ *  - fullscreen 100vw  (form ultra-densi multi-step, viewer)
+ */
+const dialogContentVariants = cva(
+  'bg-card data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-0 overflow-hidden border border-border/80 p-0 duration-200',
+  {
+    variants: {
+      size: {
+        mini:       'max-w-[calc(100%-2rem)] sm:max-w-[460px] rounded-lg',
+        default:    'max-w-[calc(100%-2rem)] sm:max-w-[580px] rounded-lg',
+        wide:       'max-w-[calc(100%-2rem)] sm:max-w-[760px] rounded-lg',
+        fullscreen: 'w-[calc(100vw-3rem)] h-[calc(100vh-3rem)] max-w-none rounded-lg',
+      },
+    },
+    defaultVariants: { size: 'default' },
+  }
+)
+
+export type DialogContentSize = VariantProps<typeof dialogContentVariants>['size']
+
 defineOptions({
   inheritAttrs: false,
 })
 
-const props = withDefaults(defineProps<DialogContentProps & { class?: HTMLAttributes["class"], showCloseButton?: boolean }>(), {
-  showCloseButton: true,
-})
+const props = withDefaults(
+  defineProps<DialogContentProps & {
+    class?: HTMLAttributes["class"]
+    showCloseButton?: boolean
+    size?: DialogContentSize
+  }>(),
+  {
+    showCloseButton: true,
+    size: 'default',
+  },
+)
 const emits = defineEmits<DialogContentEmits>()
 
-const delegatedProps = reactiveOmit(props, "class")
+const delegatedProps = reactiveOmit(props, "class", "size")
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
 </script>
@@ -32,20 +65,16 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
     <DialogContent
       data-slot="dialog-content"
       v-bind="{ ...$attrs, ...forwarded }"
-      :class="
-        cn(
-          'bg-background data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg',
-          props.class,
-        )"
+      :class="cn(dialogContentVariants({ size }), props.class)"
     >
       <slot />
 
       <DialogClose
         v-if="showCloseButton"
         data-slot="dialog-close"
-        class="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
+        class="text-muted-foreground hover:text-foreground absolute top-5 right-5 rounded-md p-1.25 opacity-80 transition-colors hover:opacity-100 outline-none disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5 hover:bg-foreground/3 cursor-pointer"
       >
-        <X />
+        <PhX />
         <span class="sr-only">Close</span>
       </DialogClose>
     </DialogContent>

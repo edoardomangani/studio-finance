@@ -1,0 +1,348 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-27T00:00:00Z",
+  "title": "Design System: Studiofinance",
+  "extensions": {
+    "colorMeta": {
+      "canvas-tracing": {
+        "role": "neutral",
+        "displayName": "Canvas Tracing",
+        "canonical": "oklch(98.5% 0.001 286)",
+        "tonalRamp": [
+          "oklch(15% 0.001 286)",
+          "oklch(25% 0.001 286)",
+          "oklch(35% 0.001 286)",
+          "oklch(50% 0.001 286)",
+          "oklch(70% 0.002 286)",
+          "oklch(85% 0.003 286)",
+          "oklch(92% 0.003 286)",
+          "oklch(98.5% 0.001 286)"
+        ]
+      },
+      "panel-tracing": {
+        "role": "neutral",
+        "displayName": "Panel Tracing",
+        "canonical": "oklch(96.7% 0.002 286)",
+        "tonalRamp": [
+          "oklch(20% 0.002 286)",
+          "oklch(30% 0.003 286)",
+          "oklch(45% 0.005 286)",
+          "oklch(60% 0.008 286)",
+          "oklch(75% 0.005 286)",
+          "oklch(88% 0.003 286)",
+          "oklch(94% 0.003 286)",
+          "oklch(96.7% 0.002 286)"
+        ]
+      },
+      "ink-graphite": {
+        "role": "neutral",
+        "displayName": "Ink Graphite",
+        "canonical": "oklch(21% 0.006 286)",
+        "tonalRamp": [
+          "oklch(12% 0.004 286)",
+          "oklch(21% 0.006 286)",
+          "oklch(35% 0.01 286)",
+          "oklch(45% 0.012 286)",
+          "oklch(55% 0.014 286)",
+          "oklch(70% 0.012 286)",
+          "oklch(85% 0.006 286)",
+          "oklch(96% 0.002 286)"
+        ]
+      },
+      "petrol-ink-strong": {
+        "role": "primary",
+        "displayName": "Petrol Ink Strong",
+        "canonical": "oklch(32% 0.06 210)",
+        "tonalRamp": [
+          "oklch(15% 0.03 210)",
+          "oklch(22% 0.045 210)",
+          "oklch(32% 0.06 210)",
+          "oklch(42% 0.08 210)",
+          "oklch(55% 0.085 210)",
+          "oklch(72% 0.06 210)",
+          "oklch(85% 0.04 210)",
+          "oklch(95% 0.015 210)"
+        ]
+      },
+      "petrol-ink-vivid": {
+        "role": "primary",
+        "displayName": "Petrol Ink Vivid",
+        "canonical": "oklch(52% 0.105 210)",
+        "tonalRamp": [
+          "oklch(15% 0.04 210)",
+          "oklch(25% 0.07 210)",
+          "oklch(35% 0.09 210)",
+          "oklch(45% 0.1 210)",
+          "oklch(52% 0.105 210)",
+          "oklch(65% 0.09 210)",
+          "oklch(80% 0.06 210)",
+          "oklch(95% 0.02 210)"
+        ]
+      },
+      "signal-success": {
+        "role": "status",
+        "displayName": "Signal Success",
+        "canonical": "oklch(54% 0.085 175)",
+        "tonalRamp": [
+          "oklch(20% 0.05 175)",
+          "oklch(35% 0.07 175)",
+          "oklch(54% 0.085 175)",
+          "oklch(65% 0.085 175)",
+          "oklch(75% 0.07 175)",
+          "oklch(85% 0.05 175)",
+          "oklch(92% 0.03 175)",
+          "oklch(97% 0.015 175)"
+        ]
+      },
+      "signal-warning": {
+        "role": "status",
+        "displayName": "Signal Warning",
+        "canonical": "oklch(68% 0.115 75)",
+        "tonalRamp": [
+          "oklch(25% 0.07 75)",
+          "oklch(40% 0.095 75)",
+          "oklch(55% 0.115 75)",
+          "oklch(68% 0.115 75)",
+          "oklch(78% 0.1 75)",
+          "oklch(86% 0.07 75)",
+          "oklch(92% 0.04 75)",
+          "oklch(97% 0.02 75)"
+        ]
+      },
+      "signal-destructive": {
+        "role": "status",
+        "displayName": "Signal Destructive",
+        "canonical": "oklch(54% 0.165 25)",
+        "tonalRamp": [
+          "oklch(25% 0.1 25)",
+          "oklch(40% 0.14 25)",
+          "oklch(54% 0.165 25)",
+          "oklch(64% 0.15 25)",
+          "oklch(75% 0.12 25)",
+          "oklch(85% 0.08 25)",
+          "oklch(92% 0.05 25)",
+          "oklch(97% 0.02 25)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "h1 di pagina, hero numbers. Switzer 500 con text-wrap balance."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Default del sistema: form input, table cell, sidebar item, breadcrumb, body prose. 13px / 18px line-height. font-size-adjust 0.58 attivo per normalizzare x-height Switzer."
+      },
+      "label": {
+        "displayName": "Kicker Label",
+        "purpose": "Uppercase 11px tracking-wider 0.06em. Per table head, group label sidebar, breadcrumb del current page, code-pill."
+      },
+      "mono": {
+        "displayName": "Mono",
+        "purpose": "Google Sans Code per importi tabella, codici fattura (FT 2026-04), F24, kbd. tabular-nums + zero + ss02."
+      }
+    },
+    "shadows": [],
+    "motion": [
+      {
+        "name": "ease-smooth",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Ease-out-quart custom. Easing default per ogni transizione (color, background, transform, opacity). Mai elastic, mai bounce."
+      },
+      {
+        "name": "duration-fast",
+        "value": "120ms",
+        "purpose": "Hover state, focus border swap, micro-feedback."
+      },
+      {
+        "name": "duration",
+        "value": "180ms",
+        "purpose": "Default per state transition: table row hover, dropdown open."
+      },
+      {
+        "name": "duration-slow",
+        "value": "280ms",
+        "purpose": "Sidebar collapse, page enter (opacity + translateY 4px)."
+      }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "Bottone primario in petrol ink strong, segnala l'azione importante di una pagina.",
+      "html": "<button class=\"ds-btn-primary\">Salva</button>",
+      "css": ".ds-btn-primary { background: oklch(32% 0.06 210); color: oklch(98.5% 0.001 286); height: 36px; padding: 0 16px; border: 0; border-radius: 6px; font-family: Switzer, ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background-color 180ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-btn-primary:hover { background: oklch(28% 0.06 210); } .ds-btn-primary:focus-visible { outline: 1px solid oklch(32% 0.06 210 / 28%); outline-offset: 0; }"
+    },
+    {
+      "name": "Outline Button",
+      "kind": "button",
+      "refersTo": "button-outline",
+      "description": "Bottone secondario neutro: canvas + border. Hover scivola tonale accent.",
+      "html": "<button class=\"ds-btn-outline\">Annulla</button>",
+      "css": ".ds-btn-outline { background: oklch(98.5% 0.001 286); color: oklch(21% 0.006 286); height: 36px; padding: 0 16px; border: 1px solid oklch(91.9% 0.004 286); border-radius: 6px; font-family: Switzer, ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background-color 180ms, border-color 180ms, color 180ms; transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1); } .ds-btn-outline:hover { background: oklch(32% 0.06 210 / 6%); border-color: oklch(32% 0.06 210 / 30%); color: oklch(32% 0.06 210); }"
+    },
+    {
+      "name": "Secondary Button (Tonale Accent)",
+      "kind": "button",
+      "refersTo": "button-secondary",
+      "description": "Bottone tonale: petrol soft fill + petrol strong text. Per azioni contestuali soft.",
+      "html": "<button class=\"ds-btn-secondary\">Apri dettaglio</button>",
+      "css": ".ds-btn-secondary { background: oklch(32% 0.06 210 / 10%); color: oklch(32% 0.06 210); height: 36px; padding: 0 16px; border: 0; border-radius: 6px; font-family: Switzer, ui-sans-serif, system-ui, sans-serif; font-size: 13px; font-weight: 500; cursor: pointer; transition: background-color 180ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-btn-secondary:hover { background: oklch(32% 0.06 210 / 15%); }"
+    },
+    {
+      "name": "Input Text",
+      "kind": "input",
+      "refersTo": "input",
+      "description": "Input testo: canvas bg, border line-tracing, focus border petrol-strong + outline 1px soft.",
+      "html": "<input class=\"ds-input\" type=\"text\" placeholder=\"P.IVA o ragione sociale\" />",
+      "css": ".ds-input { background: oklch(98.5% 0.001 286); color: oklch(21% 0.006 286); height: 36px; padding: 0 12px; border: 1px solid oklch(91.9% 0.004 286); border-radius: 6px; font-family: Switzer, ui-sans-serif, system-ui, sans-serif; font-size: 13px; outline: none; transition: border-color 180ms, outline-color 180ms; transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1); } .ds-input::placeholder { color: oklch(70.4% 0.012 286); } .ds-input:focus-visible { border-color: oklch(32% 0.06 210); outline: 1px solid oklch(32% 0.06 210 / 28%); outline-offset: 0; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Card sobria: canvas bg, border line-tracing, radius 8px, zero shadow. La depth arriva dal border.",
+      "html": "<div class=\"ds-card\"><p class=\"ds-card-title\">FT 2026-04</p><p class=\"ds-card-meta\">Comune di Trento · 1.850,00 €</p></div>",
+      "css": ".ds-card { background: oklch(98.5% 0.001 286); color: oklch(21% 0.006 286); border: 1px solid oklch(91.9% 0.004 286); border-radius: 8px; padding: 20px; box-shadow: none; font-family: Switzer, ui-sans-serif, system-ui, sans-serif; font-size: 13px; line-height: 1.125rem; } .ds-card-title { margin: 0 0 4px; font-weight: 500; font-family: 'Google Sans Code', ui-monospace, monospace; font-feature-settings: 'tnum'; } .ds-card-meta { margin: 0; color: oklch(55.2% 0.014 286); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; font-weight: 500; }"
+    },
+    {
+      "name": "Sidebar Item Active",
+      "kind": "nav",
+      "refersTo": "sidebar-item-active",
+      "description": "Signature visiva del sistema: barretta accent 2px a sinistra, icona fill, text medium. Nessun background.",
+      "html": "<a class=\"ds-sidebar-item ds-sidebar-item--active\" href=\"#\"><svg class=\"ds-sidebar-icon\" viewBox=\"0 0 256 256\" width=\"16\" height=\"16\" fill=\"currentColor\"><path d=\"M232 224a8 8 0 0 1-8 8h-40a8 8 0 0 1-8-8v-72a8 8 0 0 0-16 0v72a8 8 0 0 1-8 8H104a8 8 0 0 1-8-8v-72a8 8 0 0 0-16 0v72a8 8 0 0 1-8 8H32a8 8 0 0 1-8-8V103.32A23.92 23.92 0 0 1 32.4 86l81.95-71a23.94 23.94 0 0 1 27.3 0l81.95 71a23.92 23.92 0 0 1 8.4 17.31Z\"/></svg>Dashboard</a>",
+      "css": ".ds-sidebar-item { position: relative; display: flex; align-items: center; gap: 8px; padding: 7px 16px; font-family: Switzer, ui-sans-serif, system-ui, sans-serif; font-size: 13px; color: oklch(21% 0.006 286); text-decoration: none; } .ds-sidebar-icon { color: currentColor; flex-shrink: 0; } .ds-sidebar-item--active { font-weight: 500; } .ds-sidebar-item--active::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 2px; height: 20px; background: oklch(52% 0.105 210); border-radius: 0 2px 2px 0; }"
+    },
+    {
+      "name": "Table Row Selected (Whispering)",
+      "kind": "custom",
+      "refersTo": "table-row-selected",
+      "description": "Riga tabella selezionata. Bg petrol-vivid al 2%: marker quasi invisibile, la selezione primaria è la checkbox.",
+      "html": "<table class=\"ds-table\"><tbody><tr class=\"ds-tr\"><td class=\"ds-td\"><input type=\"checkbox\" /></td><td class=\"ds-td ds-td-code\">FT 2026-01</td><td class=\"ds-td\">Bianchi Studio srl</td><td class=\"ds-td ds-td-amount\">4.523,00 €</td></tr><tr class=\"ds-tr ds-tr--selected\" data-state=\"selected\"><td class=\"ds-td\"><input type=\"checkbox\" checked /></td><td class=\"ds-td ds-td-code\">FT 2026-02</td><td class=\"ds-td\">Rossi Costruzioni</td><td class=\"ds-td ds-td-amount\">3.890,12 €</td></tr></tbody></table>",
+      "css": ".ds-table { width: 100%; border-collapse: separate; border-spacing: 0; font-family: Switzer, ui-sans-serif, system-ui, sans-serif; font-size: 13px; } .ds-tr .ds-td { background: oklch(98.5% 0.001 286); height: 36px; padding: 0 12px; border-bottom: 1px solid oklch(94% 0.003 286); transition: background-color 180ms cubic-bezier(0.16, 1, 0.3, 1); } .ds-tr:hover .ds-td { background: oklch(96.7% 0.002 286); } .ds-tr--selected .ds-td { background: oklch(52% 0.105 210 / 2%); } .ds-td-code { font-family: 'Google Sans Code', ui-monospace, monospace; font-feature-settings: 'tnum'; color: oklch(55.2% 0.014 286); } .ds-td-amount { font-family: 'Google Sans Code', ui-monospace, monospace; font-feature-settings: 'tnum'; text-align: right; }"
+    },
+    {
+      "name": "Pill Success",
+      "kind": "chip",
+      "refersTo": "pill-success",
+      "description": "Stato semaforico verde-acqua sobrio: 'Pagato', 'Completato'.",
+      "html": "<span class=\"ds-pill ds-pill--success\">Pagato</span>",
+      "css": ".ds-pill { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 4px; font-family: Switzer, ui-sans-serif, system-ui, sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.01em; } .ds-pill--success { background: oklch(54% 0.085 175 / 12%); color: oklch(54% 0.085 175); }"
+    },
+    {
+      "name": "Pill Neutral (Dashed Border)",
+      "kind": "chip",
+      "refersTo": "pill-neutral",
+      "description": "Stato neutro 'Aperto'/'Bozza' con dashed border per distinguersi da pill info (petrol soft).",
+      "html": "<span class=\"ds-pill ds-pill--neutral\">Aperto</span>",
+      "css": ".ds-pill { display: inline-flex; align-items: center; height: 20px; padding: 0 8px; border-radius: 4px; font-family: Switzer, ui-sans-serif, system-ui, sans-serif; font-size: 11px; font-weight: 500; letter-spacing: 0.01em; } .ds-pill--neutral { background: transparent; color: oklch(55.2% 0.014 286); border: 1px dashed oklch(91.9% 0.004 286); }"
+    }
+  ],
+  "narrative": {
+    "northStar": "Lo Studio del Professionista",
+    "overview": "L'interfaccia si comporta come un tavolo da disegno tecnico ben tenuto. Superfici sobrie, materiali precisi, nulla che riempia. Quando l'utente apre la pagina a fine mese deve trovare il proprio quaderno di cassa già aperto sulla riga giusta: nessuna festa, nessun benvenuto, niente che chieda attenzione. I numeri sono il contenuto. Il chrome si sottomette.\n\nIl sistema rifiuta tre estetiche: il gestionale italiano classico (TeamSystem, FattureinCloud pieno, navy + arancione), la banking app blu-su-blu (navy + dorato, hero-metric), il clone Linear/Notion AI-default (zinc + indigo, card identiche a griglia). Studiofinance vive accanto a tutti senza assomigliare a nessuno.\n\nLa densità è la forma del rispetto. Spacing stretto, righe basse, niente padding generoso. Il colore appare solo come segnale: una pagina senza problemi è quasi monocromatica.",
+    "keyCharacteristics": [
+      "Densità editoriale (body 13px, table row 36px, sidebar item circa 28px).",
+      "Restrained color: zinc neutro per il 90% della superficie, accent petrol ≤5%.",
+      "Zero ombre su card e bottoni; profondità da bordo e tono.",
+      "Numeri in mono tabulare; tipografia che si schiera al servizio dei dati.",
+      "Niente stato decorativo: il colore arriva solo per dire qualcosa."
+    ],
+    "rules": [
+      {
+        "name": "The One Voice Rule",
+        "body": "Petrol vive su ≤5% di ogni schermo. La sua rarità è il segnale. Se il petrol comincia a coprire più del 5% di un layout, qualcosa è andato storto: il colore sta vivacizzando invece di significare.",
+        "section": "colors"
+      },
+      {
+        "name": "The Zinc-First Rule",
+        "body": "I neutri non sono tintati verso il petrol. Chroma ≤0.014. La distanza fra hue neutro (286°) e accent (210°) fa parte dell'identità.",
+        "section": "colors"
+      },
+      {
+        "name": "The No-Decorative-Color Rule",
+        "body": "Una pagina senza problemi è una pagina monocromatica. Vietato usare success/warning/destructive come fill di card o background di sezione.",
+        "section": "colors"
+      },
+      {
+        "name": "The Switzer x-Height Rule",
+        "body": "Su body è sempre attivo font-size-adjust 0.58. Switzer ha x-height più bassa di Inter/Geist; senza adjust, a parità di font-size il testo appare più piccolo.",
+        "section": "typography"
+      },
+      {
+        "name": "The Mono-For-Numbers-Where-They-Align Rule",
+        "body": "Mono entra dove i numeri si leggono in colonna (tabelle, KPI, code-pill) o sono token che imitano codice. In body prose il numero resta in Switzer con tabular-nums.",
+        "section": "typography"
+      },
+      {
+        "name": "The Uppercase-For-Kicker-Only Rule",
+        "body": "L'uppercase marca le label di sezione (kicker, breadcrumb del current page, table head, code-pill). Mai per body, CTA, heading.",
+        "section": "typography"
+      },
+      {
+        "name": "The No-Shadow Rule",
+        "body": "Card, bottoni, popover, dialog, toast: tutti box-shadow none. Se ti viene voglia di shadow-xs per staccare qualcosa, il problema è che quel qualcosa non è ben strutturato.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Tonal-Layering Rule",
+        "body": "La separazione panel/content si fa con i toni della scala neutra, non con shadow. Sidebar = panel-tracing (zinc-100), canvas = canvas-tracing (zinc-50). Hover row tabella usa lo stesso meccanismo.",
+        "section": "elevation"
+      },
+      {
+        "name": "The No-Sheet Rule",
+        "body": "Sheet è bandita. Sheet + Dialog crea un decision-point ambiguo. I pannelli laterali vivono come push inline: FilterSidebar e RightDetailPanel sono fratelli del main. Il content si comprime, non si nasconde sotto overlay.",
+        "section": "components"
+      },
+      {
+        "name": "The Sidebar-Bar-Only Rule",
+        "body": "L'item attivo della sidebar non ha background. La signature visiva è la barretta accent w-[2px] a sinistra, l'icona weight fill, il text medium. Sommare un bg-accent-soft raddoppia il segnale.",
+        "section": "components"
+      },
+      {
+        "name": "The Mono-Only-For-Real-Codes Rule",
+        "body": "Code-pill è riservato a token che l'utente riconosce e cita (numero fattura, codice F24, codice tributo, coefficiente). Mai per taxonomie interne dei modali (M.CRE/M.EDT/M.DEL).",
+        "section": "components"
+      },
+      {
+        "name": "The Whispering-Selected-Row Rule",
+        "body": "La riga selezionata in tabella usa petrol-ink-vivid al 2% di opacità: marker quasi invisibile. La selezione primaria è la checkbox spuntata, non lo sfondo. Sopra il 5% di opacità la riga diventa rumorosa.",
+        "section": "components"
+      }
+    ],
+    "dos": [
+      "Do usare petrol-ink-strong come unico colore del prodotto (focus, item sidebar attivo, button primary, pill info). Mai oltre il 5% della pagina.",
+      "Do trattare i numeri come contenuto principale: mono, tabular-nums per importi in tabella e KPI, font-size in scala dedicata, mai sgranare per fare spazio a un'icona.",
+      "Do mantenere body 13px e table row h-9 (36px): la densità è il segnale di rispetto verso il professionista.",
+      "Do rendere ogni valore derivato espandibile: una formula trasparente vale dieci colori giusti.",
+      "Do usare .kicker (text-2xs uppercase tracking-wider muted) per qualsiasi label di sezione, table header, group label sidebar.",
+      "Do scrivere stato testuale: ogni pill ha un'etichetta. Mai veicolare stato col solo colore.",
+      "Do usare panel-tracing (zinc-100) come bg di hover row in tabella. Sidebar e tabella condividono la stessa famiglia tonale di secondo livello."
+    ],
+    "donts": [
+      "Don't clonare i gestionali italiani classici. Niente tab annidate, KPI tile con icone tonde colorate, navy + arancione, sidebar a 200 voci, banner promo.",
+      "Don't scivolare nel pattern banking app blu-su-blu. Vietato navy + dorato, gradient text, template hero-metric, card grandi a finta-sicurezza.",
+      "Don't convergere sul template Linear/Notion AI-default. Niente zinc + indigo, card identiche a griglia, freccia su/giù sopra ogni metrica.",
+      "Don't usare border-left o border-right maggiore di 1px come accento colorato. La barretta accent della sidebar è inset assoluto, non border.",
+      "Don't usare gradient text. Mai. L'enfasi si fa con weight e size.",
+      "Don't mettere shadow su card o bottoni. Niente shadow-xs, niente shadow-sm.",
+      "Don't scurire la riga selezionata in tabella sopra il 2-3% di opacità. Il marker primario è la checkbox.",
+      "Don't auto-prepend il nome studio nel breadcrumb. Single-tenant.",
+      "Don't esporre system-language come code-pill (M.CRE, M.EDT). Riservato a token user-facing.",
+      "Don't introdurre Sheet. Pannelli laterali = push inline.",
+      "Don't mostrare double-ring focus. Border accent + 1px outline esterno.",
+      "Don't usare illustrazioni SVG generiche negli empty state. Solo testo + CTA.",
+      "Don't usare toast verde con check per Pagato salvato. Il success è chip, mai festa effimera.",
+      "Don't infrangere prefers-reduced-motion."
+    ]
+  }
+}

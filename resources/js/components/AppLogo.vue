@@ -1,16 +1,51 @@
-<script setup lang="ts">
-import AppLogoIcon from '@/components/AppLogoIcon.vue';
-</script>
+<script setup lang="ts"></script>
 
 <template>
-    <div
-        class="flex aspect-square size-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground"
-    >
-        <AppLogoIcon class="size-5 fill-current text-white dark:text-black" />
-    </div>
-    <div class="ml-1 grid flex-1 text-left text-sm">
-        <span class="mb-0.5 truncate leading-tight font-semibold"
-            >Laravel Starter Kit</span
+    <span class="flex items-center gap-2">
+        <svg
+            viewBox="0 0 24 24"
+            class="size-5 shrink-0 text-foreground"
+            fill="currentColor"
+            aria-hidden="true"
         >
-    </div>
+            <g transform="translate(12 12)">
+                <path d="M 0 -10 A 5 5 0 0 1 0 -2 A 5 5 0 0 1 0 -10 Z" />
+                <path
+                    d="M 0 -10 A 5 5 0 0 1 0 -2 A 5 5 0 0 1 0 -10 Z"
+                    transform="rotate(60)"
+                />
+                <path
+                    d="M 0 -10 A 5 5 0 0 1 0 -2 A 5 5 0 0 1 0 -10 Z"
+                    transform="rotate(120)"
+                />
+                <path
+                    d="M 0 -10 A 5 5 0 0 1 0 -2 A 5 5 0 0 1 0 -10 Z"
+                    transform="rotate(180)"
+                />
+                <path
+                    d="M 0 -10 A 5 5 0 0 1 0 -2 A 5 5 0 0 1 0 -10 Z"
+                    transform="rotate(240)"
+                />
+                <path
+                    d="M 0 -10 A 5 5 0 0 1 0 -2 A 5 5 0 0 1 0 -10 Z"
+                    transform="rotate(300)"
+                />
+            </g>
+        </svg>
+
+        <span
+            class="flex items-baseline gap-1.5 group-data-[collapsible=icon]:hidden"
+        >
+            <span
+                class="text-sm leading-none font-semibold tracking-tight text-foreground"
+            >
+                Studio<span class="text-accent-vivid">FIN</span>
+            </span>
+            <span
+                class="tabular -translate-y-px font-mono text-2xs font-medium text-muted-foreground"
+            >
+                v0
+            </span>
+        </span>
+    </span>
 </template>

@@ -1,0 +1,685 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Studiofinance — Significato · F.06</title>
+  <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: oklch(98.5% 0.001 286);
+      --surface: oklch(98.5% 0.001 286);
+      --surface-2: oklch(96.7% 0.002 286);
+      --sidebar-bg: oklch(96.7% 0.002 286);
+      --border: oklch(91.9% 0.004 286);
+      --border-soft: oklch(94% 0.003 286);
+      --muted: oklch(55.2% 0.014 286);
+      --ink: oklch(21% 0.006 286);
+      --ink-soft: oklch(44.6% 0.014 286);
+      --accent: oklch(32% 0.06 210);
+
+      --bg-dark: oklch(14.5% 0.003 286);
+      --ink-dark: oklch(98.5% 0.001 286);
+      --border-dark: oklch(27.4% 0.011 286);
+      --muted-dark: oklch(70.4% 0.012 286);
+      --sidebar-bg-dark: oklch(18% 0.005 286);
+
+      --font-sans: "Switzer", -apple-system, BlinkMacSystemFont, "Helvetica Neue", system-ui, sans-serif;
+      --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      font-feature-settings: "ss01", "ss02", "cv01", "cv11";
+      font-size: 13px;
+      line-height: 1.5;
+      letter-spacing: -0.006em;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    .plate {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 48px 48px 96px;
+    }
+
+    .titleblock {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: end;
+      gap: 32px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--ink);
+    }
+    .titleblock .left,
+    .titleblock .right {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .titleblock .right { text-align: right; }
+    .titleblock h1 {
+      margin: 0;
+      font-size: 32px;
+      font-weight: 500;
+      letter-spacing: -0.024em;
+      line-height: 1;
+      text-align: center;
+    }
+    .titleblock .left strong,
+    .titleblock .right strong {
+      display: block;
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .crumb {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 14px 0 0;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+    .crumb .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      color: var(--ink-soft);
+      background: var(--surface);
+    }
+
+    .lede {
+      padding: 32px 0 36px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .lede h3 {
+      margin: 0 0 10px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .lede p {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 14px;
+      line-height: 1.6;
+      max-width: 72ch;
+    }
+    .lede p + p { margin-top: 14px; }
+    .lede em {
+      font-style: normal;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      background: var(--surface-2);
+      padding: 1px 5px;
+      border-radius: 3px;
+      color: var(--ink);
+    }
+    .lede strong {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    /* Hero row */
+    .hero {
+      margin: 36px 0 12px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+    }
+    .hero-cell {
+      aspect-ratio: 1 / 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      display: grid;
+      place-items: center;
+      position: relative;
+    }
+    .hero-cell::before,
+    .hero-cell::after {
+      content: "";
+      position: absolute;
+      width: 7px;
+      height: 7px;
+      background:
+        linear-gradient(to right, var(--border) 0, var(--border) 100%) center / 100% 1px no-repeat,
+        linear-gradient(to bottom, var(--border) 0, var(--border) 100%) center / 1px 100% no-repeat;
+    }
+    .hero-cell::before { top: 8px; right: 8px; }
+    .hero-cell::after  { bottom: 8px; left: 8px; }
+    .hero-cell svg {
+      width: 50%; height: 50%;
+      color: var(--ink);
+    }
+    .hero-cell .num {
+      position: absolute;
+      top: 14px; left: 16px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .hero-cell .meta {
+      position: absolute;
+      bottom: 14px; left: 16px; right: 16px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      text-align: left;
+    }
+    .hero-cell .meta strong {
+      display: block;
+      color: var(--ink);
+      font-family: var(--font-sans);
+      font-size: 16px;
+      letter-spacing: -0.014em;
+      margin-bottom: 4px;
+      font-weight: 500;
+      text-transform: none;
+    }
+
+    /* Concept rows */
+    .concept {
+      padding: 40px 0;
+      border-bottom: 1px solid var(--border-soft);
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 48px;
+      align-items: start;
+    }
+    .concept:last-of-type { border-bottom: none; }
+
+    .concept-meaning .head {
+      display: flex;
+      align-items: baseline;
+      gap: 14px;
+      margin-bottom: 12px;
+    }
+    .concept-meaning .num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .concept-meaning h2 {
+      margin: 0;
+      font-size: 22px;
+      font-weight: 500;
+      letter-spacing: -0.018em;
+    }
+    .concept-meaning .significato {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 8px;
+    }
+    .concept-meaning .significato em {
+      font-style: normal;
+      color: var(--accent);
+      font-weight: 500;
+    }
+    .concept-meaning p {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+    .concept-meaning p + p { margin-top: 12px; }
+    .concept-meaning em {
+      font-style: normal;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      background: var(--surface-2);
+      padding: 0 4px;
+      border-radius: 3px;
+      color: var(--ink);
+    }
+    .concept-meaning .why {
+      margin-top: 14px;
+      padding: 10px 12px;
+      background: var(--surface-2);
+      border-left: 2px solid var(--accent);
+      font-size: 12.5px;
+      line-height: 1.55;
+      color: var(--ink);
+    }
+
+    .concept-tests {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+    .test-sizes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 30px 24px 16px;
+      display: flex;
+      gap: 32px;
+      align-items: flex-end;
+      position: relative;
+    }
+    .test-sizes::before {
+      content: "STRESS — 32 / 24 / 16 PX";
+      position: absolute;
+      top: 12px; left: 24px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .test-sizes svg { color: var(--ink); display: block; }
+    .test-sizes .px {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+      text-align: center;
+      display: block;
+      margin-top: 8px;
+    }
+
+    .test-sidebars {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+
+    .sidebar-mini {
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+      border: 1px solid var(--border);
+      background: var(--sidebar-bg);
+    }
+    .sidebar-mini.dark { background: var(--sidebar-bg-dark); border-color: var(--border-dark); }
+    .sidebar-mini::before {
+      content: "LIGHT";
+      position: absolute;
+      top: 10px; right: 10px;
+      font-family: var(--font-mono);
+      font-size: 9px;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      z-index: 2;
+    }
+    .sidebar-mini.dark::before { content: "DARK"; color: var(--muted-dark); }
+    .sb-inner {
+      padding: 14px 12px;
+      min-height: 140px;
+    }
+    .sb-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 0 0 12px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-mini.dark .sb-brand { border-bottom-color: var(--border-dark); }
+    .sb-brand .mark { width: 28px; height: 28px; }
+    .sidebar-mini .sb-brand .mark { color: var(--ink); }
+    .sidebar-mini.dark .sb-brand .mark { color: var(--ink-dark); }
+    .sb-brand .wm {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: -0.014em;
+    }
+    .sidebar-mini .sb-brand .wm { color: var(--ink); }
+    .sidebar-mini.dark .sb-brand .wm { color: var(--ink-dark); }
+    .sb-items {
+      padding: 10px 0 0;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .sb-it {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 28px;
+      padding: 0 8px;
+      font-size: 13px;
+      border-radius: 4px;
+    }
+    .sidebar-mini .sb-it { color: var(--ink-soft); }
+    .sidebar-mini.dark .sb-it { color: var(--muted-dark); }
+    .sb-it.active { background: var(--surface-2); color: var(--ink); }
+    .sidebar-mini.dark .sb-it.active {
+      background: oklch(21% 0.006 286);
+      color: var(--ink-dark);
+    }
+    .sb-it .dot {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--muted);
+    }
+    .sidebar-mini.dark .sb-it .dot { background: var(--muted-dark); }
+
+    .footer {
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 1px solid var(--ink);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      letter-spacing: 0.02em;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .footer strong {
+      display: block;
+      color: var(--ink);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+    .footer em {
+      font-style: normal;
+      color: var(--ink);
+    }
+    .footer .rec {
+      max-width: 76ch;
+    }
+
+    @media (max-width: 1024px) {
+      .plate { padding: 32px 24px 64px; }
+      .titleblock { grid-template-columns: 1fr; text-align: left; }
+      .titleblock h1, .titleblock .right { text-align: left; }
+      .hero { grid-template-columns: 1fr; }
+      .concept { grid-template-columns: 1fr; gap: 24px; }
+      .test-sidebars { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+
+      <!-- ─── 15 GERME — riccio organico che si srotola ─────── -->
+      <symbol id="mark-germe" viewBox="0 0 24 24">
+        <g transform="translate(12 12)" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+          <path d="
+            M 9 0
+            A 9 9 0 0 1 0 9
+            A 8 8 0 0 1 -7 0
+            A 6 6 0 0 1 0 -6
+            A 4.5 4.5 0 0 1 4 0
+            A 3 3 0 0 1 0 3
+            A 2 2 0 0 1 -1.5 0"/>
+        </g>
+      </symbol>
+
+      <!-- ─── 16 NUCLEO — disco + orbita ───────────────────── -->
+      <symbol id="mark-nucleo" viewBox="0 0 24 24">
+        <g transform="translate(12 12)">
+          <circle r="9" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <circle r="3.4" fill="currentColor"/>
+        </g>
+      </symbol>
+
+      <!-- ─── 17 CICLO — anello quasi-chiuso (anno che si chiude) ─── -->
+      <symbol id="mark-ciclo" viewBox="0 0 24 24">
+        <g transform="translate(12 12)" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+          <path d="M 1.5 -8.9 A 9 9 0 1 0 -1.5 -8.9"/>
+        </g>
+      </symbol>
+
+    </defs>
+  </svg>
+
+  <main class="plate">
+
+    <header class="titleblock">
+      <div class="left">
+        <strong>Foglio F.06</strong>
+        Significato · 3 concetti<br>
+        Scala: nominale 24×24
+      </div>
+      <h1>Studiofinance · significato</h1>
+      <div class="right">
+        <strong>26.05.26</strong>
+        Cambio di metodo:<br>
+        prima il senso, poi la forma
+      </div>
+    </header>
+
+    <div class="crumb">
+      <div>
+        <span class="pill">F.03</span> rosone &nbsp;·&nbsp;
+        <span class="pill">F.04</span> organici classici &nbsp;·&nbsp;
+        <span class="pill">F.05</span> astratti senza senso &nbsp;→&nbsp; F.06 (qui)
+      </div>
+      <div>F.06 di 06</div>
+    </div>
+
+    <section class="lede">
+      <h3>Diagnosi delle iterazioni precedenti</h3>
+      <p>F.03 (rosone) ha funzionato perché aveva un <strong>aggancio architettonico</strong> implicito — la rosa gotica come metafora dello «studio italiano». F.04 e F.05 hanno fallito perché ho continuato a produrre <strong>forme senza un perché</strong>: bei marchi astratti, ma scollegati dal mestiere del cliente.</p>
+      <p>F.06 cambia metodo. Parto da <strong>tre concetti centrali</strong> del lavoro di un commercialista — <em>crescita</em>, <em>focus</em>, <em>ciclo</em> — e per ognuno disegno un marchio astratto-organico che <strong>legge</strong> quel concetto. Forma e significato sono saldati prima di disegnare.</p>
+    </section>
+
+    <!-- ════════════════════ HERO ════════════════════ -->
+    <section class="hero">
+      <div class="hero-cell">
+        <span class="num">N.15</span>
+        <svg viewBox="0 0 24 24" width="180" height="180"><use href="#mark-germe"/></svg>
+        <div class="meta">
+          <strong>Germe</strong>
+          significato: crescita · forma: riccio
+        </div>
+      </div>
+      <div class="hero-cell">
+        <span class="num">N.16</span>
+        <svg viewBox="0 0 24 24" width="180" height="180"><use href="#mark-nucleo"/></svg>
+        <div class="meta">
+          <strong>Nucleo</strong>
+          significato: focus · forma: disco + orbita
+        </div>
+      </div>
+      <div class="hero-cell">
+        <span class="num">N.17</span>
+        <svg viewBox="0 0 24 24" width="180" height="180"><use href="#mark-ciclo"/></svg>
+        <div class="meta">
+          <strong>Ciclo</strong>
+          significato: anno · forma: anello quasi-chiuso
+        </div>
+      </div>
+    </section>
+
+    <!-- ════════════ N.15 GERME ════════════ -->
+    <article class="concept">
+      <div class="concept-meaning">
+        <div class="head">
+          <span class="num">N.15</span>
+          <h2>Germe</h2>
+        </div>
+        <span class="significato">Significato: <em>crescita</em></span>
+        <p>Il riccio organico che si srotola è la firma universale della crescita: la felce che si apre, il volute ionico, la spirale logaritmica del nautilus. Un solo gesto continuo, non simmetrico, che parte stretto al centro e si allarga verso l'esterno.</p>
+        <p>Forma: 6 semicerchi concatenati con raggio in <em>progressione (9, 8, 6, 4.5, 3, 2)</em>. Stroke 2.4 unità, capi tondi. La spirale non è chiusa — il termine «aperto» dell'esterno è il messaggio: la crescita continua.</p>
+        <div class="why">
+          <strong style="display:inline; margin:0; font-family:var(--font-sans); font-weight:500; text-transform:none; letter-spacing:-0.014em; color:var(--ink); font-size:13px;">Perché funziona per Studiofinance:</strong>
+          il valore del cliente cresce nel tempo. Il marchio dice «noi gestiamo l'apertura del riccio», non «noi siamo il numero».
+        </div>
+      </div>
+      <div class="concept-tests">
+        <div class="test-sizes">
+          <div><svg viewBox="0 0 24 24" width="32" height="32"><use href="#mark-germe"/></svg><span class="px">32</span></div>
+          <div><svg viewBox="0 0 24 24" width="24" height="24"><use href="#mark-germe"/></svg><span class="px">24</span></div>
+          <div><svg viewBox="0 0 24 24" width="16" height="16"><use href="#mark-germe"/></svg><span class="px">16</span></div>
+        </div>
+        <div class="test-sidebars">
+          <div class="sidebar-mini">
+            <div class="sb-inner">
+              <div class="sb-brand">
+                <svg class="mark" viewBox="0 0 24 24"><use href="#mark-germe"/></svg>
+                <span class="wm">Studiofinance</span>
+              </div>
+              <div class="sb-items">
+                <div class="sb-it active"><span class="dot"></span>Dashboard</div>
+                <div class="sb-it"><span class="dot"></span>Anno corrente</div>
+                <div class="sb-it"><span class="dot"></span>Fatture</div>
+              </div>
+            </div>
+          </div>
+          <div class="sidebar-mini dark">
+            <div class="sb-inner">
+              <div class="sb-brand">
+                <svg class="mark" viewBox="0 0 24 24"><use href="#mark-germe"/></svg>
+                <span class="wm">Studiofinance</span>
+              </div>
+              <div class="sb-items">
+                <div class="sb-it active"><span class="dot"></span>Dashboard</div>
+                <div class="sb-it"><span class="dot"></span>Anno corrente</div>
+                <div class="sb-it"><span class="dot"></span>Fatture</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ════════════ N.16 NUCLEO ════════════ -->
+    <article class="concept">
+      <div class="concept-meaning">
+        <div class="head">
+          <span class="num">N.16</span>
+          <h2>Nucleo</h2>
+        </div>
+        <span class="significato">Significato: <em>focus</em></span>
+        <p>Un disco solido al centro e un'orbita sottile attorno. Due cerchi e basta. Il disco è ciò che conta — il dato netto, il risultato, il cliente. L'orbita è il contesto che lo studio mantiene intorno: le pratiche, le scadenze, gli aggiornamenti normativi che orbitano senza disturbare il centro.</p>
+        <p>Forma: <em>disco r=3.4 + cerchio stroke 1.5, r=9</em>. Geometricamente è quasi-niente, è la riduzione massima. Vince per <em>chiarezza</em>: a 16 px resta intatto, è di gran lunga il più scalabile dei tre.</p>
+        <div class="why">
+          <strong style="display:inline; margin:0; font-family:var(--font-sans); font-weight:500; text-transform:none; letter-spacing:-0.014em; color:var(--ink); font-size:13px;">Perché funziona per Studiofinance:</strong>
+          il lavoro del commercialista è togliere rumore. Far emergere il punto. Il marchio incarna esattamente quella operazione.
+        </div>
+      </div>
+      <div class="concept-tests">
+        <div class="test-sizes">
+          <div><svg viewBox="0 0 24 24" width="32" height="32"><use href="#mark-nucleo"/></svg><span class="px">32</span></div>
+          <div><svg viewBox="0 0 24 24" width="24" height="24"><use href="#mark-nucleo"/></svg><span class="px">24</span></div>
+          <div><svg viewBox="0 0 24 24" width="16" height="16"><use href="#mark-nucleo"/></svg><span class="px">16</span></div>
+        </div>
+        <div class="test-sidebars">
+          <div class="sidebar-mini">
+            <div class="sb-inner">
+              <div class="sb-brand">
+                <svg class="mark" viewBox="0 0 24 24"><use href="#mark-nucleo"/></svg>
+                <span class="wm">Studiofinance</span>
+              </div>
+              <div class="sb-items">
+                <div class="sb-it active"><span class="dot"></span>Dashboard</div>
+                <div class="sb-it"><span class="dot"></span>Anno corrente</div>
+                <div class="sb-it"><span class="dot"></span>Fatture</div>
+              </div>
+            </div>
+          </div>
+          <div class="sidebar-mini dark">
+            <div class="sb-inner">
+              <div class="sb-brand">
+                <svg class="mark" viewBox="0 0 24 24"><use href="#mark-nucleo"/></svg>
+                <span class="wm">Studiofinance</span>
+              </div>
+              <div class="sb-items">
+                <div class="sb-it active"><span class="dot"></span>Dashboard</div>
+                <div class="sb-it"><span class="dot"></span>Anno corrente</div>
+                <div class="sb-it"><span class="dot"></span>Fatture</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ════════════ N.17 CICLO ════════════ -->
+    <article class="concept">
+      <div class="concept-meaning">
+        <div class="head">
+          <span class="num">N.17</span>
+          <h2>Ciclo</h2>
+        </div>
+        <span class="significato">Significato: <em>l'anno che chiude</em></span>
+        <p>Un anello quasi-chiuso: una traccia che gira intorno ma lascia un piccolo varco in cima. È il <em>gesto</em> dell'anno fiscale — gira, accumula, si chiude. Il varco al vertice non è un loader, è il <em>momento del bilancio</em>: il punto preciso in cui l'anno torna su sé stesso.</p>
+        <p>Forma: <em>singolo arco stroke 2.4, r=9, ~340°</em>, capi tondi. Un gesto, una rotazione, un'identità tipologicamente diversa da rosone e dagli altri due (questo è una linea, non un volume). Lettura immediata di «circolarità organica».</p>
+        <div class="why">
+          <strong style="display:inline; margin:0; font-family:var(--font-sans); font-weight:500; text-transform:none; letter-spacing:-0.014em; color:var(--ink); font-size:13px;">Perché funziona per Studiofinance:</strong>
+          la sidebar lo dice già — <em>Anno corrente</em>, <em>Scadenze</em>. Il ritmo del prodotto è annuale. Il marchio prende quel ritmo e lo rende visibile.
+        </div>
+      </div>
+      <div class="concept-tests">
+        <div class="test-sizes">
+          <div><svg viewBox="0 0 24 24" width="32" height="32"><use href="#mark-ciclo"/></svg><span class="px">32</span></div>
+          <div><svg viewBox="0 0 24 24" width="24" height="24"><use href="#mark-ciclo"/></svg><span class="px">24</span></div>
+          <div><svg viewBox="0 0 24 24" width="16" height="16"><use href="#mark-ciclo"/></svg><span class="px">16</span></div>
+        </div>
+        <div class="test-sidebars">
+          <div class="sidebar-mini">
+            <div class="sb-inner">
+              <div class="sb-brand">
+                <svg class="mark" viewBox="0 0 24 24"><use href="#mark-ciclo"/></svg>
+                <span class="wm">Studiofinance</span>
+              </div>
+              <div class="sb-items">
+                <div class="sb-it active"><span class="dot"></span>Dashboard</div>
+                <div class="sb-it"><span class="dot"></span>Anno corrente</div>
+                <div class="sb-it"><span class="dot"></span>Fatture</div>
+              </div>
+            </div>
+          </div>
+          <div class="sidebar-mini dark">
+            <div class="sb-inner">
+              <div class="sb-brand">
+                <svg class="mark" viewBox="0 0 24 24"><use href="#mark-ciclo"/></svg>
+                <span class="wm">Studiofinance</span>
+              </div>
+              <div class="sb-items">
+                <div class="sb-it active"><span class="dot"></span>Dashboard</div>
+                <div class="sb-it"><span class="dot"></span>Anno corrente</div>
+                <div class="sb-it"><span class="dot"></span>Fatture</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <footer class="footer">
+      <div class="rec">
+        <strong>Raccomandazione</strong>
+        Il candidato più forte per Studiofinance è <em>N.17 Ciclo</em>: è l'unico dei tre il cui significato si lega <em>letteralmente</em> al prodotto (Anno corrente, Scadenze). Il rischio loader è gestibile — il varco è piccolo e il marchio è statico, non animato.<br><br>
+        Secondo: <em>N.15 Germe</em> — più universale, meno specifico al prodotto, ma carica di significato positivo. Adatto se l'identità deve parlare anche ai potenziali clienti dello studio (non solo alla dashboard interna).<br><br>
+        Terzo: <em>N.16 Nucleo</em> — pulito, scala benissimo, ma il significato «focus» è meno distintivo: tante app potrebbero usarlo. Va bene come fallback minimal.<br><br>
+        Se nessuno convince, dimmi <em>quale concetto</em> non funziona (crescita / focus / ciclo) o se serve un quarto concetto — <em>equilibrio</em> (bilancia), <em>custodia</em> (sicurezza), <em>flusso</em> (cassa) sono i candidati che ho tenuto in panchina.
+      </div>
+    </footer>
+
+  </main>
+</body>
+</html>

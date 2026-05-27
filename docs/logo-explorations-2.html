@@ -1,0 +1,1159 @@
+<!doctype html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Studiofinance — Famiglia organica · F.04</title>
+  <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://api.fontshare.com/v2/css?f[]=switzer@400,500,600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: oklch(98.5% 0.001 286);
+      --surface: oklch(98.5% 0.001 286);
+      --surface-2: oklch(96.7% 0.002 286);
+      --sidebar-bg: oklch(96.7% 0.002 286);
+      --border: oklch(91.9% 0.004 286);
+      --border-soft: oklch(94% 0.003 286);
+      --muted: oklch(55.2% 0.014 286);
+      --ink: oklch(21% 0.006 286);
+      --ink-soft: oklch(44.6% 0.014 286);
+      --accent: oklch(32% 0.06 210);
+      --accent-soft: oklch(32% 0.06 210 / 14%);
+
+      --bg-dark: oklch(14.5% 0.003 286);
+      --ink-dark: oklch(98.5% 0.001 286);
+      --border-dark: oklch(27.4% 0.011 286);
+      --muted-dark: oklch(70.4% 0.012 286);
+      --sidebar-bg-dark: oklch(18% 0.005 286);
+
+      --font-sans: "Switzer", -apple-system, BlinkMacSystemFont, "Helvetica Neue", system-ui, sans-serif;
+      --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { -webkit-text-size-adjust: 100%; }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: var(--font-sans);
+      font-feature-settings: "ss01", "ss02", "cv01", "cv11";
+      font-size: 13px;
+      line-height: 1.5;
+      letter-spacing: -0.006em;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    .plate {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 48px 48px 96px;
+    }
+
+    .titleblock {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: end;
+      gap: 32px;
+      padding-bottom: 18px;
+      border-bottom: 1px solid var(--ink);
+    }
+    .titleblock .left,
+    .titleblock .right {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+    .titleblock .right { text-align: right; }
+    .titleblock h1 {
+      margin: 0;
+      font-size: 32px;
+      font-weight: 500;
+      letter-spacing: -0.024em;
+      line-height: 1;
+      text-align: center;
+    }
+    .titleblock .left strong,
+    .titleblock .right strong {
+      display: block;
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    /* Contextual back-link bar */
+    .crumb {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      padding: 14px 0 0;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+    }
+    .crumb a {
+      color: var(--ink-soft);
+      text-decoration: none;
+      border-bottom: 1px dashed var(--border);
+      padding-bottom: 1px;
+    }
+    .crumb a:hover { color: var(--ink); border-bottom-color: var(--ink); }
+    .crumb .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      color: var(--ink-soft);
+      background: var(--surface);
+    }
+
+    .intro {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 48px;
+      padding: 32px 0 40px;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .intro h3 {
+      margin: 0 0 8px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .intro p {
+      margin: 0;
+      color: var(--ink-soft);
+      font-size: 13px;
+      line-height: 1.55;
+      max-width: 38ch;
+    }
+    .intro p + p { margin-top: 10px; }
+    .intro code,
+    .intro em {
+      font-family: var(--font-mono);
+      font-size: 12px;
+      background: var(--surface-2);
+      padding: 0 4px;
+      border-radius: 3px;
+      color: var(--ink);
+      font-style: normal;
+    }
+
+    /* Matrix — 5 cells, single row */
+    .matrix {
+      margin: 36px 0 24px;
+      padding: 28px 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      position: relative;
+    }
+    .matrix::before {
+      content: "MATRICE F.04 — 5 ARCHETIPI";
+      position: absolute;
+      top: -10px; left: 16px;
+      background: var(--bg);
+      padding: 0 8px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .matrix-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 14px;
+      padding-top: 4px;
+    }
+    .matrix-cell svg { color: var(--ink); display: block; }
+    .matrix-cell .row-32  { padding-bottom: 4px; }
+    .matrix-cell .label {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      text-align: center;
+      line-height: 1.4;
+    }
+    .matrix-cell .label strong {
+      display: block;
+      color: var(--ink);
+      font-size: 11px;
+      letter-spacing: 0.02em;
+      margin-bottom: 2px;
+    }
+    .matrix-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    /* Concept block */
+    .concept {
+      padding: 56px 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .concept:last-of-type { border-bottom: none; }
+
+    .concept-head {
+      display: grid;
+      grid-template-columns: 80px 1fr 280px;
+      gap: 32px;
+      align-items: start;
+      margin-bottom: 36px;
+    }
+    .concept-num {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      padding-top: 6px;
+    }
+    .concept-title h2 {
+      margin: 0 0 6px;
+      font-size: 22px;
+      font-weight: 500;
+      letter-spacing: -0.018em;
+      line-height: 1.1;
+    }
+    .concept-title .sub {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .concept-body p {
+      margin: 14px 0 0;
+      color: var(--ink-soft);
+      font-size: 13px;
+      line-height: 1.55;
+      max-width: 44ch;
+    }
+    .concept-body p em {
+      font-style: normal;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      background: var(--surface-2);
+      padding: 0 4px;
+      border-radius: 3px;
+      color: var(--ink);
+    }
+    .concept-meta {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .concept-meta dl { margin: 0; }
+    .concept-meta dl + dl { margin-top: 2px; }
+    .concept-meta dt {
+      display: inline;
+      color: var(--ink-soft);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .concept-meta dd {
+      display: inline;
+      margin: 0 0 0 8px;
+      color: var(--ink);
+    }
+
+    .display-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    .panel {
+      position: relative;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      aspect-ratio: 1 / 1;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+    .panel-label {
+      position: absolute;
+      top: 12px;
+      left: 12px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .panel-label.right { left: auto; right: 12px; }
+    .panel svg {
+      width: 58%;
+      height: 58%;
+      color: var(--ink);
+    }
+    .panel::before,
+    .panel::after {
+      content: "";
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      background:
+        linear-gradient(to right, var(--border) 0, var(--border) 100%) center / 100% 1px no-repeat,
+        linear-gradient(to bottom, var(--border) 0, var(--border) 100%) center / 1px 100% no-repeat;
+    }
+    .panel::before { top: 8px; right: 8px; }
+    .panel::after  { bottom: 8px; left: 8px; }
+
+    .applied-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+
+    .sizes {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 20px 24px;
+      display: flex;
+      align-items: flex-end;
+      gap: 28px;
+      position: relative;
+    }
+    .sizes::before {
+      content: "TEST DI LEGGIBILITÀ";
+      position: absolute;
+      top: 12px;
+      left: 24px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+    }
+    .size-cell {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 10px;
+      padding-top: 24px;
+    }
+    .size-cell svg { color: var(--ink); display: block; }
+    .size-cell .px {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.04em;
+    }
+
+    .sidebar-preview,
+    .dark-preview {
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+    .sidebar-preview { background: var(--surface); border: 1px solid var(--border); }
+    .dark-preview { background: var(--bg-dark); border: 1px solid var(--border-dark); }
+
+    .sidebar-preview::before {
+      content: "SIDEBAR LIGHT";
+      position: absolute;
+      top: 10px; right: 12px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: var(--muted);
+      z-index: 2;
+    }
+    .dark-preview::before {
+      content: "SIDEBAR DARK";
+      position: absolute;
+      top: 10px; right: 12px;
+      font-family: var(--font-mono);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: var(--muted-dark);
+      z-index: 2;
+    }
+
+    .sidebar-inner,
+    .dark-inner {
+      padding: 16px 14px;
+      min-height: 168px;
+    }
+    .sidebar-inner { background: var(--sidebar-bg); }
+    .dark-inner    { background: var(--sidebar-bg-dark); }
+
+    .sidebar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 4px 4px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+    .dark-inner .sidebar-brand { border-bottom-color: var(--border-dark); }
+    .sidebar-brand .mark {
+      width: 28px;
+      height: 28px;
+      display: block;
+    }
+    .sidebar-inner .sidebar-brand .mark { color: var(--ink); }
+    .dark-inner .sidebar-brand .mark    { color: var(--ink-dark); }
+    .sidebar-brand .wordmark {
+      font-family: var(--font-sans);
+      font-size: 14px;
+      font-weight: 500;
+      letter-spacing: -0.014em;
+      line-height: 1;
+      margin-top: 1px;
+    }
+    .sidebar-inner .sidebar-brand .wordmark { color: var(--ink); }
+    .dark-inner .sidebar-brand .wordmark    { color: var(--ink-dark); }
+
+    .sidebar-items {
+      padding: 12px 4px 4px;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .sidebar-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      height: 28px;
+      padding: 0 8px;
+      font-size: 13px;
+      border-radius: 4px;
+      position: relative;
+    }
+    .sidebar-inner .sidebar-item { color: var(--ink-soft); }
+    .dark-inner .sidebar-item    { color: var(--muted-dark); }
+    .sidebar-item.active { background: var(--surface-2); }
+    .sidebar-inner .sidebar-item.active { color: var(--ink); }
+    .dark-inner .sidebar-item.active {
+      background: oklch(21% 0.006 286);
+      color: var(--ink-dark);
+    }
+    .sidebar-item.active::before {
+      content: "";
+      position: absolute;
+      left: -4px;
+      top: 6px;
+      bottom: 6px;
+      width: 2px;
+      background: var(--accent);
+      border-radius: 1px;
+    }
+    .dark-inner .sidebar-item.active::before { background: oklch(66% 0.075 210); }
+    .sidebar-item .dot {
+      width: 4px;
+      height: 4px;
+      border-radius: 50%;
+      background: var(--muted);
+      flex-shrink: 0;
+    }
+    .dark-inner .sidebar-item .dot { background: var(--muted-dark); }
+
+    .footer {
+      margin-top: 48px;
+      padding-top: 32px;
+      border-top: 1px solid var(--ink);
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 32px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      letter-spacing: 0.02em;
+      color: var(--muted);
+      line-height: 1.7;
+    }
+    .footer strong {
+      display: block;
+      color: var(--ink);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 8px;
+    }
+    .footer em {
+      font-style: normal;
+      color: var(--ink);
+    }
+    .footer code {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      background: var(--surface-2);
+      padding: 0 4px;
+      border-radius: 3px;
+      color: var(--ink);
+    }
+
+    /* Provenance overlay styles */
+    .gen-stroke { stroke: var(--accent); stroke-width: 0.45; stroke-dasharray: 1.2 1.4; fill: none; opacity: 0.55; }
+    .gen-axis   { stroke: var(--accent); stroke-width: 0.4;  stroke-dasharray: 0.6 0.9; fill: none; opacity: 0.45; }
+    .gen-dot    { fill: var(--accent); opacity: 0.7; }
+
+    @media (max-width: 1024px) {
+      .plate { padding: 32px 24px 64px; }
+      .titleblock { grid-template-columns: 1fr; text-align: left; }
+      .titleblock h1, .titleblock .right { text-align: left; }
+      .intro, .footer { grid-template-columns: 1fr; gap: 24px; }
+      .matrix { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+      .concept-head { grid-template-columns: 60px 1fr; }
+      .concept-meta { grid-column: 1 / -1; }
+      .display-row, .applied-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════════════════════════════════════════════════════════════
+       Symbol definitions
+       viewBox 24×24, centro (12,12). Petalo base vesica r=5 da (0,-10) a (0,-2).
+       ═══════════════════════════════════════════════════════════════════ -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+
+      <!-- ─── 06 TRIFOGLIO — 3 petali a 120° (trinità) ─────────── -->
+      <symbol id="mark-trifoglio" viewBox="0 0 24 24">
+        <g transform="translate(12 12)">
+          <path d="M 0 -10 A 5 5 0 0 1 0 -2 A 5 5 0 0 1 0 -10 Z" fill="currentColor"/>
+          <path d="M 0 -10 A 5 5 0 0 1 0 -2 A 5 5 0 0 1 0 -10 Z" fill="currentColor" transform="rotate(120)"/>
+          <path d="M 0 -10 A 5 5 0 0 1 0 -2 A 5 5 0 0 1 0 -10 Z" fill="currentColor" transform="rotate(240)"/>
+        </g>
+      </symbol>
+      <symbol id="prov-trifoglio" viewBox="0 0 24 24">
+        <g transform="translate(12 12)">
+          <g class="gen-stroke"><circle r="10"/><circle r="2"/></g>
+          <g class="gen-axis">
+            <line x1="0" y1="-11" x2="0" y2="11"/>
+            <line x1="0" y1="-11" x2="0" y2="11" transform="rotate(120)"/>
+            <line x1="0" y1="-11" x2="0" y2="11" transform="rotate(240)"/>
+          </g>
+          <circle class="gen-dot" r="0.55"/>
+          <path d="M 0 -10 A 5 5 0 0 1 0 -2 A 5 5 0 0 1 0 -10 Z" fill="currentColor"/>
+          <path d="M 0 -10 A 5 5 0 0 1 0 -2 A 5 5 0 0 1 0 -10 Z" fill="currentColor" transform="rotate(120)"/>
+          <path d="M 0 -10 A 5 5 0 0 1 0 -2 A 5 5 0 0 1 0 -10 Z" fill="currentColor" transform="rotate(240)"/>
+        </g>
+      </symbol>
+
+      <!-- ─── 07 MANDORLA — vesica piscis verticale con cavo interno ─ -->
+      <symbol id="mark-mandorla" viewBox="0 0 24 24">
+        <g transform="translate(12 12)">
+          <path fill="currentColor" fill-rule="evenodd" d="
+            M 0 -10 A 11.5 11.5 0 0 1 0 10 A 11.5 11.5 0 0 1 0 -10 Z
+            M 0 -5  A 6 6 0 0 1 0 5    A 6 6 0 0 1 0 -5 Z
+          "/>
+        </g>
+      </symbol>
+      <symbol id="prov-mandorla" viewBox="0 0 24 24">
+        <g transform="translate(12 12)">
+          <g class="gen-stroke">
+            <circle cx="-5.75" cy="0" r="11.5"/>
+            <circle cx="5.75"  cy="0" r="11.5"/>
+          </g>
+          <g class="gen-axis">
+            <line x1="0" y1="-11" x2="0" y2="11"/>
+            <line x1="-11" y1="0" x2="11" y2="0"/>
+          </g>
+          <circle class="gen-dot" r="0.55"/>
+          <path fill="currentColor" fill-rule="evenodd" d="
+            M 0 -10 A 11.5 11.5 0 0 1 0 10 A 11.5 11.5 0 0 1 0 -10 Z
+            M 0 -5  A 6 6 0 0 1 0 5    A 6 6 0 0 1 0 -5 Z
+          "/>
+        </g>
+      </symbol>
+
+      <!-- ─── 08 VOLUTE — spirale ionica (capitello) ──────────────── -->
+      <symbol id="mark-volute" viewBox="0 0 24 24">
+        <g transform="translate(12 12)" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M 8 0
+                   A 7.5 7.5 0 0 0 -7 0
+                   A 6.5 6.5 0 0 1  6 0
+                   A 5.5 5.5 0 0 0 -5 0
+                   A 4.5 4.5 0 0 1  4 0
+                   A 3.5 3.5 0 0 0 -3 0
+                   A 2.5 2.5 0 0 1  2 0
+                   A 1.5 1.5 0 0 0 -1 0
+                   A 0.5 0.5 0 0 1  0 0"/>
+        </g>
+      </symbol>
+      <symbol id="prov-volute" viewBox="0 0 24 24">
+        <g transform="translate(12 12)">
+          <g class="gen-stroke">
+            <circle r="8"/>
+            <circle r="4"/>
+          </g>
+          <g class="gen-axis">
+            <line x1="-11" y1="0" x2="11" y2="0"/>
+            <line x1="0" y1="-11" x2="0" y2="11"/>
+          </g>
+          <circle class="gen-dot" r="0.55"/>
+          <g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M 8 0
+                     A 7.5 7.5 0 0 0 -7 0
+                     A 6.5 6.5 0 0 1  6 0
+                     A 5.5 5.5 0 0 0 -5 0
+                     A 4.5 4.5 0 0 1  4 0
+                     A 3.5 3.5 0 0 0 -3 0
+                     A 2.5 2.5 0 0 1  2 0
+                     A 1.5 1.5 0 0 0 -1 0
+                     A 0.5 0.5 0 0 1  0 0"/>
+          </g>
+        </g>
+      </symbol>
+
+      <!-- ─── 09 TRIQUETRA — 3 vesica intrecciate (nodo) ──────────── -->
+      <symbol id="mark-triquetra" viewBox="0 0 24 24">
+        <g transform="translate(12 12)" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round">
+          <ellipse cx="0" cy="-4" rx="3" ry="6"/>
+          <ellipse cx="0" cy="-4" rx="3" ry="6" transform="rotate(120)"/>
+          <ellipse cx="0" cy="-4" rx="3" ry="6" transform="rotate(240)"/>
+        </g>
+      </symbol>
+      <symbol id="prov-triquetra" viewBox="0 0 24 24">
+        <g transform="translate(12 12)">
+          <g class="gen-stroke">
+            <circle r="10"/>
+          </g>
+          <g class="gen-axis">
+            <line x1="0" y1="-11" x2="0" y2="11"/>
+            <line x1="0" y1="-11" x2="0" y2="11" transform="rotate(120)"/>
+            <line x1="0" y1="-11" x2="0" y2="11" transform="rotate(240)"/>
+          </g>
+          <circle class="gen-dot" r="0.55"/>
+          <g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round" stroke-linecap="round">
+            <ellipse cx="0" cy="-4" rx="3" ry="6"/>
+            <ellipse cx="0" cy="-4" rx="3" ry="6" transform="rotate(120)"/>
+            <ellipse cx="0" cy="-4" rx="3" ry="6" transform="rotate(240)"/>
+          </g>
+        </g>
+      </symbol>
+
+      <!-- ─── 10 SOL — disco solare + 8 raggi triangolari ─────────── -->
+      <symbol id="mark-sol" viewBox="0 0 24 24">
+        <g transform="translate(12 12)">
+          <circle r="4" fill="currentColor"/>
+          <g fill="currentColor">
+            <path d="M -0.8 -5.6 L 0 -10 L 0.8 -5.6 Z"/>
+            <path d="M -0.8 -5.6 L 0 -10 L 0.8 -5.6 Z" transform="rotate(45)"/>
+            <path d="M -0.8 -5.6 L 0 -10 L 0.8 -5.6 Z" transform="rotate(90)"/>
+            <path d="M -0.8 -5.6 L 0 -10 L 0.8 -5.6 Z" transform="rotate(135)"/>
+            <path d="M -0.8 -5.6 L 0 -10 L 0.8 -5.6 Z" transform="rotate(180)"/>
+            <path d="M -0.8 -5.6 L 0 -10 L 0.8 -5.6 Z" transform="rotate(225)"/>
+            <path d="M -0.8 -5.6 L 0 -10 L 0.8 -5.6 Z" transform="rotate(270)"/>
+            <path d="M -0.8 -5.6 L 0 -10 L 0.8 -5.6 Z" transform="rotate(315)"/>
+          </g>
+        </g>
+      </symbol>
+      <symbol id="prov-sol" viewBox="0 0 24 24">
+        <g transform="translate(12 12)">
+          <g class="gen-stroke">
+            <circle r="10"/>
+            <circle r="4"/>
+            <circle r="5.6"/>
+          </g>
+          <g class="gen-axis">
+            <line x1="0" y1="-11" x2="0" y2="11"/>
+            <line x1="0" y1="-11" x2="0" y2="11" transform="rotate(45)"/>
+            <line x1="0" y1="-11" x2="0" y2="11" transform="rotate(90)"/>
+            <line x1="0" y1="-11" x2="0" y2="11" transform="rotate(135)"/>
+          </g>
+          <circle class="gen-dot" r="0.55"/>
+          <circle r="4" fill="currentColor"/>
+          <g fill="currentColor">
+            <path d="M -0.8 -5.6 L 0 -10 L 0.8 -5.6 Z"/>
+            <path d="M -0.8 -5.6 L 0 -10 L 0.8 -5.6 Z" transform="rotate(45)"/>
+            <path d="M -0.8 -5.6 L 0 -10 L 0.8 -5.6 Z" transform="rotate(90)"/>
+            <path d="M -0.8 -5.6 L 0 -10 L 0.8 -5.6 Z" transform="rotate(135)"/>
+            <path d="M -0.8 -5.6 L 0 -10 L 0.8 -5.6 Z" transform="rotate(180)"/>
+            <path d="M -0.8 -5.6 L 0 -10 L 0.8 -5.6 Z" transform="rotate(225)"/>
+            <path d="M -0.8 -5.6 L 0 -10 L 0.8 -5.6 Z" transform="rotate(270)"/>
+            <path d="M -0.8 -5.6 L 0 -10 L 0.8 -5.6 Z" transform="rotate(315)"/>
+          </g>
+        </g>
+      </symbol>
+
+    </defs>
+  </svg>
+
+  <main class="plate">
+
+    <header class="titleblock">
+      <div class="left">
+        <strong>Foglio F.04</strong>
+        Famiglia organica · 5 archetipi<br>
+        Scala: nominale 24×24
+      </div>
+      <h1>Studiofinance · organici</h1>
+      <div class="right">
+        <strong>26.05.26</strong>
+        Continuazione di <code style="font-family:var(--font-mono)">F.03</code><br>
+        Asse: oggetto singolo organico
+      </div>
+    </header>
+
+    <div class="crumb">
+      <div>
+        <span class="pill">F.03</span>&nbsp;&nbsp;rosone — 5 varianti (Quatrefoil, Rosone VI, Nucleo, Anello, Spicchi) →
+        <a href="logo-explorations.html">apri foglio precedente</a>
+      </div>
+      <div>F.04 di 04</div>
+    </div>
+
+    <section class="intro">
+      <div>
+        <h3>Continuità</h3>
+        <p>F.03 ha confermato il rosone come direzione (preferenza per <em>Nucleo</em> e <em>Quatrefoil</em>). F.04 non ne abbandona la logica — stesso DNA, stesso peso visivo — ma allarga il vocabolario a forme <em>cugine</em>: archetipi a oggetto singolo che condividono la grammatica simmetrico-geometrica del rosone senza esserne una variante diretta.</p>
+      </div>
+      <div>
+        <h3>Riferimenti</h3>
+        <p>Trifoglio celtico, vesica piscis di Sainte-Marie, capitello ionico di Vitruvio, triquetra di Kells, sigillo solare romanico. Tutti motivi pre-industriali — strumento del compasso, non del calcolatore — ma resi in geometria pulita, alla maniera dei marchi tecnologici contemporanei (Linear, Vercel, Claude).</p>
+      </div>
+      <div>
+        <h3>Lettura</h3>
+        <p>Ogni variante isola un'asse: <em>simmetria 3-fold</em>, <em>oggetto cavo</em>, <em>traccia continua</em>, <em>intreccio</em>, <em>radiazione</em>. Stress 16 px rimane il giudice — il <em>marchio</em> deve resistere a favicon. Sotto, matrice a colpo d'occhio, poi schede dettaglio.</p>
+      </div>
+    </section>
+
+    <!-- ═══════════ MATRICE ═══════════ -->
+    <div class="matrix">
+      <div class="matrix-cell">
+        <svg viewBox="0 0 24 24" width="64" height="64" class="row-32"><use href="#mark-trifoglio"/></svg>
+        <div class="matrix-row">
+          <svg viewBox="0 0 24 24" width="24" height="24"><use href="#mark-trifoglio"/></svg>
+          <svg viewBox="0 0 24 24" width="16" height="16"><use href="#mark-trifoglio"/></svg>
+        </div>
+        <div class="label"><strong>N.06 Trifoglio</strong>3 petali · trinità</div>
+      </div>
+      <div class="matrix-cell">
+        <svg viewBox="0 0 24 24" width="64" height="64" class="row-32"><use href="#mark-mandorla"/></svg>
+        <div class="matrix-row">
+          <svg viewBox="0 0 24 24" width="24" height="24"><use href="#mark-mandorla"/></svg>
+          <svg viewBox="0 0 24 24" width="16" height="16"><use href="#mark-mandorla"/></svg>
+        </div>
+        <div class="label"><strong>N.07 Mandorla</strong>vesica · oggetto cavo</div>
+      </div>
+      <div class="matrix-cell">
+        <svg viewBox="0 0 24 24" width="64" height="64" class="row-32"><use href="#mark-volute"/></svg>
+        <div class="matrix-row">
+          <svg viewBox="0 0 24 24" width="24" height="24"><use href="#mark-volute"/></svg>
+          <svg viewBox="0 0 24 24" width="16" height="16"><use href="#mark-volute"/></svg>
+        </div>
+        <div class="label"><strong>N.08 Volute</strong>spirale · architettonico</div>
+      </div>
+      <div class="matrix-cell">
+        <svg viewBox="0 0 24 24" width="64" height="64" class="row-32"><use href="#mark-triquetra"/></svg>
+        <div class="matrix-row">
+          <svg viewBox="0 0 24 24" width="24" height="24"><use href="#mark-triquetra"/></svg>
+          <svg viewBox="0 0 24 24" width="16" height="16"><use href="#mark-triquetra"/></svg>
+        </div>
+        <div class="label"><strong>N.09 Triquetra</strong>nodo · intreccio</div>
+      </div>
+      <div class="matrix-cell">
+        <svg viewBox="0 0 24 24" width="64" height="64" class="row-32"><use href="#mark-sol"/></svg>
+        <div class="matrix-row">
+          <svg viewBox="0 0 24 24" width="24" height="24"><use href="#mark-sol"/></svg>
+          <svg viewBox="0 0 24 24" width="16" height="16"><use href="#mark-sol"/></svg>
+        </div>
+        <div class="label"><strong>N.10 Sol</strong>raggio · radiazione</div>
+      </div>
+    </div>
+
+    <!-- ═════════════════════════════════════════════════
+         06 — TRIFOGLIO
+         ═════════════════════════════════════════════════ -->
+    <article class="concept" id="c06">
+      <div class="concept-head">
+        <div class="concept-num">N.06</div>
+        <div class="concept-title">
+          <h2>Trifoglio</h2>
+          <div class="sub">3 petali a 120° · trinità organica</div>
+          <div class="concept-body">
+            <p>Stesso petalo vesica del Quatrefoil di F.03 (r=5, larghezza 4 unità), ma distribuito su 3 punti cardinali invece di 4. La riduzione di un petalo cambia carattere: meno «ufficiale», più <em>botanico</em> — vicino al <em>trefoil</em> celtico delle finestre Sainte-Chapelle e al simbolismo trinitario. Lascia molto respiro: tre lobi separati da gap di ~73°, perfettamente leggibili anche a 16 px. Variante minimale del rosone.</p>
+          </div>
+        </div>
+        <dl class="concept-meta">
+          <dl><dt>Petali</dt><dd>3 × vesica r=5</dd></dl>
+          <dl><dt>Rotazione</dt><dd>120°</dd></dl>
+          <dl><dt>Gap angolare</dt><dd>~73° fra petali</dd></dl>
+          <dl><dt>R esterno</dt><dd>10 unità</dd></dl>
+        </dl>
+      </div>
+
+      <div class="display-row">
+        <div class="panel">
+          <span class="panel-label">marchio</span>
+          <svg viewBox="0 0 24 24" width="192" height="192"><use href="#mark-trifoglio"/></svg>
+        </div>
+        <div class="panel">
+          <span class="panel-label right">provenienza</span>
+          <svg viewBox="0 0 24 24" width="192" height="192"><use href="#prov-trifoglio"/></svg>
+        </div>
+      </div>
+
+      <div class="applied-row">
+        <div class="sizes">
+          <div class="size-cell"><svg viewBox="0 0 24 24" width="32" height="32"><use href="#mark-trifoglio"/></svg><span class="px">32 px</span></div>
+          <div class="size-cell"><svg viewBox="0 0 24 24" width="24" height="24"><use href="#mark-trifoglio"/></svg><span class="px">24 px · sidebar</span></div>
+          <div class="size-cell"><svg viewBox="0 0 24 24" width="16" height="16"><use href="#mark-trifoglio"/></svg><span class="px">16 px · favicon</span></div>
+        </div>
+
+        <div class="sidebar-preview">
+          <div class="sidebar-inner">
+            <div class="sidebar-brand">
+              <svg class="mark" viewBox="0 0 24 24"><use href="#mark-trifoglio"/></svg>
+              <span class="wordmark">Studiofinance</span>
+            </div>
+            <nav class="sidebar-items">
+              <div class="sidebar-item active"><span class="dot"></span>Dashboard</div>
+              <div class="sidebar-item"><span class="dot"></span>Anno corrente</div>
+              <div class="sidebar-item"><span class="dot"></span>Fatture</div>
+              <div class="sidebar-item"><span class="dot"></span>Scadenze</div>
+            </nav>
+          </div>
+        </div>
+
+        <div class="dark-preview">
+          <div class="dark-inner">
+            <div class="sidebar-brand">
+              <svg class="mark" viewBox="0 0 24 24"><use href="#mark-trifoglio"/></svg>
+              <span class="wordmark">Studiofinance</span>
+            </div>
+            <nav class="sidebar-items">
+              <div class="sidebar-item active"><span class="dot"></span>Dashboard</div>
+              <div class="sidebar-item"><span class="dot"></span>Anno corrente</div>
+              <div class="sidebar-item"><span class="dot"></span>Fatture</div>
+              <div class="sidebar-item"><span class="dot"></span>Scadenze</div>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ═════════════════════════════════════════════════
+         07 — MANDORLA
+         ═════════════════════════════════════════════════ -->
+    <article class="concept" id="c07">
+      <div class="concept-head">
+        <div class="concept-num">N.07</div>
+        <div class="concept-title">
+          <h2>Mandorla</h2>
+          <div class="sub">vesica piscis verticale · oggetto cavo</div>
+          <div class="concept-body">
+            <p>L'<em>almond</em> della geometria sacra: due archi tangenti che generano una lente verticale, qui ridisegnata come <em>anello</em> mandorlato (cavo interno con regola <em>even-odd</em>). È il marchio più <em>minimale</em> della famiglia — un solo oggetto, una sola asse, zero ripetizione. Eco del pesce ittico cristiano e dell'aureola romanica, ma neutralizzato in forma geometrica pura. Funziona benissimo a 24 px; a 16 px lo spessore dell'anello scende a ~1.7 px — borderline, da calibrare.</p>
+          </div>
+        </div>
+        <dl class="concept-meta">
+          <dl><dt>Forma</dt><dd>vesica piscis verticale</dd></dl>
+          <dl><dt>R archi esterni</dt><dd>11.5 unità</dd></dl>
+          <dl><dt>R archi interni</dt><dd>6 unità</dd></dl>
+          <dl><dt>Altezza ÷ largh.</dt><dd>~1.9 (√3 approx)</dd></dl>
+        </dl>
+      </div>
+
+      <div class="display-row">
+        <div class="panel">
+          <span class="panel-label">marchio</span>
+          <svg viewBox="0 0 24 24" width="192" height="192"><use href="#mark-mandorla"/></svg>
+        </div>
+        <div class="panel">
+          <span class="panel-label right">provenienza</span>
+          <svg viewBox="0 0 24 24" width="192" height="192"><use href="#prov-mandorla"/></svg>
+        </div>
+      </div>
+
+      <div class="applied-row">
+        <div class="sizes">
+          <div class="size-cell"><svg viewBox="0 0 24 24" width="32" height="32"><use href="#mark-mandorla"/></svg><span class="px">32 px</span></div>
+          <div class="size-cell"><svg viewBox="0 0 24 24" width="24" height="24"><use href="#mark-mandorla"/></svg><span class="px">24 px · sidebar</span></div>
+          <div class="size-cell"><svg viewBox="0 0 24 24" width="16" height="16"><use href="#mark-mandorla"/></svg><span class="px">16 px · favicon</span></div>
+        </div>
+
+        <div class="sidebar-preview">
+          <div class="sidebar-inner">
+            <div class="sidebar-brand">
+              <svg class="mark" viewBox="0 0 24 24"><use href="#mark-mandorla"/></svg>
+              <span class="wordmark">Studiofinance</span>
+            </div>
+            <nav class="sidebar-items">
+              <div class="sidebar-item active"><span class="dot"></span>Dashboard</div>
+              <div class="sidebar-item"><span class="dot"></span>Anno corrente</div>
+              <div class="sidebar-item"><span class="dot"></span>Fatture</div>
+              <div class="sidebar-item"><span class="dot"></span>Scadenze</div>
+            </nav>
+          </div>
+        </div>
+
+        <div class="dark-preview">
+          <div class="dark-inner">
+            <div class="sidebar-brand">
+              <svg class="mark" viewBox="0 0 24 24"><use href="#mark-mandorla"/></svg>
+              <span class="wordmark">Studiofinance</span>
+            </div>
+            <nav class="sidebar-items">
+              <div class="sidebar-item active"><span class="dot"></span>Dashboard</div>
+              <div class="sidebar-item"><span class="dot"></span>Anno corrente</div>
+              <div class="sidebar-item"><span class="dot"></span>Fatture</div>
+              <div class="sidebar-item"><span class="dot"></span>Scadenze</div>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ═════════════════════════════════════════════════
+         08 — VOLUTE
+         ═════════════════════════════════════════════════ -->
+    <article class="concept" id="c08">
+      <div class="concept-head">
+        <div class="concept-num">N.08</div>
+        <div class="concept-title">
+          <h2>Volute</h2>
+          <div class="sub">spirale ionica · traccia continua</div>
+          <div class="concept-body">
+            <p>Riferimento al <em>capitello ionico</em> e al volute decorativo greco-romano (Eretteo, Vitruvio): una singola traccia che si avvolge verso il centro. Costruita su 7 semicerchi alternati con raggio in progressione aritmetica (7.5 → 0.5), centri spostati di ±0.5 sull'asse — questa è l'asimmetria che dà l'effetto "occhio" del volute. Riccio architettonico, non floreale: lega bene al sottotesto «commercialista come architetto dei conti». Il rischio a 16 px è la perdita di un giro interno.</p>
+          </div>
+        </div>
+        <dl class="concept-meta">
+          <dl><dt>Giri</dt><dd>3.5</dd></dl>
+          <dl><dt>Archi</dt><dd>8 semicerchi alternati</dd></dl>
+          <dl><dt>R massimo / minimo</dt><dd>7.5 / 0.5 unità</dd></dl>
+          <dl><dt>Stroke</dt><dd>1.9 unità</dd></dl>
+        </dl>
+      </div>
+
+      <div class="display-row">
+        <div class="panel">
+          <span class="panel-label">marchio</span>
+          <svg viewBox="0 0 24 24" width="192" height="192"><use href="#mark-volute"/></svg>
+        </div>
+        <div class="panel">
+          <span class="panel-label right">provenienza</span>
+          <svg viewBox="0 0 24 24" width="192" height="192"><use href="#prov-volute"/></svg>
+        </div>
+      </div>
+
+      <div class="applied-row">
+        <div class="sizes">
+          <div class="size-cell"><svg viewBox="0 0 24 24" width="32" height="32"><use href="#mark-volute"/></svg><span class="px">32 px</span></div>
+          <div class="size-cell"><svg viewBox="0 0 24 24" width="24" height="24"><use href="#mark-volute"/></svg><span class="px">24 px · sidebar</span></div>
+          <div class="size-cell"><svg viewBox="0 0 24 24" width="16" height="16"><use href="#mark-volute"/></svg><span class="px">16 px · favicon</span></div>
+        </div>
+
+        <div class="sidebar-preview">
+          <div class="sidebar-inner">
+            <div class="sidebar-brand">
+              <svg class="mark" viewBox="0 0 24 24"><use href="#mark-volute"/></svg>
+              <span class="wordmark">Studiofinance</span>
+            </div>
+            <nav class="sidebar-items">
+              <div class="sidebar-item active"><span class="dot"></span>Dashboard</div>
+              <div class="sidebar-item"><span class="dot"></span>Anno corrente</div>
+              <div class="sidebar-item"><span class="dot"></span>Fatture</div>
+              <div class="sidebar-item"><span class="dot"></span>Scadenze</div>
+            </nav>
+          </div>
+        </div>
+
+        <div class="dark-preview">
+          <div class="dark-inner">
+            <div class="sidebar-brand">
+              <svg class="mark" viewBox="0 0 24 24"><use href="#mark-volute"/></svg>
+              <span class="wordmark">Studiofinance</span>
+            </div>
+            <nav class="sidebar-items">
+              <div class="sidebar-item active"><span class="dot"></span>Dashboard</div>
+              <div class="sidebar-item"><span class="dot"></span>Anno corrente</div>
+              <div class="sidebar-item"><span class="dot"></span>Fatture</div>
+              <div class="sidebar-item"><span class="dot"></span>Scadenze</div>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ═════════════════════════════════════════════════
+         09 — TRIQUETRA
+         ═════════════════════════════════════════════════ -->
+    <article class="concept" id="c09">
+      <div class="concept-head">
+        <div class="concept-num">N.09</div>
+        <div class="concept-title">
+          <h2>Triquetra</h2>
+          <div class="sub">nodo trino · intreccio celtico</div>
+          <div class="concept-body">
+            <p>Tre vesica ellittiche ruotate a 120° attorno a un punto offset (cy=-4), così che ogni ellisse abbia il proprio centro fuori dall'origine ma tutte si incrocino al centro. Lo stroke continuo (1.9 unità) restituisce l'effetto <em>intreccio</em> dei nodi celtici di Kells, senza dover gestire reali sovra/sotto-passaggi. È la variante più <em>simbolica</em> della famiglia: parla di legame, di triade, di equilibrio dinamico — letto subito come «marchio premuroso», più caldo del rosone puro.</p>
+          </div>
+        </div>
+        <dl class="concept-meta">
+          <dl><dt>Ellissi</dt><dd>3 × rx=3, ry=6</dd></dl>
+          <dl><dt>Offset centri</dt><dd>cy=-4 prima di rotare</dd></dl>
+          <dl><dt>Rotazione</dt><dd>120°</dd></dl>
+          <dl><dt>Stroke</dt><dd>1.9 unità, joined round</dd></dl>
+        </dl>
+      </div>
+
+      <div class="display-row">
+        <div class="panel">
+          <span class="panel-label">marchio</span>
+          <svg viewBox="0 0 24 24" width="192" height="192"><use href="#mark-triquetra"/></svg>
+        </div>
+        <div class="panel">
+          <span class="panel-label right">provenienza</span>
+          <svg viewBox="0 0 24 24" width="192" height="192"><use href="#prov-triquetra"/></svg>
+        </div>
+      </div>
+
+      <div class="applied-row">
+        <div class="sizes">
+          <div class="size-cell"><svg viewBox="0 0 24 24" width="32" height="32"><use href="#mark-triquetra"/></svg><span class="px">32 px</span></div>
+          <div class="size-cell"><svg viewBox="0 0 24 24" width="24" height="24"><use href="#mark-triquetra"/></svg><span class="px">24 px · sidebar</span></div>
+          <div class="size-cell"><svg viewBox="0 0 24 24" width="16" height="16"><use href="#mark-triquetra"/></svg><span class="px">16 px · favicon</span></div>
+        </div>
+
+        <div class="sidebar-preview">
+          <div class="sidebar-inner">
+            <div class="sidebar-brand">
+              <svg class="mark" viewBox="0 0 24 24"><use href="#mark-triquetra"/></svg>
+              <span class="wordmark">Studiofinance</span>
+            </div>
+            <nav class="sidebar-items">
+              <div class="sidebar-item active"><span class="dot"></span>Dashboard</div>
+              <div class="sidebar-item"><span class="dot"></span>Anno corrente</div>
+              <div class="sidebar-item"><span class="dot"></span>Fatture</div>
+              <div class="sidebar-item"><span class="dot"></span>Scadenze</div>
+            </nav>
+          </div>
+        </div>
+
+        <div class="dark-preview">
+          <div class="dark-inner">
+            <div class="sidebar-brand">
+              <svg class="mark" viewBox="0 0 24 24"><use href="#mark-triquetra"/></svg>
+              <span class="wordmark">Studiofinance</span>
+            </div>
+            <nav class="sidebar-items">
+              <div class="sidebar-item active"><span class="dot"></span>Dashboard</div>
+              <div class="sidebar-item"><span class="dot"></span>Anno corrente</div>
+              <div class="sidebar-item"><span class="dot"></span>Fatture</div>
+              <div class="sidebar-item"><span class="dot"></span>Scadenze</div>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ═════════════════════════════════════════════════
+         10 — SOL
+         ═════════════════════════════════════════════════ -->
+    <article class="concept" id="c10">
+      <div class="concept-head">
+        <div class="concept-num">N.10</div>
+        <div class="concept-title">
+          <h2>Sol</h2>
+          <div class="sub">disco + raggi radiali · sigillo solare</div>
+          <div class="concept-body">
+            <p>Disco solido centrale (r=4) con 8 raggi triangolari piccoli (base 1.6, lunghezza 4.4 unità) staccati da un anello di luce. È il marchio più <em>affermativo</em> della famiglia — vicino ai sigilli solari romanici, alla rosa dei venti, al sole sui frontespizi rinascimentali. Lettura immediata di <em>chiarezza, trasparenza, illuminazione</em>: registro semantico ideale per un commercialista. Stress test: a 16 px i raggi triangolari rischiano di chiudersi sul disco; il gap (1.6 unità) è il margine critico.</p>
+          </div>
+        </div>
+        <dl class="concept-meta">
+          <dl><dt>Disco</dt><dd>r=4, solid fill</dd></dl>
+          <dl><dt>Raggi</dt><dd>8 × triangolo</dd></dl>
+          <dl><dt>Raggio raggi</dt><dd>5.6 → 10 unità</dd></dl>
+          <dl><dt>Gap disco-raggi</dt><dd>1.6 unità</dd></dl>
+        </dl>
+      </div>
+
+      <div class="display-row">
+        <div class="panel">
+          <span class="panel-label">marchio</span>
+          <svg viewBox="0 0 24 24" width="192" height="192"><use href="#mark-sol"/></svg>
+        </div>
+        <div class="panel">
+          <span class="panel-label right">provenienza</span>
+          <svg viewBox="0 0 24 24" width="192" height="192"><use href="#prov-sol"/></svg>
+        </div>
+      </div>
+
+      <div class="applied-row">
+        <div class="sizes">
+          <div class="size-cell"><svg viewBox="0 0 24 24" width="32" height="32"><use href="#mark-sol"/></svg><span class="px">32 px</span></div>
+          <div class="size-cell"><svg viewBox="0 0 24 24" width="24" height="24"><use href="#mark-sol"/></svg><span class="px">24 px · sidebar</span></div>
+          <div class="size-cell"><svg viewBox="0 0 24 24" width="16" height="16"><use href="#mark-sol"/></svg><span class="px">16 px · favicon</span></div>
+        </div>
+
+        <div class="sidebar-preview">
+          <div class="sidebar-inner">
+            <div class="sidebar-brand">
+              <svg class="mark" viewBox="0 0 24 24"><use href="#mark-sol"/></svg>
+              <span class="wordmark">Studiofinance</span>
+            </div>
+            <nav class="sidebar-items">
+              <div class="sidebar-item active"><span class="dot"></span>Dashboard</div>
+              <div class="sidebar-item"><span class="dot"></span>Anno corrente</div>
+              <div class="sidebar-item"><span class="dot"></span>Fatture</div>
+              <div class="sidebar-item"><span class="dot"></span>Scadenze</div>
+            </nav>
+          </div>
+        </div>
+
+        <div class="dark-preview">
+          <div class="dark-inner">
+            <div class="sidebar-brand">
+              <svg class="mark" viewBox="0 0 24 24"><use href="#mark-sol"/></svg>
+              <span class="wordmark">Studiofinance</span>
+            </div>
+            <nav class="sidebar-items">
+              <div class="sidebar-item active"><span class="dot"></span>Dashboard</div>
+              <div class="sidebar-item"><span class="dot"></span>Anno corrente</div>
+              <div class="sidebar-item"><span class="dot"></span>Fatture</div>
+              <div class="sidebar-item"><span class="dot"></span>Scadenze</div>
+            </nav>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <footer class="footer">
+      <div>
+        <strong>Top picks F.04</strong>
+        <em>N.07 Mandorla</em> per radicalità — un solo oggetto, un solo gesto, niente da semplificare. Più «marchio fine art» che software, ma su una sidebar Studiofinance funziona.<br><br>
+        <em>N.09 Triquetra</em> per calore umano — l'intreccio aggiunge una qualità che il rosone puro non ha: parla di relazione, non solo di proporzione.<br><br>
+        <em>N.06 Trifoglio</em> se si vuole il rosone «più aerato», ridotto a 3 punti — silhouette più memorizzabile di N.03 Nucleo.
+      </div>
+      <div>
+        <strong>Stress 16 px</strong>
+        Trifoglio → perfetto, 3 lobi ampi e ben separati.<br><br>
+        Mandorla → tiene, ma l'anello scende a ~1.7 px: rischio scomparsa cavo, calibrare manualmente lo spessore.<br><br>
+        Volute → l'ultimo giro interno fonde col precedente; accettabile, lettura "spirale" resta intatta.<br><br>
+        Triquetra → i tre incroci si chiudono parzialmente, lo stroke 1.9 mantiene continuità.<br><br>
+        Sol → i raggi triangolari rischiano di toccarsi col disco; un disco r=3.5 invece di 4 dà più respiro a 16 px.
+      </div>
+      <div>
+        <strong>Confronto con F.03</strong>
+        <em>Trifoglio</em> è cugino diretto di Quatrefoil (1 petalo in meno).<br>
+        <em>Mandorla</em> isola il <em>petalo</em> stesso del rosone come oggetto.<br>
+        <em>Volute</em> rompe la simmetria radiale — è la variante più <em>narrativa</em>.<br>
+        <em>Triquetra</em> introduce <em>traccia stroked</em> dove F.03 era solo solid.<br>
+        <em>Sol</em> sostituisce il petalo curvo con il raggio retto.<br><br>
+        Asse implicita F.03→F.04: da <em>simmetria piena</em> (8/6/5 fold) a <em>simmetria ridotta + carattere</em> (3 fold, mono, spirale).
+      </div>
+    </footer>
+
+  </main>
+</body>
+</html>

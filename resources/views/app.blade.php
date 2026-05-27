@@ -19,14 +19,15 @@
             })();
         </script>
 
-        {{-- Inline style to set the HTML background color based on our theme in app.css --}}
+        {{-- Inline style: set HTML background to match the theme zinc tokens
+             (anti-FOUC). Valori allineati a :root / .dark di app.css. --}}
         <style>
             html {
-                background-color: oklch(1 0 0);
+                background-color: oklch(98.5% 0.001 286);
             }
 
             html.dark {
-                background-color: oklch(0.145 0 0);
+                background-color: oklch(14.5% 0.003 286);
             }
         </style>
 
@@ -34,7 +35,13 @@
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
         <link rel="apple-touch-icon" href="/apple-touch-icon.png">
 
-        @fonts
+        {{-- Font loading: <link> nel head + preconnect, NON @import in CSS.
+             Parallelo e prioritario, evita il FOUT prolungato. --}}
+        <link rel="preconnect" href="https://api.fontshare.com" crossorigin>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://api.fontshare.com/v2/css?f[]=switzer@200,300,400,500,600,700&display=swap" rel="stylesheet">
+        <link href="https://fonts.googleapis.com/css2?family=Google+Sans+Code:wght@300..800&display=swap" rel="stylesheet">
 
         @vite(['resources/css/app.css', 'resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
         <x-inertia::head>

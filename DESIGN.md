@@ -1,358 +1,368 @@
-# Design
-
-> Seed iniziale. Il codice di Studiofinance è ancora da scrivere: questo documento fissa le decisioni visive prima dell'implementazione, mutuando struttura e densità da proto-studio-os (sidebar-first, h-9, text-13, font Switzer, radius 4px) ma con palette propria e identità distinta. Rigenerare con `/impeccable document` una volta che esiste codice reale.
-
-## Mood e direzione
-
-Lucido, calmo, esperto. Lettura editoriale ma compressa: la pagina è densa come un articolo di Monocle, non come una dashboard di gestionale. Il colore non vivacizza, segnala — un mese senza problemi è quasi monocromatico. La pagina deve poter restare per dieci minuti aperta sulla scrivania senza affaticare e senza chiedere attenzione.
-
-Scene sentence: professionista a fine mese, monitor desktop, stanza con luce calda, sessione di mezz'ora di lettura+registrazione → tema **light per default**, dark profondo disponibile.
-
-## Color strategy
-
-**Restrained.** Neutri tinted slate (240°) per il 90% della superficie; un solo accent in `ink-cobalt` per ≤5% (link, focus, riga selezionata, chip stato "pagato"). I 4 status color (success/warning/danger/info) sono usati solo come segnale, con saturation bassa e mai come riempimento di card.
-
-### Palette — light
-
-```css
-@theme {
-  /* Neutrali (slate-tinted, 240°) */
-  --color-bg:           oklch(99%   0.004 240);   /* canvas */
-  --color-surface:      oklch(97%   0.006 240);   /* card, sidebar */
-  --color-surface-2:    oklch(95%   0.008 240);   /* hover row, alt zebra */
-  --color-border:       oklch(91%   0.010 240);   /* hairline standard */
-  --color-border-soft:  oklch(93.5% 0.008 240);   /* divider interni */
-  --color-muted:        oklch(56%   0.012 240);   /* label, kicker, placeholder */
-  --color-ink:          oklch(22%   0.018 240);   /* testo principale */
-  --color-ink-soft:     oklch(38%   0.016 240);   /* testo secondario */
-
-  /* Accent — ink-cobalt (250°, scelto per stare lontano da:
-     - navy banking (più scuro, meno saturo)
-     - indaco Linear (più viola)
-     - sage proto-studio-os (verde)) */
-  --color-accent:       oklch(46%   0.135 250);
-  --color-accent-hover: oklch(42%   0.135 250);
-  --color-accent-soft:  oklch(46%   0.135 250 / 10%);  /* fill chip / row selected */
-  --color-accent-line:  oklch(46%   0.135 250 / 28%);  /* border focus */
-
-  /* Status (semantici, mai decorativi) */
-  --color-success:      oklch(54%   0.085 175);        /* verde-acqua sobrio */
-  --color-success-soft: oklch(54%   0.085 175 / 12%);
-  --color-warning:      oklch(68%   0.115 75);         /* ambra desaturata */
-  --color-warning-soft: oklch(68%   0.115 75 / 14%);
-  --color-danger:       oklch(54%   0.165 25);         /* rosso bruciato, non rosso bandiera */
-  --color-danger-soft:  oklch(54%   0.165 25 / 12%);
-  --color-info:         var(--color-accent);           /* = accent */
-  --color-info-soft:    var(--color-accent-soft);
-}
-```
-
-### Palette — dark
-
-```css
-.dark {
-  --color-bg:           oklch(15%   0.012 240);
-  --color-surface:      oklch(18%   0.014 240);
-  --color-surface-2:    oklch(21%   0.014 240);
-  --color-border:       oklch(28%   0.014 240);
-  --color-border-soft:  oklch(24%   0.012 240);
-  --color-muted:        oklch(60%   0.012 240);
-  --color-ink:          oklch(94%   0.008 240);
-  --color-ink-soft:     oklch(75%   0.010 240);
-
-  --color-accent:       oklch(70%   0.150 250);   /* più chiaro/saturo in dark per leggibilità */
-  --color-accent-hover: oklch(76%   0.150 250);
-  --color-accent-soft:  oklch(70%   0.150 250 / 18%);
-  --color-accent-line:  oklch(70%   0.150 250 / 40%);
-
-  --color-success:      oklch(72%   0.105 175);
-  --color-success-soft: oklch(72%   0.105 175 / 18%);
-  --color-warning:      oklch(78%   0.130 75);
-  --color-warning-soft: oklch(78%   0.130 75 / 18%);
-  --color-danger:       oklch(70%   0.175 25);
-  --color-danger-soft:  oklch(70%   0.175 25 / 18%);
-}
-```
-
-### Mapping shadcn-vue
-
-Il `components.json` di shadcn-vue parla in `background`/`foreground`/`primary`/`muted`/`accent`/`destructive`/`border`/`ring`. Mappiamo i nostri token così:
-
-| shadcn | Studiofinance |
-|---|---|
-| `background` | `--color-bg` |
-| `foreground` | `--color-ink` |
-| `card` | `--color-surface` |
-| `card-foreground` | `--color-ink` |
-| `popover` | `--color-surface` |
-| `primary` | `--color-ink` (sì, ink: il bottone "principale" è nero, non blu) |
-| `primary-foreground` | `--color-bg` |
-| `secondary` | `--color-surface-2` |
-| `accent` | `--color-accent-soft` (per hover/selected morbidi) |
-| `accent-foreground` | `--color-accent` |
-| `muted` | `--color-surface-2` |
-| `muted-foreground` | `--color-muted` |
-| `destructive` | `--color-danger` |
-| `border` | `--color-border` |
-| `input` | `--color-border` |
-| `ring` | `--color-accent-line` |
-
-> Nota: il bottone "primary" è **ink** (quasi nero), non accent. L'accent compra attenzione solo quando un dato lo merita (link, focus, stato "info"); usarlo come fill di un CTA inflazionerebbe il segnale.
-
-## Typography
+---
+name: Studiofinance
+description: Strumento di lettura e accantonamento fiscale per professionisti italiani in regime forfettario.
+colors:
+  canvas-tracing: "oklch(98.5% 0.001 286)"
+  panel-tracing: "oklch(96.7% 0.002 286)"
+  surface-card: "oklch(98.5% 0.001 286)"
+  line-tracing: "oklch(91.9% 0.004 286)"
+  line-tracing-soft: "oklch(94% 0.003 286)"
+  ink-graphite: "oklch(21% 0.006 286)"
+  ink-secondary: "oklch(55.2% 0.014 286)"
+  ink-placeholder: "oklch(70.4% 0.012 286)"
+  petrol-ink-vivid: "oklch(52% 0.105 210)"
+  petrol-ink-strong: "oklch(32% 0.06 210)"
+  petrol-ink-soft: "oklch(32% 0.06 210 / 10%)"
+  petrol-ink-line: "oklch(32% 0.06 210 / 28%)"
+  signal-success: "oklch(54% 0.085 175)"
+  signal-warning: "oklch(68% 0.115 75)"
+  signal-destructive: "oklch(54% 0.165 25)"
+typography:
+  display:
+    fontFamily: "Switzer, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "1.375rem"
+    fontWeight: 500
+    lineHeight: 1.2
+    letterSpacing: "-0.018em"
+  body:
+    fontFamily: "Switzer, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "0.8125rem"
+    fontWeight: 400
+    lineHeight: "1.125rem"
+    letterSpacing: "0"
+    fontFeature: "'ss01', 'ss02', 'cv01', 'cv11'"
+  label:
+    fontFamily: "Switzer, ui-sans-serif, system-ui, sans-serif"
+    fontSize: "0.6875rem"
+    fontWeight: 500
+    lineHeight: "1rem"
+    letterSpacing: "0.06em"
+  mono:
+    fontFamily: "Google Sans Code, ui-monospace, 'SF Mono', Menlo, monospace"
+    fontSize: "0.8125rem"
+    fontFeature: "'tnum', 'zero', 'ss02'"
+rounded:
+  sm: "3px"
+  md: "4px"
+  lg: "6px"
+  xl: "8px"
+spacing:
+  field-h: "36px"
+  table-row-h: "36px"
+  topbar-h: "48px"
+  subbar-h: "44px"
+  sidebar-header-h: "56px"
+  sidebar-expanded: "208px"
+  sidebar-rail: "48px"
+  card-padding: "20px"
+components:
+  button-primary:
+    backgroundColor: "{colors.petrol-ink-strong}"
+    textColor: "{colors.canvas-tracing}"
+    rounded: "{rounded.lg}"
+    height: "36px"
+    padding: "0 16px"
+    typography: "{typography.body}"
+  button-outline:
+    backgroundColor: "{colors.surface-card}"
+    textColor: "{colors.ink-graphite}"
+    rounded: "{rounded.lg}"
+    height: "36px"
+    padding: "0 16px"
+    typography: "{typography.body}"
+  button-secondary:
+    backgroundColor: "{colors.petrol-ink-soft}"
+    textColor: "{colors.petrol-ink-strong}"
+    rounded: "{rounded.lg}"
+    height: "36px"
+    padding: "0 16px"
+    typography: "{typography.body}"
+  button-ghost:
+    backgroundColor: "transparent"
+    textColor: "{colors.ink-secondary}"
+    rounded: "{rounded.lg}"
+    height: "36px"
+    padding: "0 16px"
+    typography: "{typography.body}"
+  input:
+    backgroundColor: "{colors.surface-card}"
+    textColor: "{colors.ink-graphite}"
+    rounded: "{rounded.lg}"
+    height: "36px"
+    padding: "0 12px"
+    typography: "{typography.body}"
+  card:
+    backgroundColor: "{colors.surface-card}"
+    textColor: "{colors.ink-graphite}"
+    rounded: "{rounded.xl}"
+    padding: "{spacing.card-padding}"
+    typography: "{typography.body}"
+  table-row:
+    backgroundColor: "{colors.surface-card}"
+    textColor: "{colors.ink-graphite}"
+    height: "{spacing.table-row-h}"
+    typography: "{typography.body}"
+  table-row-hover:
+    backgroundColor: "{colors.panel-tracing}"
+    textColor: "{colors.ink-graphite}"
+    height: "{spacing.table-row-h}"
+    typography: "{typography.body}"
+  table-row-selected:
+    backgroundColor: "oklch(52% 0.105 210 / 2%)"
+    textColor: "{colors.ink-graphite}"
+    height: "{spacing.table-row-h}"
+    typography: "{typography.body}"
+  sidebar-item:
+    backgroundColor: "transparent"
+    textColor: "{colors.ink-graphite}"
+    rounded: "{rounded.md}"
+    padding: "7px 16px"
+    typography: "{typography.body}"
+  sidebar-item-active:
+    backgroundColor: "transparent"
+    textColor: "{colors.ink-graphite}"
+    rounded: "{rounded.md}"
+    padding: "7px 16px"
+    typography: "{typography.body}"
+  pill-success:
+    backgroundColor: "{colors.signal-success}"
+    textColor: "{colors.signal-success}"
+    rounded: "{rounded.md}"
+    height: "20px"
+    padding: "0 8px"
+    typography: "{typography.label}"
+  pill-warning:
+    backgroundColor: "{colors.signal-warning}"
+    textColor: "{colors.signal-warning}"
+    rounded: "{rounded.md}"
+    height: "20px"
+    padding: "0 8px"
+    typography: "{typography.label}"
+  pill-info:
+    backgroundColor: "{colors.petrol-ink-soft}"
+    textColor: "{colors.petrol-ink-strong}"
+    rounded: "{rounded.md}"
+    height: "20px"
+    padding: "0 8px"
+    typography: "{typography.label}"
+  pill-neutral:
+    backgroundColor: "transparent"
+    textColor: "{colors.ink-secondary}"
+    rounded: "{rounded.md}"
+    height: "20px"
+    padding: "0 8px"
+    typography: "{typography.label}"
+  dialog-content:
+    backgroundColor: "{colors.surface-card}"
+    textColor: "{colors.ink-graphite}"
+    rounded: "{rounded.xl}"
+    padding: "0"
+---
+
+# Design System: Studiofinance
+
+## 1. Overview
+
+**Creative North Star: "Lo Studio del Professionista"**
+
+L'interfaccia si comporta come un tavolo da disegno tecnico ben tenuto. Superfici sobrie, materiali precisi, nulla che riempia. Quando l'utente apre la pagina a fine mese deve avere la sensazione di trovare il proprio quaderno di cassa già aperto sulla riga giusta: nessuna festa, nessun benvenuto, niente che chieda attenzione. I numeri sono il contenuto. Il chrome (label, navigazione, decorazione) si sottomette.
+
+Il sistema sceglie esplicitamente di rifiutare tre estetiche. La prima è il **gestionale italiano classico** (TeamSystem, FattureinCloud "pieno", Aruba Fattura): tab annidate, KPI tile con icone tonde colorate, navy aziendale con accenti arancione, sidebar a 200 voci, banner promo dentro l'app. La seconda è la **banking app blu-su-blu**: navy + dorato, card grandi a finta-sicurezza, gradient text, template hero-metric. La terza è il **clone Linear/Notion AI-default**: zinc neutro + accento indaco-violetto, card identiche a griglia, freccia su/giù sopra ogni KPI. Studiofinance vive accanto a tutti questi rifiuti senza assomigliare a nessuno.
+
+La densità è la forma del rispetto. Il professionista vuole vedere il mese, l'anno e le scadenze nella stessa schermata senza scrollare; spacing stretto, righe basse, niente padding "generoso". La compattezza dimostra che il sistema si fida dell'utente. Il colore appare solo come segnale: una pagina senza problemi è quasi monocromatica.
+
+**Key Characteristics:**
+- Densità editoriale (body 13px, table row 36px, sidebar item circa 28px).
+- Restrained color: zinc neutro per il 90% della superficie, accent petrol ≤5%.
+- Zero ombre su card e bottoni; profondità da bordo e tono.
+- Numeri in mono tabulare; tipografia che si schiera al servizio dei dati.
+- Niente stato decorativo: il colore arriva solo per dire qualcosa.
+
+## 2. Colors: La Tavolozza Petrol Ink + Neutral Tracing
+
+Sistema **Restrained**. Neutri freddi zinc 286° tengono il 90% della superficie. Un solo accent, petrol 210°, appare in due intensità (vivid per decoro testuale, strong per UI funzionale) e mai oltre il 5% della pagina. I quattro colori di stato sono semaforici, mai decorativi: vivono dentro pill testuali e mai come riempimento di card.
+
+### Primary
+- **Petrol Ink Strong** (`oklch(32% 0.06 210)`): Bottone primario, item sidebar attivo (barretta), focus border di input/textarea/select. Petrol scuro e spento, sceglie il segnale alla vivacità. È il colore "del prodotto", quello che firma le decisioni dell'utente.
+- **Petrol Ink Vivid** (`oklch(52% 0.105 210)`): Wordmark "FIN", link inline dentro corpo testuale, emphasis tipografica. Più luminoso del primary, mai sui bottoni: lì il vivid inflaziona il segnale.
+- **Petrol Ink Soft** (`oklch(32% 0.06 210 / 10%)`): Fill morbido per pill `info` e selezioni intense. Sulle righe tabella selezionate viene usato ulteriormente diluito (2%) per non scurire la riga.
+
+### Neutral
+- **Canvas Tracing** (`oklch(98.5% 0.001 286)`): Bg pagina, bg di card, popover. È il colore della carta da lucido: la depth della card arriva dal border, non da uno sfondo diverso.
+- **Panel Tracing** (`oklch(96.7% 0.002 286)`): Sidebar bg, muted bg generico, hover row tabella. Un gradino più scuro del canvas per dare separazione panel/content senza ricorrere a shadow.
+- **Line Tracing** (`oklch(91.9% 0.004 286)`): Border standard di card, input, table cell.
+- **Line Tracing Soft** (`oklch(94% 0.003 286)`): Divider interni, separator tra righe tabella, hairline sotto header.
+- **Ink Graphite** (`oklch(21% 0.006 286)`): Testo primario, importi non-mono, titoli sezione.
+- **Ink Secondary** (`oklch(55.2% 0.014 286)`): Testo secondario, kicker label muted, meta information.
+- **Ink Placeholder** (`oklch(70.4% 0.012 286)`): Placeholder input, valori disabled, ghost states.
+
+### Status (solo come segnale)
+- **Signal Success** (`oklch(54% 0.085 175)`): Pill "Pagato", "Completato". Verde-acqua sobrio, bassa saturazione.
+- **Signal Warning** (`oklch(68% 0.115 75)`): Pill "In arrivo". Ambra desaturata, mai giallo cantiere.
+- **Signal Destructive** (`oklch(54% 0.165 25)`): Pill "Scaduto", bottone destructive. Rosso bruciato cool, non rosso bandiera.
+
+### Named Rules
+
+**The One Voice Rule.** Petrol vive su ≤5% di ogni schermo. La sua rarità è il segnale. Se il petrol comincia a coprire più del 5% di un layout, qualcosa è andato storto: il colore sta vivacizzando invece di significare.
+
+**The Zinc-First Rule.** I neutri non sono tintati verso il petrol. Sono grigi praticamente puri (chroma ≤0.014). Aggiungere chroma ai neutri per "armonizzare" col petrol fa scivolare il sistema verso una mood navy-corporate. La distanza fra hue neutro (286°) e accent (210°) fa parte dell'identità.
+
+**The No-Decorative-Color Rule.** Una pagina senza problemi è una pagina monocromatica. Lo status arriva quando c'è qualcosa da dire (Scaduto, In arrivo, Pagato), mai per "vivacizzare". Vietato usare success/warning/destructive come fill di card o background di sezione.
+
+## 3. Typography
+
+**Display & Body Font:** Switzer (con `ui-sans-serif, system-ui, sans-serif` fallback)
+**Mono Font:** Google Sans Code (con `ui-monospace, "SF Mono", Menlo, monospace` fallback)
+
+**Character:** Switzer è una geometrica con stati intermedi morbidi e feature settings editoriali (`ss01`, `ss02`, `cv01`, `cv11` attive sempre). Google Sans Code è una mono con `tnum` e `zero` per allineamento numerico verticale. Le due famiglie convivono come pianta e quote in una tavola tecnica: Switzer scrive le label, Google Sans Code allinea i numeri sotto la virgola.
+
+### Hierarchy
+- **Display** (Switzer 500, 22px / 1.2, letter-spacing −0.018em): h1 pagina con `text-wrap: balance`.
+- **Headline** (Switzer 500, 18px / 1.4): h2 sezione.
+- **Title** (Switzer 500, 14px / 1.4): titolo card, label di gruppo form.
+- **Body** (Switzer 400, 13px / 18px): default del sistema. Form input, table cell, sidebar item, breadcrumb, body prose. Line length massima 75ch.
+- **Label** (Switzer 500, 11px / 16px, letter-spacing 0.06em, uppercase): kicker `.kicker`, table head, group label sidebar, micro-meta.
+- **Mono** (Google Sans Code 400, 13px / 18px, `font-variant-numeric: tabular-nums`): importi tabella, codici fattura (`FT 2026-04`), codici F24, kbd hint.
+
+### Named Rules
+
+**The Switzer x-Height Rule.** Su body è sempre attivo `font-size-adjust: 0.58`. Switzer ha x-height più bassa di Inter/Geist; senza adjust, a parità di font-size il testo appare più piccolo. La regola assicura altezze ottiche allineate e Switzer pesa come dovrebbe.
+
+**The Mono-For-Numbers-Where-They-Align Rule.** Mono entra dove i numeri si leggono in colonna (tabelle, KPI, code-pill) o sono token che imitano codice (`FT 2026-04`, `F24-06-2026`, `⌘S`). In body prose ("hai 12 fatture quest'anno") il numero resta in Switzer con `tabular-nums` per non spezzare la lettura.
+
+**The Uppercase-For-Kicker-Only Rule.** L'uppercase serve a marcare le label di sezione (kicker, breadcrumb del current page, table head, code-pill). Mai per body, mai per CTA, mai per heading.
+
+## 4. Elevation
 
-### Famiglie
+**Flat by default.** Il sistema rifiuta le ombre come strumento di profondità. La depth è costruita da due cose: il bordo `1px line-tracing` che separa card dal canvas, e il tonal layering del sidebar (panel-tracing un gradino più scuro del canvas-tracing). Una card non sta "sopra" la pagina, sta "dentro" la pagina.
 
-- **Sans**: **Switzer** (la stessa di proto-studio-os). Famiglia geometrica con buoni stati intermedi (medium-leaning), feature settings `ss01, ss02, cv01, cv11` per le varianti più editoriali.
-- **Mono**: **Geist Mono** per tutti gli importi, codici fattura, F24, date in tabella.
+### Shadow Vocabulary
 
-```css
-@theme {
-  --font-sans: "Switzer", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Geist Mono", ui-monospace, "SF Mono", Menlo, monospace;
-  --default-font-feature-settings: "ss01", "ss02", "cv01", "cv11";
-}
-
-/* Numerical contexts */
-.tabular { font-variant-numeric: tabular-nums; }
-.numeric { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
-```
-
-### Scala (custom, non Tailwind default)
-
-```css
-@theme {
-  --text-2xs:  0.6875rem;   /* 11 — kicker, uppercase label */
-  --text-xs:   0.75rem;     /* 12 — micro */
-  --text-13:   0.8125rem;   /* 13 — body form, table cell, sidebar item (default) */
-  --text-sm:   0.875rem;    /* 14 — body lunghi, helper testo */
-  --text-base: 0.9375rem;   /* 15 — solo per copy long-form (impostazioni, onboarding) */
-  --text-lg:   1.125rem;    /* 18 — section heading */
-  --text-xl:   1.375rem;    /* 22 — page heading */
-  --text-2xl:  1.75rem;     /* 28 — dashboard KPI principali */
-  --text-3xl:  2.25rem;     /* 36 — solo per il numero "stipendio del mese" */
-}
-```
-
-Body default: 13px. Salti minimo 1.25× tra step (rispetta il law shared). Heading peso `500`, letter-spacing `-0.018em`, `text-wrap: balance`.
-
-### Numeri
+Una sola ombra in tutto il sistema, riservata a situazioni in cui un elemento deve dichiararsi galleggiante perché si trova fuori dal flow strutturale: nessuna in v0.
 
-I numeri **non** si usano in Switzer dentro tabelle e KPI. Sempre mono + tabular, perché la lettura verticale ("4.523,00 / 3.890,12 / 12.450,30") allineata sotto-virgola batte qualsiasi proporzionalità. Eccezione: in body prose ("hai 12 fatture quest'anno") il numero resta in sans per leggibilità inline.
+### Named Rules
 
-## Layout & Shell
+**The No-Shadow Rule.** Card, bottoni, popover, dialog, toast: tutti `box-shadow: none`. Se ti viene voglia di aggiungere `shadow-xs` per "staccare" qualcosa, il problema è che quel qualcosa non è ben strutturato.
 
-**Sidebar-first**, identico al pattern proto-studio-os.
+**The Tonal-Layering Rule.** La separazione panel/content si fa con i toni della scala neutra, non con shadow. Sidebar = `panel-tracing` (zinc-100), canvas = `canvas-tracing` (zinc-50). Card dentro al canvas = canvas-tracing + border. La row hover in tabella usa lo stesso meccanismo: passa a `panel-tracing` per dichiararsi, non aggiunge ombra né elevation.
 
-- **AppShell**: `SidebarProvider` + `SidebarInset`.
-- **Sidebar** larghezza `260px` desktop, collassabile a `56px` (rail con sole icone). Header con logo Studiofinance + search bar `h-8`. Content con gruppi: **Lavoro** (Dashboard, Anno corrente, Fatture, Clienti, Scadenze, Pagamenti, Anni), **Sistema** (Impostazioni). Footer con menu utente.
-- **Sub-topbar** alta `48px` (3rem) attaccata al top del contenuto: ospita **breadcrumb** a sinistra e **azioni di pagina** a destra (es. "Nuova fattura", "Importa XML"). Background = `--color-bg` (stesso del contenuto), border-bottom hairline.
-- **Page content** sotto: padding `px-6 py-5` desktop, `px-4 py-4` mobile.
-- **Breadcrumb**: Studiofinance / Fatture / 2026 / FT 2026-04. Separatore `/` sottile (text-muted), ultima voce non linkata in `--color-ink`. Mai più di 4 livelli.
-
-### Spacing system
-
-Base 4px (Tailwind default). Densità "compatta":
-
-```
-xs   4px   (gap dentro chip)
-sm   8px   (gap label↔input, padding chip)
-md   12px  (gap form fields, table cell horizontal)
-lg   16px  (gap section vertical, card padding)
-xl   24px  (gap tra sezioni di pagina)
-2xl  40px  (gap header→content, raro)
-```
+## 5. Components
 
-Componenti chiave:
-- Button / Input / Select: `h-9` (36px), `text-13`, `px-3` / `px-4`
-- Table row: `h-9`, cell padding `px-3 py-2`, border-bottom `--color-border-soft`
-- Sidebar item: `h-8`, `text-13`, padding `px-3 py-1.5`, gap icona-label `gap-2.5`
-- Card: padding `p-5`, `rounded-md`, border `1px --color-border`, **no shadow** (la profondità arriva dal border, non da elevazioni drammatiche)
-- Sheet (per registra pagamento, dettaglio scadenza): width `420px` desktop, full mobile, header `h-12` con border-bottom
-
-### Radius
-
-```css
-@theme {
-  --radius-sm: 3px;
-  --radius:    4px;     /* default — input, button, chip */
-  --radius-md: 6px;     /* card, sheet, dialog */
-  --radius-lg: 8px;     /* solo per empty state container */
-  --radius-full: 9999px; /* solo per avatar */
-}
-```
-
-Niente `rounded-2xl` o `rounded-3xl`. La morbidezza eccessiva legge come "consumer app", non come "studio".
-
-## Components — override e custom
-
-### Componenti shadcn da installare
-
-Da `components.json` (preset "new-york-v4", baseColor "neutral"): Alert, AlertDialog, Avatar, Badge, Breadcrumb, Button, Card, Checkbox, Collapsible, Dialog, DropdownMenu, Input, InputOTP, Label, NavigationMenu, Popover, RadioGroup, Select, Separator, Sheet, Sidebar, Skeleton, Switch, Table, Tabs, Toast (sonner), Tooltip.
-
-### Override mirati
-
-**Button**
-- `variant="default"`: bg `--color-ink`, text `--color-bg`, font-weight 500, no shadow. Hover: scurisce ink leggermente (`oklch(18% ...)`).
-- `variant="outline"`: bg trasparente, border `--color-border`, hover bg `--color-surface-2`. Per CTA secondari.
-- `variant="ghost"`: solo hover bg `--color-surface-2`. Per azioni in tabella e menu kebab.
-- `variant="accent"` (nuovo): bg `--color-accent`, text bianco. **Solo per azioni "info"** (es. "Apri anno corrente" sull'empty state della dashboard). Da non confondere con primary.
-- Niente `variant="destructive"` come bottone di prima vista: l'azione distruttiva è sempre dietro un dialog con conferma in `--color-danger`.
-
-**Input**
-- Focus state: **niente double ring**. Il border passa a `--color-accent`, fuori una outline `1px solid --color-accent-line`. Niente offset. Si vede ma non "salta".
-- Errore: border `--color-danger`, helper text sotto in `--color-danger`.
-- Numerici: `font-mono`, `text-right`, prefisso/suffisso (`€`, `%`) come slot interno muted.
-
-**Table**
-- Header: `text-2xs uppercase tracking-wider` (`kicker`), `--color-muted`, `h-9`.
-- Body row: `h-9`, hover `bg-surface-2`, selected `bg-accent-soft` + left-edge inset 2px accent (segnale + accent, mai border laterale come decoro).
-- Colonne numeriche: classe `.numeric` (mono + tabular).
-- Zebra: **off**. La densità basta; le zebre aggiungono rumore.
-
-**Card**
-- Border `1px --color-border`, bg `--color-surface`, `rounded-md`, **no shadow**. Mai card dentro card.
-- Padding `p-5`. Per gruppi di KPI dashboard usiamo card a sezione, non card grandi singole.
-
-**Sidebar**
-- Item attivo: bg `--color-surface-2`, **inset-left 2px `--color-accent`** (signature visiva del sistema, l'unico uso "deciso" del colore in chrome).
-- Icone: **Phosphor** weight `regular` (default) → `fill` quando attive, crossfade 160ms.
-
-**Sheet** (per registrazione pagamento e dettagli)
-- Side `right` desktop, `bottom` mobile (full-width). Per Studiofinance preferiamo sheet alle dialog per i form: meno bloccante, più editoriale.
-
-**Dialog**
-- Riservato a conferme distruttive (cancellazione, reversibilità stato) e flussi blocco (cross-year check del wizard apertura anno). Mai per inserimento dati.
-
-### Componenti custom da costruire
-
-- **`PageHeader`** (in sub-topbar): breadcrumb + slot azioni. Compatto h-12.
-- **`KpiTile`**: label kicker (text-2xs uppercase muted) + valore (mono large) + delta opzionale (mono micro con freccia testuale `↑` / `↓`, mai icone tonde colorate). Border-bottom hairline, no card.
-- **`StatusPill`**: chip h-5, text-2xs, bg `*-soft`, text `--color-*`. Stati: `pagato` (success), `pianificato` (muted), `non dovuto` (muted strike), `aperta` (info), `completata` (success), `non_dovuta` (muted), `scaduta` (danger).
-- **`FormSection`**: titolo kicker uppercase + space-y-4. Per le pagine impostazioni e form lunghi.
-- **`FormulaBlock`** (dettaglio Spesa annuale): box surface con bordo, font-mono, mostra l'espressione di calcolo in chiaro (es. `Imposta sostitutiva = (€42.500 × 78% − €4.200) × 5% = €1.890`).
-- **`EmptyState`**: container `rounded-lg border-dashed`, padding generoso (`p-12`), no illustrazioni; solo testo (titolo + body muted) + CTA.
-- **`MonthGrid`** (vista anno, tabella 12 mesi): tabella densa con sticky column primo mese, righe per metrica (Imponibile, Bolli, Volume affari, Totale, Quote spese, Netto). Mono per i numeri, sub-cell line-height stretto.
-
-## Iconography
-
-- **Phosphor Icons** (`@phosphor-icons/vue`), weight `regular` (16px) come default. Weight `fill` su stato attivo (sidebar attiva, chip stato). Sempre 16×16, mai grandi: l'icona non è decoro, è un indice di lettura.
-- Niente icone tonde colorate (anti-reference). Niente "icon chip" sui KPI.
-
-## Motion
-
-```css
-@theme {
-  --ease-smooth: cubic-bezier(0.16, 1, 0.3, 1);   /* ease-out-quart */
-  --duration-fast: 120ms;
-  --duration:      180ms;
-  --duration-slow: 280ms;
-}
-```
-
-- Transizioni su `opacity`, `transform`, `background-color`, `color`, `border-color`. **Mai** su layout (width, height, padding).
-- Sidebar collapse: `transform: translateX`, `--duration-slow`, ease-smooth.
-- Hover state: `--duration-fast`.
-- Page enter: opacity 0→1 + translateY 4px→0, `--duration` ease-smooth.
-- `prefers-reduced-motion: reduce` → tutte le transizioni a `0ms`.
-
-## Focus states (richiesta esplicita dell'utente)
-
-I focus ring shadcn standard (doppio ring offset) sono espliciti ma rumorosi nella nostra densità. **Sostituzione globale:**
-
-```css
-:root {
-  --focus-outline:  1px solid var(--color-accent-line);
-  --focus-border:   var(--color-accent);
-}
-
-/* Input, button, select: border si fonde con accent + 1px outline fine fuori */
-.focus-visible\:focus-style:focus-visible,
-button:focus-visible,
-[role="button"]:focus-visible,
-input:focus-visible,
-select:focus-visible,
-textarea:focus-visible {
-  outline: var(--focus-outline);
-  outline-offset: 0;
-  border-color: var(--focus-border);
-}
-
-/* Link e elementi senza bordo: underline che diventa accent */
-a:focus-visible {
-  outline: var(--focus-outline);
-  outline-offset: 2px;
-  border-radius: var(--radius-sm);
-}
-```
-
-Risultato: il focus si vede a tastiera, ma legge come "il componente sa di essere selezionato", non come "anello blu sospeso".
-
-## Utility custom
-
-```css
-.kicker {
-  font-size: var(--text-2xs);
-  text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--color-muted);
-  font-weight: 500;
-}
-
-.code-pill {
-  display: inline-flex;
-  align-items: center;
-  height: 18px;
-  padding: 0 6px;
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  background: var(--color-surface-2);
-  border-radius: var(--radius-sm);
-  color: var(--color-muted);
-}
-
-.numeric {
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
-}
-
-.pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  height: 20px;
-  padding: 0 8px;
-  border-radius: var(--radius);
-  font-size: var(--text-2xs);
-  font-weight: 500;
-}
-.pill--success { background: var(--color-success-soft); color: var(--color-success); }
-.pill--warning { background: var(--color-warning-soft); color: var(--color-warning); }
-.pill--danger  { background: var(--color-danger-soft);  color: var(--color-danger); }
-.pill--info    { background: var(--color-accent-soft);  color: var(--color-accent); }
-.pill--muted   { background: var(--color-surface-2);    color: var(--color-muted); }
-
-/* Hairline separator */
-.hairline { border-color: var(--color-border-soft); }
-```
-
-## Responsive
-
-- **Desktop** ≥ 1024px (target principale di consultazione): sidebar aperta, tabelle dense piene, vista anno e vista scadenze in layout multi-colonna.
-- **Tablet** 768–1023px: sidebar collassata a rail (56px), tabelle con scroll orizzontale o colonne secondarie nascoste.
-- **Mobile** < 768px (target principale di inserimento): sidebar diventa drawer (sheet da sinistra). KPI da tile a stack. Tabelle si trasformano in card-list verticali. Sheet form da bottom. CTA "Registra pagamento" su scadenza è grande e tap-friendly (h-12).
-
-## Anti-list (cosa non faremo, mai)
-
-- Card dentro card.
-- Side-stripe borders su alert / callout (banditi dai shared laws).
-- Gradient text per i KPI.
-- Glassmorphism / blur decorativo.
-- Shadow drammatiche su card o bottoni.
-- Icone tonde colorate sui KPI dashboard ("widget" stile gestionale).
-- Hero-metric template (numero gigante + label piccola + sparkline arancione).
-- Doppio ring di focus shadcn default.
-- Verdi "Whatsapp" o rossi "Notification" (i status hanno saturation contenuta).
-- Empty state con illustrazioni SVG generiche.
-- Toast verde con check su sfondo bianco (success è chip + testo, mai festa).
-- Bordi colorati arrotondati attorno alle card "attive". L'attivo si segnala con accent-soft + inset 2px sul lato logico (left per sidebar, top per tabs).
+### Buttons
+
+Calmi, precisi, non decorativi. I bottoni hanno una sola forma (radius 6px), una sola altezza default (36px), font weight 500 sul testo. La gerarchia variant non passa per la dimensione ma per il colore di fondo.
+
+- **Shape:** rounded medium (6px). Niente pill, niente squared.
+- **Primary** (`variant="default"`): bg petrol-ink-strong, text canvas-tracing. È il colore del segnale "azione importante succede qui". Hover: petrol leggermente più scuro.
+- **Outline** (`variant="outline"`): bg canvas-tracing, border line-tracing, text ink-graphite. Per annulla, azioni di contesto neutre. Hover: bg petrol-ink-soft, border petrol-ink-line, text petrol-ink-strong (toggle "on" condivide lo stesso look del hover via `aria-pressed`).
+- **Secondary** (`variant="secondary"`): bg petrol-ink-soft (10%), text petrol-ink-strong. Per azioni contestuali soft (Apri dettaglio, Riapri). Hover: petrol-ink-soft a 15%.
+- **Ghost** (`variant="ghost"`): bg trasparente, text ink-secondary. Solo per icon button in tabella e item menu. Hover: bg panel-tracing.
+- **Destructive** (`variant="destructive"`): bg signal-destructive, text canvas-tracing. Solo dentro Dialog di conferma esplicita; mai come azione primaria di pagina.
+- **Focus:** border passa a petrol-ink-strong, outline 1px petrol-ink-line all'esterno. **Niente double-ring shadcn**.
+
+### Inputs / Form Fields
+
+Densi e onesti. Una sola altezza (36px), una sola forma (radius 6px), font 13px. Niente icone interne decorative; le icone funzionali (search, currency) usano `InputGroup`.
+
+- **Default:** bg canvas-tracing, border line-tracing, text ink-graphite, placeholder ink-placeholder.
+- **Focus:** border petrol-ink-strong, outline 1px petrol-ink-line, niente offset. Il componente "sa di essere selezionato" senza farsi notare.
+- **Error:** border signal-destructive, helper text destructive sotto il campo via `aria-invalid`.
+- **Numerici:** classe `.numeric` (mono e tabular-nums), text-right, prefisso/suffisso (€, %) come slot interno muted.
+- **FormField:** wrapper canonico (label, control, helper, error) basato su shadcn `Field`. Per ogni form usare FormField, mai assemblare a mano label, input e helper text.
+
+### Cards / Containers
+
+Sobrie e ferme. Una sola forma (radius 8px), una sola altezza di parete (border 1px line-tracing), nessuna ombra. Padding 20px (5 della scala). Mai card dentro card.
+
+### Tables
+
+Da quaderno tecnico. Header con kicker uppercase, body riga 36px, divisori orizzontali soft, niente zebra. Hover row sussurra, selected row dichiara.
+
+- **Boxed mode:** Tabella dentro un box border, radius 6px, header `panel-tracing` dentro al box, body con divisori `line-tracing-soft`. Pagination vive **fuori** dal box.
+- **Header:** `kicker` (text-2xs uppercase tracking-wider), text ink-secondary, h-9.
+- **Body row:** h-9.
+- **Hover:** bg `panel-tracing` (zinc-100). Stessa famiglia tonale della sidebar; la riga si dichiara senza chiamare l'accent.
+- **Selected:** bg `petrol-ink-vivid` al 2% di opacità. Marker leggerissimo: chi è abituato a "tutto bianco" lo nota; chi non guarda non viene distratto. Il segnale primario di selezione è la checkbox spuntata, non lo sfondo.
+- **Numeriche:** classe `.numeric`, text-right.
+- **Sticky columns:** opt-in per colonna con prop `sticky="left"|"right"`, `stickyOffset`. Quando ci sono sticky, checkbox iniziale e cella actions finale diventano automaticamente sticky.
+- **Zebra:** off. La densità basta; le zebre aggiungono rumore.
+
+### Sidebar Navigation
+
+L'unico chrome personalizzato del sistema. Larghezza 208px expanded, 48px rail. Header h-56 con logo. Footer con avatar utente. Bottone collapse pillola radius 4px a cavallo del bordo destro.
+
+- **Item idle:** text ink-graphite/75, icona Phosphor `weight="regular"`. Nessun background.
+- **Item hover:** crossfade icona regular → fill, barretta ghost `ink-secondary/40` a sinistra (`w-[2px] h-5`) fade-in. Nessun background.
+- **Item active:** barretta accent `petrol-ink-vivid` a sinistra (`w-[2px] h-5`) sempre visibile, icona `weight="fill"` sempre, text `ink-graphite`, `font-medium`. Nessun background.
+- **Group label:** classe `.kicker`. In rail mode il testo diventa `transparent` e una hairline 20px centrata fa da divider tra gruppi.
+- **NavUser:** in rail mode l'avatar passa da size-6 a size-5 centrato dentro un button size-8 senza padding.
+
+### Dialog
+
+Riservato a flussi che richiedono focus totale. **Sheet è bandita** (vedi The No-Sheet Rule). 4 size: `mini` (~460px, confirm), `default` (~580px, form rapido), `wide` (~780px, edit complesso), `fullscreen` (viewer/wizard).
+
+- **Header:** title sentence case, description opzionale, separator border-bottom line-tracing-soft. Mai code-pill `M.CRE` o simili: il code-pill è riservato a token user-facing (`FT 2026-04`, `F24-06-2026`).
+- **Body:** padding 20px verticale, 24px orizzontale.
+- **Footer:** DialogStandardFooter con Cancel ghost a sinistra, primary a destra.
+- **Confirm:** wrapper `ConfirmDialog` su Mini Dialog. Per delete, archive, azioni distruttive.
+- **Wizard:** `WizardStepper` mini-pill accent nel `#trailing` del header, description dinamica ("Step 1 di 4 · Cliente").
+
+### Pill Statuses
+
+Vocabolario fisso per stati di record. Una sola forma (radius 4px), una sola altezza (20px), 6 modificatori. Mai inventarne di nuovi.
+
+- **`.pill--success`** (Pagato, Completato): fill success-foreground, text success.
+- **`.pill--warning`** (In arrivo, Scadenza imminente): fill warning-foreground, text warning.
+- **`.pill--danger`** (Scaduto, Errore): fill destructive-soft, text destructive.
+- **`.pill--info`** (Pianificato): fill petrol-ink-soft, text petrol-ink-strong.
+- **`.pill--neutral`** (Aperto, Bozza): bg transparent, **border 1px dashed** line-tracing, text ink-secondary. Il dashed lo distingue da `.pill--info`.
+- **`.pill--muted`** (Non dovuto, Archiviato): fill panel-tracing, text ink-secondary.
+
+### Topbar
+
+Due fasce orizzontali. Top sempre visibile (h-48), subbar opzionale (h-44).
+
+- **Top:** breadcrumb a sinistra (sentence case eccetto l'ultima voce in UPPERCASE per echo dei documenti fiscali), status pill opzionale, `#page-topbar-actions` mount-point Teleport a destra.
+- **Subbar:** `v-show="subbar"`, ospita `#page-topbar-search`, `#page-topbar-filters`, `#page-topbar-views`.
+- **Breadcrumb:** **niente auto-prepend del nome studio**. Studiofinance è single-tenant: il brand vive nel logo della sidebar, ripeterlo nel breadcrumb è doppio branding.
+
+### Code-Pill (token user-facing)
+
+Mono compatta inline per identificatori che l'utente già riconosce: `FT 2026-04`, `F24-06-2026`, `CF · 78%`. Mai per system-language interna (no `M.CRE`, no `M.EDT`). Se serve un identifier per analytics/debug, usare `data-modal-code` HTML attribute, invisibile.
+
+### Named Rules
+
+**The No-Sheet Rule.** Sheet è bandita. Sheet, Dialog crea un decision-point ambiguo ("questo edit lo apro come Sheet o come Dialog?"). I pannelli laterali vivono come `push inline`: `FilterSidebar` (filtri di lista) e `RightDetailPanel` (dettaglio Show) sono fratelli del `<main>`. Il content principale si comprime; non si nasconde sotto un overlay.
+
+**The Sidebar-Bar-Only Rule.** L'item attivo della sidebar non ha background. La signature visiva è la barretta accent `w-[2px]` a sinistra, l'icona `weight="fill"`, il text medium. Sommare un `bg-accent-soft` raddoppia il segnale e fa scivolare la sidebar verso un look "tab attivo gestionale".
+
+**The Mono-Only-For-Real-Codes Rule.** `.code-pill` è riservato a token che l'utente riconosce e cita (numero fattura, codice F24, codice tributo, coefficiente). Mai per taxonomie interne dei modali (M.CRE/M.EDT/M.DEL): system-language che leak all'utente.
+
+**The Whispering-Selected-Row Rule.** La riga selezionata in tabella usa `petrol-ink-vivid` al 2% di opacità: marker quasi invisibile. La selezione primaria è la checkbox spuntata, non lo sfondo. Sopra il 5% di opacità la riga diventa rumorosa e compete con le altre informazioni della tabella.
+
+## 6. Do's and Don'ts
+
+### Do:
+- **Do** usare petrol-ink-strong come unico colore "del prodotto" (focus, item sidebar attivo, button primary, pill info). Mai oltre il 5% della pagina.
+- **Do** trattare i numeri come contenuto principale: mono, tabular-nums per importi in tabella e KPI, font-size in scala dedicata, mai sgranare per fare spazio a un'icona.
+- **Do** mantenere body 13px e table row h-9 (36px): la densità è il segnale di rispetto verso il professionista.
+- **Do** rendere ogni valore derivato espandibile: una formula trasparente vale dieci colori giusti. Il prossimo `FormulaBlock` mostrerà `Imposta sostitutiva = (€42.500 × 78%) × 5% = €1.890`.
+- **Do** usare `.kicker` (text-2xs uppercase tracking-wider muted) per qualsiasi label di sezione, table header, group label sidebar.
+- **Do** scrivere stato testuale: ogni pill ha un'etichetta ("Pagato", "Scaduto"). Mai veicolare stato col solo colore.
+- **Do** usare `panel-tracing` (zinc-100) come bg di hover row in tabella. La sidebar e la tabella condividono la stessa famiglia tonale di "secondo livello".
+
+### Don't:
+- **Don't** clonare i **gestionali italiani classici**. Niente tab annidate, niente KPI tile con icone tonde colorate, niente navy + arancione, niente sidebar a 200 voci, niente banner promo dentro l'app.
+- **Don't** scivolare nel pattern **banking app blu-su-blu**. Vietato navy + dorato, gradient text, template hero-metric, card grandi a finta-sicurezza.
+- **Don't** convergere sul template **Linear/Notion AI-default**. Niente zinc + indigo, niente card identiche a griglia con icona + heading + text ripetute, niente freccia su/giù sopra ogni metrica.
+- **Don't** usare `border-left` o `border-right` maggiore di 1px come accento colorato su card, alert, callout. La barretta accent sulla sidebar è inset assoluto (`absolute left-0 w-[2px]`), non border.
+- **Don't** usare gradient text (`background-clip: text` su un gradient). Mai. L'enfasi si fa con weight e size.
+- **Don't** mettere shadow su card o bottoni. Niente `shadow-xs`, niente `shadow-sm`. La depth viene dal border e dal tonal layering.
+- **Don't** scurire la riga selezionata in tabella sopra il 2-3% di opacità: il marker primario è la checkbox, non lo sfondo. Sopra il 5% la riga compete con i dati.
+- **Don't** auto-prepend il nome studio nel breadcrumb. Single-tenant. Il brand vive nel logo della sidebar.
+- **Don't** esporre system-language come code-pill (`M.CRE`, `M.EDT`, `M.DEL`). Il code-pill è riservato a token user-facing (numero fattura, codice F24).
+- **Don't** introdurre il primitivo Sheet. Pannelli laterali = push inline (`FilterSidebar`, `RightDetailPanel`).
+- **Don't** mostrare double-ring focus (`outline-2 outline-offset-2`). Il focus vive dentro il bordo del componente (border accent, 1px outline esterno).
+- **Don't** usare illustrazioni SVG generiche negli empty state. Empty state = solo testo, CTA.
+- **Don't** usare toast verde con check per "Pagato salvato". Il success è chip, testo nella lista, mai festa effimera.
+- **Don't** infrangere `prefers-reduced-motion`. Tutte le transizioni hanno fallback istantaneo.

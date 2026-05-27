@@ -1,0 +1,22 @@
+<script setup lang="ts">
+import type { TagsInputItemDeleteProps } from "reka-ui"
+import type { HTMLAttributes } from "vue"
+import { reactiveOmit } from "@vueuse/core"
+import { PhX } from "@phosphor-icons/vue"
+import { TagsInputItemDelete, useForwardProps } from "reka-ui"
+import { cn } from "@/lib/utils"
+
+const props = defineProps<TagsInputItemDeleteProps & { class?: HTMLAttributes["class"] }>()
+
+const delegatedProps = reactiveOmit(props, "class")
+
+const forwardedProps = useForwardProps(delegatedProps)
+</script>
+
+<template>
+  <TagsInputItemDelete v-bind="forwardedProps" :class="cn('inline-flex items-center justify-center rounded-full size-4 hover:bg-accent-vivid/15 transition-colors', props.class)">
+    <slot>
+      <PhX class="size-3" />
+    </slot>
+  </TagsInputItemDelete>
+</template>
