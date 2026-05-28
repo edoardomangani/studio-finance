@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import FormField from '@/components/forms/FormField.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
+import { FieldGroup } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { login } from '@/routes';
@@ -18,6 +19,12 @@ defineOptions({
 defineProps<{
     status?: string;
 }>();
+
+const form = useForm({ email: '' });
+
+function submit(): void {
+    form.post(email().url);
+}
 </script>
 
 <template>
@@ -30,35 +37,33 @@ defineProps<{
         {{ status }}
     </div>
 
-    <Form
-        v-bind="email.form()"
-        v-slot="{ errors, processing }"
-        class="flex flex-col gap-5"
-    >
-        <FormField label="Email" for="email" required>
-            <Input
-                id="email"
-                type="email"
-                name="email"
-                autocomplete="email"
-                autofocus
-                placeholder="nome@studio.it"
-            />
-            <template v-if="errors.email" #error>{{ errors.email }}</template>
-        </FormField>
+    <form @submit.prevent="submit">
+        <FieldGroup>
+            <FormField label="Email" for="email" required>
+                <Input
+                    id="email"
+                    v-model="form.email"
+                    type="email"
+                    autocomplete="email"
+                    autofocus
+                    placeholder="nome@studio.it"
+                />
+                <template v-if="form.errors.email" #error>{{ form.errors.email }}</template>
+            </FormField>
 
-        <Button
-            type="submit"
-            class="w-full"
-            :disabled="processing"
-            data-test="email-password-reset-link-button"
-        >
-            <Spinner v-if="processing" />
-            Invia link di reset
-        </Button>
+            <Button
+                type="submit"
+                class="w-full"
+                :disabled="form.processing"
+                data-test="email-password-reset-link-button"
+            >
+                <Spinner v-if="form.processing" />
+                Invia link di reset
+            </Button>
+        </FieldGroup>
 
-        <p class="text-center text-xs text-muted-foreground">
+        <p class="mt-5 text-center text-xs text-muted-foreground">
             <TextLink :href="login()">Torna al login</TextLink>
         </p>
-    </Form>
+    </form>
 </template>

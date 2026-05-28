@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3';
 import { PhShieldCheck } from '@phosphor-icons/vue';
 import { onUnmounted, ref } from 'vue';
 import TwoFactorRecoveryCodes from '@/components/TwoFactorRecoveryCodes.vue';
@@ -23,6 +23,22 @@ withDefaults(defineProps<Props>(), {
 const { hasSetupData, clearTwoFactorAuthData } = useTwoFactorAuth();
 const showSetupModal = ref<boolean>(false);
 
+// Case 3 (action-only): un useForm vuoto per ogni endpoint, niente <form>.
+const enableForm = useForm({});
+const disableForm = useForm({});
+
+function onEnable(): void {
+    enableForm.post(enable().url, {
+        onSuccess: () => {
+            showSetupModal.value = true;
+        },
+    });
+}
+
+function onDisable(): void {
+    disableForm.post(disable().url);
+}
+
 onUnmounted(() => clearTwoFactorAuthData());
 </script>
 
@@ -41,28 +57,24 @@ onUnmounted(() => clearTwoFactorAuthData());
                 <PhShieldCheck />
                 Continua configurazione
             </Button>
-            <Form
+            <Button
                 v-else
-                v-bind="enable.form()"
-                @success="showSetupModal = true"
-                #default="{ processing }"
+                size="sm"
+                :disabled="enableForm.processing"
+                @click="onEnable"
             >
-                <Button type="submit" size="sm" :disabled="processing">
-                    Attiva 2FA
-                </Button>
-            </Form>
+                Attiva 2FA
+            </Button>
         </div>
 
         <div v-else class="space-y-4">
-            <Form v-bind="disable.form()" #default="{ processing }">
-                <Button
-                    variant="destructive"
-                    type="submit"
-                    :disabled="processing"
-                >
-                    Disattiva 2FA
-                </Button>
-            </Form>
+            <Button
+                variant="destructive"
+                :disabled="disableForm.processing"
+                @click="onDisable"
+            >
+                Disattiva 2FA
+            </Button>
 
             <TwoFactorRecoveryCodes />
         </div>

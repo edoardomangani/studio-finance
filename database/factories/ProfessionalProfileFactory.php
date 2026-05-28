@@ -18,8 +18,8 @@ class ProfessionalProfileFactory extends Factory
     {
         return [
             'user_id' => User::factory(),
-            'coefficiente_redditivita' => 78.00,
-            'anno_inizio_attivita' => (int) date('Y'),
+            'profitability_coefficient' => 78.00,
+            'business_start_year' => (int) date('Y'),
         ];
     }
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -17,6 +17,9 @@ defineOptions({
 defineProps<{
     status?: string;
 }>();
+
+// Case 3 (action-only): niente <form>, solo bottone che lancia il POST.
+const form = useForm({});
 </script>
 
 <template>
@@ -30,18 +33,19 @@ defineProps<{
         utilizzato per la registrazione.
     </div>
 
-    <Form
-        v-bind="send.form()"
-        v-slot="{ processing }"
-        class="flex flex-col items-center gap-4"
-    >
-        <Button type="submit" :disabled="processing" variant="outline">
-            <Spinner v-if="processing" />
+    <div class="flex flex-col items-center gap-4">
+        <Button
+            type="button"
+            variant="outline"
+            :disabled="form.processing"
+            @click="form.post(send().url)"
+        >
+            <Spinner v-if="form.processing" />
             Reinvia email di verifica
         </Button>
 
         <TextLink :href="logout()" as="button" class="text-xs">
             Esci
         </TextLink>
-    </Form>
+    </div>
 </template>

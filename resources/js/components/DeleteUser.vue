@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3';
 import { ref, useTemplateRef, watch } from 'vue';
 import ProfileController from '@/actions/App/Http/Controllers/Settings/ProfileController';
 import FormField from '@/components/forms/FormField.vue';
@@ -7,25 +7,31 @@ import PasswordInput from '@/components/PasswordInput.vue';
 import { Button } from '@/components/ui/button';
 import {
     Dialog,
-    DialogClose,
+    DialogBody,
     DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+    DialogStandardFooter,
+    DialogStandardHeader,
     DialogTrigger,
 } from '@/components/ui/dialog';
+import { FieldGroup } from '@/components/ui/field';
 
 const passwordInput = useTemplateRef('passwordInput');
 const open = ref(false);
-const resetSignal = ref(0);
 
-// Quando il dialog si chiude (anche via ESC / click esterno) resettiamo il
-// form via cambio di key sul componente Form. Più solido di un @click su
-// DialogClose, che parte prima della chiusura.
+const form = useForm({ password: '' });
+
+function submit(): void {
+    form.delete(ProfileController.destroy.url(), {
+        preserveScroll: true,
+        onError: () => passwordInput.value?.focus(),
+    });
+}
+
+// Reset al chiudere il dialog (anche via ESC / click esterno).
 watch(open, (isOpen) => {
     if (!isOpen) {
-        resetSignal.value++;
+        form.reset();
+        form.clearErrors();
     }
 });
 </script>
@@ -51,56 +57,37 @@ watch(open, (isOpen) => {
                     Elimina account
                 </Button>
             </DialogTrigger>
-            <DialogContent>
-                <Form
-                    :key="resetSignal"
-                    v-bind="ProfileController.destroy.form()"
-                    reset-on-success
-                    @error="() => passwordInput?.focus()"
-                    :options="{
-                        preserveScroll: true,
-                    }"
-                    class="space-y-5"
-                    v-slot="{ errors, processing }"
-                >
-                    <DialogHeader>
-                        <DialogTitle>Eliminare l'account?</DialogTitle>
-                        <DialogDescription>
-                            Una volta eliminato l'account, tutti i dati
-                            associati vengono rimossi in modo definitivo.
-                            Inserisci la password per confermare.
-                        </DialogDescription>
-                    </DialogHeader>
-
-                    <FormField label="Password attuale" for="delete-account-password" required>
-                        <PasswordInput
-                            id="delete-account-password"
-                            name="password"
-                            ref="passwordInput"
-                            autocomplete="current-password"
-                        />
-                        <template v-if="errors.password" #error>{{
-                            errors.password
-                        }}</template>
-                    </FormField>
-
-                    <DialogFooter class="gap-2">
-                        <DialogClose as-child>
-                            <Button type="button" variant="ghost">
-                                Annulla
-                            </Button>
-                        </DialogClose>
-
-                        <Button
-                            type="submit"
-                            variant="destructive"
-                            :disabled="processing"
-                            data-test="confirm-delete-user-button"
-                        >
-                            Elimina definitivamente
-                        </Button>
-                    </DialogFooter>
-                </Form>
+            <DialogContent size="mini" :show-close-button="false">
+                <DialogStandardHeader
+                    title="Eliminare l'account?"
+                    description="Una volta eliminato l'account, tutti i dati associati vengono rimossi in modo definitivo. Inserisci la password per confermare."
+                />
+                <DialogBody>
+                    <form id="delete-user-form" @submit.prevent="submit">
+                        <FieldGroup>
+                            <FormField label="Password attuale" for="delete-account-password" required>
+                                <PasswordInput
+                                    id="delete-account-password"
+                                    ref="passwordInput"
+                                    v-model="form.password"
+                                    autocomplete="current-password"
+                                />
+                                <template v-if="form.errors.password" #error>{{ form.errors.password }}</template>
+                            </FormField>
+                        </FieldGroup>
+                    </form>
+                </DialogBody>
+                <DialogStandardFooter>
+                    <Button
+                        type="submit"
+                        form="delete-user-form"
+                        variant="destructive"
+                        :disabled="form.processing"
+                        data-test="confirm-delete-user-button"
+                    >
+                        Elimina definitivamente
+                    </Button>
+                </DialogStandardFooter>
             </DialogContent>
         </Dialog>
     </div>

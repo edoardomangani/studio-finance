@@ -23,16 +23,16 @@ class OnboardingController extends Controller
 
         return Inertia::render('Onboarding', [
             'defaults' => [
-                'nome' => $request->user()->name,
-                'coefficiente_redditivita' => 78.00,
-                'anno_inizio_attivita' => (int) date('Y'),
+                'name' => $request->user()->name,
+                'profitability_coefficient' => 78.00,
+                'business_start_year' => (int) date('Y'),
             ],
         ]);
     }
 
     /**
-     * Crea il ProfessionalProfile (e in Fase 2 farà partire il seeding
-     * di voci di spesa e scadenze tipo via Action atomica).
+     * Crea il ProfessionalProfile + seed templates iniziali tramite l'action
+     * atomica CompleteOnboarding.
      */
     public function store(CompleteOnboardingRequest $request, CompleteOnboarding $completeOnboarding): RedirectResponse
     {

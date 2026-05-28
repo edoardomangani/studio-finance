@@ -4,49 +4,48 @@
  */
 
 export type ProfessionalProfile = {
-    coefficiente_redditivita: string | number;
-    anno_inizio_attivita: number;
+    profitability_coefficient: string | number;
+    business_start_year: number;
 };
 
-export type TipoCalcoloVoceSpesa =
-    | 'perc_reddito_irpef'
-    | 'perc_volume_affari_iva'
-    | 'fissa_annuale'
-    | 'somma_bolli';
+export type ExpenseCalculationType =
+    | 'percentage_of_irpef_income'
+    | 'percentage_of_iva_revenue'
+    | 'fixed_annual'
+    | 'sum_of_bolli';
 
-export type TipoScadenza = 'pagamento' | 'adempimento';
+export type DeadlineKind = 'payment' | 'fulfillment';
 
-export type AnnoRiferimentoSpesa = 'corrente' | 'successivo';
+export type DueYearOffset = 'current' | 'next';
+export type ExpenseYearOffset = 'current' | 'next';
 
-export type VoceSpesa = {
+export type ExpenseItem = {
     id: number;
-    nome: string;
-    tipo_calcolo: TipoCalcoloVoceSpesa;
-    tipo_calcolo_label: string;
-    aliquota_default: string | number | null;
-    minimale_default: string | number | null;
-    massimale_default: string | number | null;
-    quota_default: string | number | null;
-    attiva: boolean;
-    ordine: number;
+    name: string;
+    calculation_type: ExpenseCalculationType;
+    calculation_type_label: string;
+    default_rate: string | number | null;
+    default_minimum: string | number | null;
+    default_maximum: string | number | null;
+    default_amount: string | number | null;
+    active: boolean;
+    position: number;
 };
 
-export type ScadenzaTipo = {
+export type RecurringDeadline = {
     id: number;
-    nome: string;
-    giorno: number;
-    mese: number;
-    tipo: TipoScadenza;
-    tipo_label: string;
-    voce_spesa_id: number | null;
-    voce_spesa_nome: string | null;
-    anno_data_scadenza: AnnoDataScadenza;
-    anno_data_label: string;
-    anno_riferimento_spesa: AnnoRiferimentoSpesa;
-    anno_riferimento_label: string;
-    attiva: boolean;
+    name: string;
+    day: number;
+    month: number;
+    kind: DeadlineKind;
+    kind_label: string;
+    expense_item_id: number | null;
+    expense_item_name: string | null;
+    due_year_offset: DueYearOffset;
+    due_year_offset_label: string;
+    expense_year_offset: ExpenseYearOffset;
+    expense_year_offset_label: string;
+    active: boolean;
 };
-
-export type AnnoDataScadenza = 'corrente' | 'successivo';
 
 export type EnumOption = { value: string; label: string };

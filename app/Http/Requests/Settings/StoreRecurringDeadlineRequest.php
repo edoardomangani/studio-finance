@@ -2,12 +2,12 @@
 
 namespace App\Http\Requests\Settings;
 
-use App\Concerns\ScadenzaTipoValidationRules;
+use App\Concerns\RecurringDeadlineValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateScadenzaTipoRequest extends FormRequest
+class StoreRecurringDeadlineRequest extends FormRequest
 {
-    use ScadenzaTipoValidationRules;
+    use RecurringDeadlineValidationRules;
 
     public function authorize(): bool
     {
@@ -19,7 +19,7 @@ class UpdateScadenzaTipoRequest extends FormRequest
      */
     public function rules(): array
     {
-        return $this->scadenzaTipoRules();
+        return $this->recurringDeadlineRules();
     }
 
     /**
@@ -27,6 +27,6 @@ class UpdateScadenzaTipoRequest extends FormRequest
      */
     public function messages(): array
     {
-        return $this->scadenzaTipoMessages();
+        return $this->recurringDeadlineMessages();
     }
 }

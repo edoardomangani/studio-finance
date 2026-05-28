@@ -2,12 +2,12 @@
 
 namespace App\Http\Requests\Settings;
 
-use App\Concerns\VoceSpesaValidationRules;
+use App\Concerns\ExpenseItemValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreVoceSpesaRequest extends FormRequest
+class StoreExpenseItemRequest extends FormRequest
 {
-    use VoceSpesaValidationRules;
+    use ExpenseItemValidationRules;
 
     public function authorize(): bool
     {
@@ -19,7 +19,7 @@ class StoreVoceSpesaRequest extends FormRequest
      */
     public function rules(): array
     {
-        return $this->voceSpesaRules();
+        return $this->expenseItemRules();
     }
 
     /**
@@ -27,6 +27,6 @@ class StoreVoceSpesaRequest extends FormRequest
      */
     public function messages(): array
     {
-        return $this->voceSpesaMessages();
+        return $this->expenseItemMessages();
     }
 }

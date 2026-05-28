@@ -9,13 +9,12 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
 
 /**
- * Profilo professionale — modifica post-onboarding di nome, coefficiente
- * di redditività e anno di inizio attività. La pagina UI vive dentro
- * settings/Profile.vue (tab "Profilo professionale"): qui solo l'update
- * endpoint, niente edit() Inertia view.
+ * Profilo professionale — modifica post-onboarding di nome, coefficiente di
+ * redditività e anno di inizio attività. La UI vive in settings/Profile.vue
+ * (tab "Profilo professionale"): qui solo l'update endpoint.
  *
- * La propagazione del coefficiente / anno-inizio agli Anni esistenti
- * arriverà in Fase 10 (F11 specifiche) con un dialog di conferma.
+ * La propagazione del coefficiente / anno-inizio agli Anni esistenti arriverà
+ * in Fase 10 (F11 specifiche) con un dialog di conferma.
  */
 class ProfessionalController extends Controller
 {
@@ -26,14 +25,14 @@ class ProfessionalController extends Controller
         $data = $request->validated();
         $user = $request->user();
 
-        // Nome professionista = User.name (single source of truth). Email
-        // pure su User. Il resto sulla tabella professional_profiles.
+        // Nome professionista = users.name (single source of truth). Email
+        // pure su users. Il resto sulla tabella professional_profiles.
         // Wrapped in transaction: se l'update di professionalProfile fallisce
-        // (lock, validation DB, ecc.) rollback anche dell'update User per
-        // evitare stati inconsistenti.
+        // (lock, DB validation), rollback anche dell'update User per evitare
+        // stati inconsistenti.
         DB::transaction(function () use ($user, $data): void {
             $user->fill([
-                'name' => $data['nome'],
+                'name' => $data['name'],
                 'email' => $data['email'],
             ]);
 
@@ -45,8 +44,8 @@ class ProfessionalController extends Controller
 
             $user->loadMissing('professionalProfile');
             $user->professionalProfile->update([
-                'coefficiente_redditivita' => $data['coefficiente_redditivita'],
-                'anno_inizio_attivita' => $data['anno_inizio_attivita'],
+                'profitability_coefficient' => $data['profitability_coefficient'],
+                'business_start_year' => $data['business_start_year'],
             ]);
         });
 

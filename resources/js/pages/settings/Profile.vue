@@ -23,8 +23,8 @@
  */
 import { Head, Link, setLayoutProps, useForm, usePage } from '@inertiajs/vue3';
 import { computed } from 'vue';
-import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
 import ProfessionalController from '@/actions/App/Http/Controllers/Settings/ProfessionalController';
+import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
 import AppearanceTabs from '@/components/AppearanceTabs.vue';
 import DeleteUser from '@/components/DeleteUser.vue';
 import FormField from '@/components/forms/FormField.vue';
@@ -62,13 +62,13 @@ const page = usePage();
 const user = computed(() => page.props.auth.user);
 
 const professionalForm = useForm({
-    nome: user.value.name,
+    name: user.value.name,
     email: user.value.email,
-    coefficiente_redditivita: props.professionalProfile
-        ? Number(props.professionalProfile.coefficiente_redditivita)
+    profitability_coefficient: props.professionalProfile
+        ? Number(props.professionalProfile.profitability_coefficient)
         : 78,
-    anno_inizio_attivita:
-        props.professionalProfile?.anno_inizio_attivita ??
+    business_start_year:
+        props.professionalProfile?.business_start_year ??
         new Date().getFullYear(),
 });
 
@@ -172,109 +172,107 @@ useShortcut(
             first
             title="Profilo professionale"
         >
-            <form @submit.prevent="onSave">
-                <FormField label="Nome" for="prof-nome" required>
-                    <Input
-                        id="prof-nome"
-                        v-model="professionalForm.nome"
-                        autocomplete="name"
-                        placeholder="Es. Mario Rossi"
-                    />
-                    <template v-if="professionalForm.errors.nome" #error>{{ professionalForm.errors.nome }}</template>
-                </FormField>
+            <FormField label="Nome" for="prof-name" required>
+                <Input
+                    id="prof-name"
+                    v-model="professionalForm.name"
+                    autocomplete="name"
+                    placeholder="Es. Mario Rossi"
+                />
+                <template v-if="professionalForm.errors.name" #error>{{ professionalForm.errors.name }}</template>
+            </FormField>
 
-                <FormField
-                    label="Email"
-                    for="prof-email"
-                    required
-                    hint="Cambiando email dovrai riverificarla."
-                >
-                    <Input
-                        id="prof-email"
-                        v-model="professionalForm.email"
-                        type="email"
-                        autocomplete="username"
-                        placeholder="nome@studio.it"
-                    />
-                    <template v-if="professionalForm.errors.email" #error>{{ professionalForm.errors.email }}</template>
-                </FormField>
+            <FormField
+                label="Email"
+                for="prof-email"
+                required
+                hint="Cambiando email dovrai riverificarla."
+            >
+                <Input
+                    id="prof-email"
+                    v-model="professionalForm.email"
+                    type="email"
+                    autocomplete="username"
+                    placeholder="nome@studio.it"
+                />
+                <template v-if="professionalForm.errors.email" #error>{{ professionalForm.errors.email }}</template>
+            </FormField>
 
-                <div
-                    v-if="mustVerifyEmail && !user.email_verified_at"
-                    class="-mt-2 mb-4"
-                >
-                    <p class="text-xs text-muted-foreground">
-                        L'indirizzo email non è ancora verificato.
-                        <Link
-                            :href="send()"
-                            as="button"
-                            class="text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground"
-                        >
-                            Reinvia l'email di verifica
-                        </Link>
-                        .
-                    </p>
-                    <p
-                        v-if="status === 'verification-link-sent'"
-                        class="mt-2 text-xs font-medium text-accent-strong"
+            <div
+                v-if="mustVerifyEmail && !user.email_verified_at"
+                class="-mt-2 mb-4"
+            >
+                <p class="text-xs text-muted-foreground">
+                    L'indirizzo email non è ancora verificato.
+                    <Link
+                        :href="send()"
+                        as="button"
+                        class="text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground"
                     >
-                        Una nuova email di verifica è stata inviata.
-                    </p>
-                </div>
-
-                <FormField
-                    label="Coefficiente di redditività (%)"
-                    for="prof-coef"
-                    required
-                    hint="Per architetti iscritti a Inarcassa è 78%."
+                        Reinvia l'email di verifica
+                    </Link>
+                    .
+                </p>
+                <p
+                    v-if="status === 'verification-link-sent'"
+                    class="mt-2 text-xs font-medium text-accent-strong"
                 >
-                    <NumberField
-                        id="prof-coef"
-                        v-model="professionalForm.coefficiente_redditivita"
-                        :min="0"
-                        :max="100"
-                        :step="1"
-                        :format-options="{
-                            minimumFractionDigits: 0,
-                            maximumFractionDigits: 2,
-                        }"
-                    >
-                        <NumberFieldContent>
-                            <NumberFieldDecrement />
-                            <NumberFieldInput class="tabular" />
-                            <NumberFieldIncrement />
-                        </NumberFieldContent>
-                    </NumberField>
-                    <template v-if="professionalForm.errors.coefficiente_redditivita" #error>{{ professionalForm.errors.coefficiente_redditivita }}</template>
-                </FormField>
+                    Una nuova email di verifica è stata inviata.
+                </p>
+            </div>
 
-                <FormField
-                    label="Anno inizio attività"
-                    for="prof-anno"
-                    required
-                    last
-                    hint="Determina l'aliquota imposta sostitutiva: 5% per i primi cinque anni, 15% poi."
+            <FormField
+                label="Coefficiente di redditività (%)"
+                for="prof-coef"
+                required
+                hint="Per architetti iscritti a Inarcassa è 78%."
+            >
+                <NumberField
+                    id="prof-coef"
+                    v-model="professionalForm.profitability_coefficient"
+                    :min="0"
+                    :max="100"
+                    :step="1"
+                    :format-options="{
+                        minimumFractionDigits: 0,
+                        maximumFractionDigits: 2,
+                    }"
                 >
-                    <NumberField
-                        id="prof-anno"
-                        v-model="professionalForm.anno_inizio_attivita"
-                        :min="1990"
-                        :max="new Date().getFullYear()"
-                        :step="1"
-                        :format-options="{
-                            useGrouping: false,
-                            maximumFractionDigits: 0,
-                        }"
-                    >
-                        <NumberFieldContent>
-                            <NumberFieldDecrement />
-                            <NumberFieldInput class="tabular" />
-                            <NumberFieldIncrement />
-                        </NumberFieldContent>
-                    </NumberField>
-                    <template v-if="professionalForm.errors.anno_inizio_attivita" #error>{{ professionalForm.errors.anno_inizio_attivita }}</template>
-                </FormField>
-            </form>
+                    <NumberFieldContent>
+                        <NumberFieldDecrement />
+                        <NumberFieldInput class="tabular" />
+                        <NumberFieldIncrement />
+                    </NumberFieldContent>
+                </NumberField>
+                <template v-if="professionalForm.errors.profitability_coefficient" #error>{{ professionalForm.errors.profitability_coefficient }}</template>
+            </FormField>
+
+            <FormField
+                label="Anno inizio attività"
+                for="prof-anno"
+                required
+                last
+                hint="Determina l'aliquota imposta sostitutiva: 5% per i primi cinque anni, 15% poi."
+            >
+                <NumberField
+                    id="prof-anno"
+                    v-model="professionalForm.business_start_year"
+                    :min="1990"
+                    :max="new Date().getFullYear()"
+                    :step="1"
+                    :format-options="{
+                        useGrouping: false,
+                        maximumFractionDigits: 0,
+                    }"
+                >
+                    <NumberFieldContent>
+                        <NumberFieldDecrement />
+                        <NumberFieldInput class="tabular" />
+                        <NumberFieldIncrement />
+                    </NumberFieldContent>
+                </NumberField>
+                <template v-if="professionalForm.errors.business_start_year" #error>{{ professionalForm.errors.business_start_year }}</template>
+            </FormField>
         </FormSection>
 
         <!-- Sicurezza: password + 2FA + Passkeys -->
@@ -283,34 +281,32 @@ useShortcut(
             :first="!professionalProfile"
             title="Sicurezza"
         >
-            <form @submit.prevent="onSave">
-                <FormField label="Password attuale" for="current_password">
-                    <PasswordInput
-                        id="current_password"
-                        v-model="securityForm.current_password"
-                        autocomplete="current-password"
-                    />
-                    <template v-if="securityForm.errors.current_password" #error>{{ securityForm.errors.current_password }}</template>
-                </FormField>
+            <FormField label="Password attuale" for="current_password">
+                <PasswordInput
+                    id="current_password"
+                    v-model="securityForm.current_password"
+                    autocomplete="current-password"
+                />
+                <template v-if="securityForm.errors.current_password" #error>{{ securityForm.errors.current_password }}</template>
+            </FormField>
 
-                <FormField label="Nuova password" for="password">
-                    <PasswordInput
-                        id="password"
-                        v-model="securityForm.password"
-                        autocomplete="new-password"
-                    />
-                    <template v-if="securityForm.errors.password" #error>{{ securityForm.errors.password }}</template>
-                </FormField>
+            <FormField label="Nuova password" for="password">
+                <PasswordInput
+                    id="password"
+                    v-model="securityForm.password"
+                    autocomplete="new-password"
+                />
+                <template v-if="securityForm.errors.password" #error>{{ securityForm.errors.password }}</template>
+            </FormField>
 
-                <FormField label="Conferma nuova password" for="password_confirmation" last>
-                    <PasswordInput
-                        id="password_confirmation"
-                        v-model="securityForm.password_confirmation"
-                        autocomplete="new-password"
-                    />
-                    <template v-if="securityForm.errors.password_confirmation" #error>{{ securityForm.errors.password_confirmation }}</template>
-                </FormField>
-            </form>
+            <FormField label="Conferma nuova password" for="password_confirmation" last>
+                <PasswordInput
+                    id="password_confirmation"
+                    v-model="securityForm.password_confirmation"
+                    autocomplete="new-password"
+                />
+                <template v-if="securityForm.errors.password_confirmation" #error>{{ securityForm.errors.password_confirmation }}</template>
+            </FormField>
 
             <div class="mt-8 space-y-8">
                 <ManageTwoFactor

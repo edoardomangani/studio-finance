@@ -216,3 +216,32 @@ Vue components must have a single root element.
 - IMPORTANT: Activate `inertia-vue-development` when working with Inertia Vue client-side patterns.
 
 </laravel-boost-guidelines>
+
+# Project conventions (Studiofinance)
+
+## Naming
+
+- **Database tables, columns, model classes, enum classes, controllers, requests, Vue components and props are all in English.** UI-facing labels, copy, toasts, breadcrumb labels and route URL segments stay in Italian. Italian fiscal acronyms and proper nouns (IRPEF, IVA, Inarcassa, OATO, "bolli") are preserved as-is in code when they appear inside enum values or domain terms — they are technical terms without English equivalents.
+
+## Forms convention
+
+The project follows the shadcn-vue Field family rules (see `shadcn-vue` skill `rules/forms.md`) with these project-specific clarifications:
+
+- **Only use the HTML `<form>` element (lowercase).** Never use Inertia's `<Form>` component. Reactive form state is handled via Inertia's `useForm()` composable + `v-model` on inputs.
+- **Hierarchy: `<form>` → `<FieldGroup>` → `<Field>`/`<FormField>`.** The `<form>` element ALWAYS wraps `<FieldGroup>`, never the other way around.
+- **`FormSection` already wraps its slot in `<FieldGroup>`** — never add an explicit `<FieldGroup>` inside `<FormSection>` and never put `<form>` *inside* `<FormSection>`. The `<form>` element, when present, wraps the `<FormSection>` from outside.
+- **Never use `space-y-*` / `space-x-*` for form layout.** Gap is provided by `<FieldGroup>`.
+- **Forms inside `Dialog`:** put `<form id="…">` inside `<DialogBody>`, the submit button outside via `<Button type="submit" form="…">` in `<DialogStandardFooter>`.
+- **Action-only buttons (POST with no input fields):** no `<form>` wrapper — just `<Button @click="form.post(url)">` using `useForm({})`.
+- **Pages with multiple FormSection sharing a global topbar submit:** no outer `<form>`, submit programmatic from the Teleported button.
+
+### Pattern decision table
+
+| Case | When | Shape |
+| --- | --- | --- |
+| 1 | Standalone single-block form (auth pages, onboarding) | `<form>` + `<FieldGroup>` + `<FormField>` |
+| 2 | Form inside a `Dialog` | `<form id="x">` + `<FieldGroup>`; submit button outside via `form="x"` |
+| 3 | Action-only POST (no fields) | Just `<Button @click="form.post(url)">` |
+| 4 | Domain page with one or more `FormSection` | `<form>` wraps the `<FormSection>` (never inside) |
+| 5 | Monolite page with global topbar submit | No `<form>`, programmatic submit |
+

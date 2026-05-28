@@ -1,10 +1,10 @@
 <?php
 
+use App\Http\Controllers\Settings\ExpenseItemController;
 use App\Http\Controllers\Settings\ProfessionalController;
 use App\Http\Controllers\Settings\ProfileController;
-use App\Http\Controllers\Settings\ScadenzeTipoController;
+use App\Http\Controllers\Settings\RecurringDeadlineController;
 use App\Http\Controllers\Settings\SecurityController;
-use App\Http\Controllers\Settings\VociSpesaController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
 
@@ -52,25 +52,25 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('settings/professional', [ProfessionalController::class, 'update'])
             ->name('professional.update');
 
-        // Cataloghi di sistema — voci di spesa template (Index.vue dedicato,
+        // Cataloghi di sistema — expense items template (Index.vue dedicato,
         // CTA in topbar, sidebar in modalità settings).
-        Route::get('settings/voci-spesa', [VociSpesaController::class, 'index'])
-            ->name('settings.voci-spesa.index');
-        Route::post('settings/voci-spesa', [VociSpesaController::class, 'store'])
-            ->name('settings.voci-spesa.store');
-        Route::patch('settings/voci-spesa/{voceSpesa}', [VociSpesaController::class, 'update'])
-            ->name('settings.voci-spesa.update');
-        Route::delete('settings/voci-spesa/{voceSpesa}', [VociSpesaController::class, 'destroy'])
-            ->name('settings.voci-spesa.destroy');
+        Route::get('settings/expense-items', [ExpenseItemController::class, 'index'])
+            ->name('settings.expense-items.index');
+        Route::post('settings/expense-items', [ExpenseItemController::class, 'store'])
+            ->name('settings.expense-items.store');
+        Route::patch('settings/expense-items/{expenseItem}', [ExpenseItemController::class, 'update'])
+            ->name('settings.expense-items.update');
+        Route::delete('settings/expense-items/{expenseItem}', [ExpenseItemController::class, 'destroy'])
+            ->name('settings.expense-items.destroy');
 
-        // Scadenze tipo template (Index.vue dedicato).
-        Route::get('settings/scadenze-tipo', [ScadenzeTipoController::class, 'index'])
-            ->name('settings.scadenze-tipo.index');
-        Route::post('settings/scadenze-tipo', [ScadenzeTipoController::class, 'store'])
-            ->name('settings.scadenze-tipo.store');
-        Route::patch('settings/scadenze-tipo/{scadenzaTipo}', [ScadenzeTipoController::class, 'update'])
-            ->name('settings.scadenze-tipo.update');
-        Route::delete('settings/scadenze-tipo/{scadenzaTipo}', [ScadenzeTipoController::class, 'destroy'])
-            ->name('settings.scadenze-tipo.destroy');
+        // Recurring deadlines template (Index.vue dedicato).
+        Route::get('settings/recurring-deadlines', [RecurringDeadlineController::class, 'index'])
+            ->name('settings.recurring-deadlines.index');
+        Route::post('settings/recurring-deadlines', [RecurringDeadlineController::class, 'store'])
+            ->name('settings.recurring-deadlines.store');
+        Route::patch('settings/recurring-deadlines/{recurringDeadline}', [RecurringDeadlineController::class, 'update'])
+            ->name('settings.recurring-deadlines.update');
+        Route::delete('settings/recurring-deadlines/{recurringDeadline}', [RecurringDeadlineController::class, 'destroy'])
+            ->name('settings.recurring-deadlines.destroy');
     });
 });

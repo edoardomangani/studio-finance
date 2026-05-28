@@ -25,9 +25,9 @@ it('crea il professional profile, aggiorna User.name e reindirizza alla dashboar
     $user = User::factory()->create(['name' => 'Originale']);
 
     $response = $this->actingAs($user)->post('/onboarding', [
-        'nome' => 'Mario Rossi',
-        'coefficiente_redditivita' => 78,
-        'anno_inizio_attivita' => 2020,
+        'name' => 'Mario Rossi',
+        'profitability_coefficient' => 78,
+        'business_start_year' => 2020,
     ]);
 
     $response->assertRedirect('/dashboard');
@@ -35,37 +35,37 @@ it('crea il professional profile, aggiorna User.name e reindirizza alla dashboar
     $user = $user->fresh();
 
     expect($user->isOnboarded())->toBeTrue();
-    // Nome professionista = User.name (single source of truth).
+    // Nome professionista = users.name (single source of truth).
     expect($user->name)->toBe('Mario Rossi');
     expect($user->professionalProfile)->not->toBeNull();
-    expect((float) $user->professionalProfile->coefficiente_redditivita)->toBe(78.0);
-    expect($user->professionalProfile->anno_inizio_attivita)->toBe(2020);
+    expect((float) $user->professionalProfile->profitability_coefficient)->toBe(78.0);
+    expect($user->professionalProfile->business_start_year)->toBe(2020);
 });
 
-it('seed dei template iniziali (8 voci + scadenze tipo) all\'onboarding', function (): void {
+it('seed dei template iniziali (8 expense items + recurring deadlines) all\'onboarding', function (): void {
     $user = User::factory()->create();
 
     $this->actingAs($user)->post('/onboarding', [
-        'nome' => 'Mario Rossi',
-        'coefficiente_redditivita' => 78,
-        'anno_inizio_attivita' => 2020,
+        'name' => 'Mario Rossi',
+        'profitability_coefficient' => 78,
+        'business_start_year' => 2020,
     ])->assertRedirect('/dashboard');
 
     $user = $user->fresh();
 
-    expect($user->vociSpesa()->count())->toBe(8);
-    expect($user->scadenzeTipo()->count())->toBeGreaterThanOrEqual(15);
+    expect($user->expenseItems()->count())->toBe(8);
+    expect($user->recurringDeadlines()->count())->toBeGreaterThanOrEqual(15);
 
-    // Le scadenze di tipo Pagamento devono essere linkate a una voce.
-    $pagamentiSenzaVoce = $user->scadenzeTipo()
-        ->where('tipo', 'pagamento')
-        ->whereNull('voce_spesa_id')
+    // Le scadenze di tipo payment devono essere linkate a un expense item.
+    $paymentSenzaItem = $user->recurringDeadlines()
+        ->where('kind', 'payment')
+        ->whereNull('expense_item_id')
         ->count();
-    expect($pagamentiSenzaVoce)->toBe(0);
+    expect($paymentSenzaItem)->toBe(0);
 
-    // Almeno una scadenza con anno_riferimento=successivo (commercialista).
-    expect($user->scadenzeTipo()
-        ->where('anno_riferimento_spesa', 'successivo')
+    // Almeno una scadenza con expense_year_offset=next (commercialista).
+    expect($user->recurringDeadlines()
+        ->where('expense_year_offset', 'next')
         ->exists()
     )->toBeTrue();
 });
@@ -77,13 +77,13 @@ it('rollback del seeding se la creazione del profilo fallisce', function (): voi
     // dell'action, quindi il rollback è implicito: il test verifica che
     // nessun template residuo resti.
     $this->actingAs($user)->post('/onboarding', [
-        'nome' => 'Mario Rossi',
-        'coefficiente_redditivita' => 999,
-        'anno_inizio_attivita' => 2020,
-    ])->assertSessionHasErrors(['coefficiente_redditivita']);
+        'name' => 'Mario Rossi',
+        'profitability_coefficient' => 999,
+        'business_start_year' => 2020,
+    ])->assertSessionHasErrors(['profitability_coefficient']);
 
-    expect($user->vociSpesa()->count())->toBe(0);
-    expect($user->scadenzeTipo()->count())->toBe(0);
+    expect($user->expenseItems()->count())->toBe(0);
+    expect($user->recurringDeadlines()->count())->toBe(0);
 });
 
 it('valida i campi obbligatori', function (): void {
@@ -91,7 +91,7 @@ it('valida i campi obbligatori', function (): void {
 
     $this->actingAs($user)
         ->post('/onboarding', [])
-        ->assertSessionHasErrors(['nome', 'coefficiente_redditivita', 'anno_inizio_attivita']);
+        ->assertSessionHasErrors(['name', 'profitability_coefficient', 'business_start_year']);
 });
 
 it('blocca coefficiente fuori range 0-100', function (): void {
@@ -99,11 +99,11 @@ it('blocca coefficiente fuori range 0-100', function (): void {
 
     $this->actingAs($user)
         ->post('/onboarding', [
-            'nome' => 'Test',
-            'coefficiente_redditivita' => 150,
-            'anno_inizio_attivita' => 2020,
+            'name' => 'Test',
+            'profitability_coefficient' => 150,
+            'business_start_year' => 2020,
         ])
-        ->assertSessionHasErrors(['coefficiente_redditivita']);
+        ->assertSessionHasErrors(['profitability_coefficient']);
 });
 
 it('blocca anno fuori range 1990-corrente', function (): void {
@@ -111,11 +111,11 @@ it('blocca anno fuori range 1990-corrente', function (): void {
 
     $this->actingAs($user)
         ->post('/onboarding', [
-            'nome' => 'Test',
-            'coefficiente_redditivita' => 78,
-            'anno_inizio_attivita' => 1980,
+            'name' => 'Test',
+            'profitability_coefficient' => 78,
+            'business_start_year' => 1980,
         ])
-        ->assertSessionHasErrors(['anno_inizio_attivita']);
+        ->assertSessionHasErrors(['business_start_year']);
 });
 
 it('rifiuta una seconda submit se l\'utente è già onboarded', function (): void {
@@ -124,9 +124,9 @@ it('rifiuta una seconda submit se l\'utente è già onboarded', function (): voi
 
     $this->actingAs($user)
         ->post('/onboarding', [
-            'nome' => 'Altro nome',
-            'coefficiente_redditivita' => 50,
-            'anno_inizio_attivita' => 2010,
+            'name' => 'Altro nome',
+            'profitability_coefficient' => 50,
+            'business_start_year' => 2010,
         ])
         ->assertForbidden();
 

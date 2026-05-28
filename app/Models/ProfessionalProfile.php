@@ -15,15 +15,15 @@ class ProfessionalProfile extends Model
 
     protected $fillable = [
         'user_id',
-        'coefficiente_redditivita',
-        'anno_inizio_attivita',
+        'profitability_coefficient',
+        'business_start_year',
     ];
 
     protected function casts(): array
     {
         return [
-            'coefficiente_redditivita' => 'decimal:2',
-            'anno_inizio_attivita' => 'integer',
+            'profitability_coefficient' => 'decimal:2',
+            'business_start_year' => 'integer',
         ];
     }
 }

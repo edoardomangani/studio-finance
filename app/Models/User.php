@@ -23,8 +23,6 @@ class User extends Authenticatable implements PasskeyUser
     use HasFactory, Notifiable, PasskeyAuthenticatable, TwoFactorAuthenticatable;
 
     /**
-     * Get the attributes that should be cast.
-     *
      * @return array<string, string>
      */
     protected function casts(): array
@@ -41,14 +39,14 @@ class User extends Authenticatable implements PasskeyUser
         return $this->hasOne(ProfessionalProfile::class);
     }
 
-    public function vociSpesa(): HasMany
+    public function expenseItems(): HasMany
     {
-        return $this->hasMany(VoceSpesa::class);
+        return $this->hasMany(ExpenseItem::class);
     }
 
-    public function scadenzeTipo(): HasMany
+    public function recurringDeadlines(): HasMany
     {
-        return $this->hasMany(ScadenzaTipo::class);
+        return $this->hasMany(RecurringDeadline::class);
     }
 
     public function isOnboarded(): bool

@@ -2,15 +2,15 @@
 
 namespace App\Http\Requests\Settings;
 
-use App\Concerns\VoceSpesaValidationRules;
+use App\Concerns\ExpenseItemValidationRules;
 use Illuminate\Foundation\Http\FormRequest;
 
-class UpdateVoceSpesaRequest extends FormRequest
+class UpdateExpenseItemRequest extends FormRequest
 {
-    use VoceSpesaValidationRules;
+    use ExpenseItemValidationRules;
 
     /**
-     * Il global scope di BelongsToUser garantisce che la VoceSpesa risolta dal
+     * Il global scope di BelongsToUser garantisce che l'ExpenseItem risolto dal
      * route-model binding appartenga già all'utente (404 altrimenti). Qui basta
      * verificare auth + onboarding.
      */
@@ -24,7 +24,7 @@ class UpdateVoceSpesaRequest extends FormRequest
      */
     public function rules(): array
     {
-        return $this->voceSpesaRules();
+        return $this->expenseItemRules();
     }
 
     /**
@@ -32,6 +32,6 @@ class UpdateVoceSpesaRequest extends FormRequest
      */
     public function messages(): array
     {
-        return $this->voceSpesaMessages();
+        return $this->expenseItemMessages();
     }
 }

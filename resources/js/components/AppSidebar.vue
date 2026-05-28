@@ -44,8 +44,8 @@ import {
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { dashboard, designSystem } from '@/routes';
-import { index as scadenzeTipoIndex } from '@/routes/settings/scadenze-tipo';
-import { index as vociSpesaIndex } from '@/routes/settings/voci-spesa';
+import { index as expenseItemsIndex } from '@/routes/settings/expense-items';
+import { index as recurringDeadlinesIndex } from '@/routes/settings/recurring-deadlines';
 
 type NavLink = {
     label: string;
@@ -58,7 +58,7 @@ type NavSection = { label: string; items: NavLink[] };
 const { isCurrentOrParentUrl, currentUrl } = useCurrentUrl();
 const { state, toggleSidebar } = useSidebar();
 
-const SETTINGS_PREFIXES = ['/settings/voci-spesa', '/settings/scadenze-tipo'];
+const SETTINGS_PREFIXES = ['/settings/expense-items', '/settings/recurring-deadlines'];
 
 /* Modalità settings: la sidebar swap il content quando l'utente è dentro
  * uno dei tab di sistema. /settings/profile (personali) NON triggerano lo
@@ -72,16 +72,12 @@ const mainSections: NavSection[] = [
         label: 'Lavoro',
         items: [
             { label: 'Dashboard', icon: PhHouse, href: dashboard() },
-            { label: 'Fatture', icon: PhReceipt, href: dashboard() },
-            { label: 'Clienti', icon: PhUsers, href: dashboard() },
-            { label: 'Scadenze', icon: PhBell, href: dashboard() },
-            { label: 'Anni', icon: PhCalendarDots, href: dashboard() },
         ],
     },
     {
         label: 'Sistema',
         items: [
-            { label: 'Impostazioni', icon: PhGearSix, href: vociSpesaIndex() },
+            { label: 'Impostazioni', icon: PhGearSix, href: expenseItemsIndex() },
             { label: 'Design system', icon: PhBookOpen, href: designSystem() },
         ],
     },
@@ -91,11 +87,11 @@ const settingsSections: NavSection[] = [
     {
         label: 'Impostazioni',
         items: [
-            { label: 'Voci di spesa', icon: PhTag, href: vociSpesaIndex() },
+            { label: 'Voci di spesa', icon: PhTag, href: expenseItemsIndex() },
             {
                 label: 'Scadenze tipo',
                 icon: PhListChecks,
-                href: scadenzeTipoIndex(),
+                href: recurringDeadlinesIndex(),
             },
         ],
     },

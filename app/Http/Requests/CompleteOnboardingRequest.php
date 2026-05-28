@@ -17,9 +17,9 @@ class CompleteOnboardingRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nome' => ['required', 'string', 'max:120'],
-            'coefficiente_redditivita' => ['required', 'numeric', 'between:0,100'],
-            'anno_inizio_attivita' => ['required', 'integer', 'between:1990,'.date('Y')],
+            'name' => ['required', 'string', 'max:120'],
+            'profitability_coefficient' => ['required', 'numeric', 'between:0,100'],
+            'business_start_year' => ['required', 'integer', 'between:1990,'.date('Y')],
         ];
     }
 
@@ -29,11 +29,11 @@ class CompleteOnboardingRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'nome.required' => 'Il nome è obbligatorio.',
-            'coefficiente_redditivita.required' => 'Il coefficiente di redditività è obbligatorio.',
-            'coefficiente_redditivita.between' => 'Il coefficiente deve essere tra 0 e 100.',
-            'anno_inizio_attivita.required' => 'L\'anno di inizio attività è obbligatorio.',
-            'anno_inizio_attivita.between' => 'L\'anno deve essere tra 1990 e :max.',
+            'name.required' => 'Il nome è obbligatorio.',
+            'profitability_coefficient.required' => 'Il coefficiente di redditività è obbligatorio.',
+            'profitability_coefficient.between' => 'Il coefficiente deve essere tra 0 e 100.',
+            'business_start_year.required' => "L'anno di inizio attività è obbligatorio.",
+            'business_start_year.between' => "L'anno deve essere tra 1990 e :max.",
         ];
     }
 }

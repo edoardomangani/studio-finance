@@ -3,6 +3,7 @@ import { usePasskeyRegister } from '@laravel/passkeys/vue';
 import { ref } from 'vue';
 import FormField from '@/components/forms/FormField.vue';
 import { Button } from '@/components/ui/button';
+import { FieldGroup } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 
@@ -67,43 +68,45 @@ const handleCancel = () => {
 
     <form
         v-else
+        class="rounded-md border border-border bg-muted/30 p-4"
         @submit="handleSubmit"
-        class="space-y-4 rounded-md border border-border bg-muted/30 p-4"
     >
-        <FormField
-            label="Nome passkey"
-            for="passkey-name"
-            required
-            hint="Ti aiuta a riconoscerla in seguito."
-            :invalid="!!error"
-        >
-            <Input
-                id="passkey-name"
-                type="text"
-                v-model="name"
-                placeholder="Es. MacBook Pro · iPhone"
-                autofocus
-            />
-            <template v-if="error" #error>{{ error }}</template>
-        </FormField>
+        <FieldGroup>
+            <FormField
+                label="Nome passkey"
+                for="passkey-name"
+                required
+                hint="Ti aiuta a riconoscerla in seguito."
+                :invalid="!!error"
+            >
+                <Input
+                    id="passkey-name"
+                    v-model="name"
+                    type="text"
+                    placeholder="Es. MacBook Pro · iPhone"
+                    autofocus
+                />
+                <template v-if="error" #error>{{ error }}</template>
+            </FormField>
 
-        <div class="flex gap-2">
-            <Button
-                type="submit"
-                size="sm"
-                :disabled="isLoading || !name.trim()"
-            >
-                <Spinner v-if="isLoading" />
-                {{ isLoading ? 'Sto registrando…' : 'Registra passkey' }}
-            </Button>
-            <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                @click="handleCancel"
-            >
-                Annulla
-            </Button>
-        </div>
+            <div class="flex gap-2">
+                <Button
+                    type="submit"
+                    size="sm"
+                    :disabled="isLoading || !name.trim()"
+                >
+                    <Spinner v-if="isLoading" />
+                    {{ isLoading ? 'Sto registrando…' : 'Registra passkey' }}
+                </Button>
+                <Button
+                    type="button"
+                    size="sm"
+                    variant="ghost"
+                    @click="handleCancel"
+                >
+                    Annulla
+                </Button>
+            </div>
+        </FieldGroup>
     </form>
 </template>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form } from '@inertiajs/vue3';
+import { useForm } from '@inertiajs/vue3';
 import { Eye, EyeOff, LockKeyhole, RefreshCw } from 'lucide-vue-next';
 import { nextTick, onMounted, ref, useTemplateRef } from 'vue';
 import AlertError from '@/components/AlertError.vue';
@@ -17,6 +17,15 @@ import { regenerateRecoveryCodes } from '@/routes/two-factor';
 const { recoveryCodesList, fetchRecoveryCodes, errors } = useTwoFactorAuth();
 const isRecoveryCodesVisible = ref<boolean>(false);
 const recoveryCodeSectionRef = useTemplateRef('recoveryCodeSectionRef');
+
+const regenerateForm = useForm({});
+
+function onRegenerate(): void {
+    regenerateForm.post(regenerateRecoveryCodes().url, {
+        preserveScroll: true,
+        onSuccess: () => fetchRecoveryCodes(),
+    });
+}
 
 const toggleRecoveryCodesVisibility = async () => {
     if (!isRecoveryCodesVisible.value && !recoveryCodesList.value.length) {
@@ -62,22 +71,14 @@ onMounted(async () => {
                     codes
                 </Button>
 
-                <Form
+                <Button
                     v-if="isRecoveryCodesVisible && recoveryCodesList.length"
-                    v-bind="regenerateRecoveryCodes.form()"
-                    method="post"
-                    :options="{ preserveScroll: true }"
-                    @success="fetchRecoveryCodes"
-                    #default="{ processing }"
+                    variant="secondary"
+                    :disabled="regenerateForm.processing"
+                    @click="onRegenerate"
                 >
-                    <Button
-                        variant="secondary"
-                        type="submit"
-                        :disabled="processing"
-                    >
-                        <RefreshCw /> Regenerate codes
-                    </Button>
-                </Form>
+                    <RefreshCw /> Regenerate codes
+                </Button>
             </div>
             <div
                 :class="[

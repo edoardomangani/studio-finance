@@ -2,22 +2,23 @@
 
 namespace Database\Seeders;
 
-use App\Enums\AnnoDataScadenza;
-use App\Enums\AnnoRiferimentoSpesa;
-use App\Enums\TipoCalcoloVoceSpesa;
-use App\Enums\TipoScadenza;
-use App\Models\ScadenzaTipo;
+use App\Enums\DeadlineKind;
+use App\Enums\DueYearOffset;
+use App\Enums\ExpenseCalculationType;
+use App\Enums\ExpenseYearOffset;
+use App\Models\ExpenseItem;
+use App\Models\RecurringDeadline;
 use App\Models\User;
-use App\Models\VoceSpesa;
 use Illuminate\Database\Seeder;
 
 /**
- * Seed dei template iniziali (voci di spesa + scadenze tipo) per un nuovo
- * utente forfettario architetto/Inarcassa. Eseguito dentro CompleteOnboarding,
- * NON da DatabaseSeeder globale (i template sono per-utente, mai globali).
+ * Seed dei template iniziali (expense items + recurring deadlines) per un
+ * nuovo utente forfettario architetto/Inarcassa. Eseguito dentro
+ * CompleteOnboarding, NON da DatabaseSeeder globale (i template sono
+ * per-utente, mai globali).
  *
- * Valori di default basati sul calendario fiscale 2025. Sono ragionevoli ma
- * sempre modificabili dall'utente nelle Impostazioni prima di aprire l'anno.
+ * Valori basati sul calendario fiscale 2025: ragionevoli ma sempre
+ * modificabili dall'utente nelle Impostazioni prima di aprire un anno.
  *
  * Usage:
  *   (new StudiofinanceTemplatesSeeder())->seedForUser($user);
@@ -25,16 +26,16 @@ use Illuminate\Database\Seeder;
 class StudiofinanceTemplatesSeeder extends Seeder
 {
     /**
-     * @return array{voci: int, scadenze: int}
+     * @return array{expense_items: int, recurring_deadlines: int}
      */
     public function seedForUser(User $user): array
     {
-        $voci = $this->seedVociSpesa($user);
-        $scadenze = $this->seedScadenzeTipo($user, $voci);
+        $items = $this->seedExpenseItems($user);
+        $deadlines = $this->seedRecurringDeadlines($user, $items);
 
         return [
-            'voci' => count($voci),
-            'scadenze' => count($scadenze),
+            'expense_items' => count($items),
+            'recurring_deadlines' => count($deadlines),
         ];
     }
 
@@ -47,235 +48,241 @@ class StudiofinanceTemplatesSeeder extends Seeder
     }
 
     /**
-     * @return array<string, VoceSpesa> chiave = slug per linking scadenze.
+     * @return array<string, ExpenseItem> chiave = slug per linking deadlines.
      */
-    private function seedVociSpesa(User $user): array
+    private function seedExpenseItems(User $user): array
     {
         $rows = [
             'imposta_sostitutiva' => [
-                'nome' => 'Imposta sostitutiva',
-                'tipo_calcolo' => TipoCalcoloVoceSpesa::PercRedditoIrpef,
-                'aliquota_default' => 15.00,
-                'ordine' => 10,
+                'name' => 'Imposta sostitutiva',
+                'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome,
+                'default_rate' => 15.00,
+                'position' => 10,
             ],
             'inarcassa_soggettivo' => [
-                'nome' => 'Inarcassa Soggettivo',
-                'tipo_calcolo' => TipoCalcoloVoceSpesa::PercRedditoIrpef,
-                'aliquota_default' => 14.50,
-                'minimale_default' => 2435.00,
-                'massimale_default' => 137195.00,
-                'ordine' => 20,
+                'name' => 'Inarcassa Soggettivo',
+                'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome,
+                'default_rate' => 14.50,
+                'default_minimum' => 2435.00,
+                'default_maximum' => 137195.00,
+                'position' => 20,
             ],
             'inarcassa_integrativo' => [
-                'nome' => 'Inarcassa Integrativo',
-                'tipo_calcolo' => TipoCalcoloVoceSpesa::PercVolumeAffariIva,
-                'aliquota_default' => 4.00,
-                'minimale_default' => 815.00,
-                'ordine' => 30,
+                'name' => 'Inarcassa Integrativo',
+                'calculation_type' => ExpenseCalculationType::PercentageOfIvaRevenue,
+                'default_rate' => 4.00,
+                'default_minimum' => 815.00,
+                'position' => 30,
             ],
             'inarcassa_maternita' => [
-                'nome' => 'Inarcassa Maternità',
-                'tipo_calcolo' => TipoCalcoloVoceSpesa::FissaAnnuale,
-                'quota_default' => 72.00,
-                'ordine' => 40,
+                'name' => 'Inarcassa Maternità',
+                'calculation_type' => ExpenseCalculationType::FixedAnnual,
+                'default_amount' => 72.00,
+                'position' => 40,
             ],
             'bolli' => [
-                'nome' => 'Bolli',
-                'tipo_calcolo' => TipoCalcoloVoceSpesa::SommaBolli,
-                'ordine' => 50,
+                'name' => 'Bolli',
+                'calculation_type' => ExpenseCalculationType::SumOfBolli,
+                'position' => 50,
             ],
             'commercialista' => [
-                'nome' => 'Commercialista',
-                'tipo_calcolo' => TipoCalcoloVoceSpesa::FissaAnnuale,
-                'quota_default' => 300.00,
-                'ordine' => 60,
+                'name' => 'Commercialista',
+                'calculation_type' => ExpenseCalculationType::FixedAnnual,
+                'default_amount' => 300.00,
+                'position' => 60,
             ],
             'assicurazione' => [
-                'nome' => 'Assicurazione professionale',
-                'tipo_calcolo' => TipoCalcoloVoceSpesa::FissaAnnuale,
-                'quota_default' => 350.00,
-                'ordine' => 70,
+                'name' => 'Assicurazione professionale',
+                'calculation_type' => ExpenseCalculationType::FixedAnnual,
+                'default_amount' => 350.00,
+                'position' => 70,
             ],
             'oato' => [
-                'nome' => 'Quota Ordine (OATO)',
-                'tipo_calcolo' => TipoCalcoloVoceSpesa::FissaAnnuale,
-                'quota_default' => 230.00,
-                'ordine' => 80,
+                'name' => 'Quota Ordine (OATO)',
+                'calculation_type' => ExpenseCalculationType::FixedAnnual,
+                'default_amount' => 230.00,
+                'position' => 80,
             ],
         ];
 
         $created = [];
         foreach ($rows as $slug => $attrs) {
-            $created[$slug] = $user->vociSpesa()->create($attrs);
+            $created[$slug] = $user->expenseItems()->create($attrs);
         }
 
         return $created;
     }
 
     /**
-     * @param  array<string, VoceSpesa>  $voci
-     * @return array<int, ScadenzaTipo>
+     * @param  array<string, ExpenseItem>  $items
+     * @return array<int, RecurringDeadline>
      */
-    private function seedScadenzeTipo(User $user, array $voci): array
+    private function seedRecurringDeadlines(User $user, array $items): array
     {
-        // Convenzione legenda:
-        //   data_successivo = la data scadenza cade in N+1 (saldi, bolli Q4)
-        //   spesa_successivo = la scadenza paga la spesa di N+1 (solo commercialista)
+        // Legenda flag locali:
+        //   due_next     = la data scadenza cade in N+1 (saldi, bolli Q4)
+        //   expense_next = la scadenza paga la spesa di N+1 (solo commercialista)
         // Default (assenti) = N / N.
         $rows = [
             // Imposta sostitutiva — acconti in N, saldo in N+1 (sempre spesa N).
             [
-                'nome' => '1° acconto imposta sostitutiva',
-                'giorno' => 30, 'mese' => 6,
-                'tipo' => TipoScadenza::Pagamento,
-                'voce' => 'imposta_sostitutiva',
+                'name' => '1° acconto imposta sostitutiva',
+                'day' => 30, 'month' => 6,
+                'kind' => DeadlineKind::Payment,
+                'item' => 'imposta_sostitutiva',
             ],
             [
-                'nome' => '2° acconto imposta sostitutiva',
-                'giorno' => 30, 'mese' => 11,
-                'tipo' => TipoScadenza::Pagamento,
-                'voce' => 'imposta_sostitutiva',
+                'name' => '2° acconto imposta sostitutiva',
+                'day' => 30, 'month' => 11,
+                'kind' => DeadlineKind::Payment,
+                'item' => 'imposta_sostitutiva',
             ],
             [
-                'nome' => 'Saldo imposta sostitutiva',
-                'giorno' => 30, 'mese' => 6,
-                'tipo' => TipoScadenza::Pagamento,
-                'voce' => 'imposta_sostitutiva',
-                'data_successivo' => true,
+                'name' => 'Saldo imposta sostitutiva',
+                'day' => 30, 'month' => 6,
+                'kind' => DeadlineKind::Payment,
+                'item' => 'imposta_sostitutiva',
+                'due_next' => true,
             ],
 
             // Inarcassa Soggettivo — 2 rate acconto in N, saldo in N+1.
             [
-                'nome' => '1ª rata Inarcassa Soggettivo',
-                'giorno' => 30, 'mese' => 6,
-                'tipo' => TipoScadenza::Pagamento,
-                'voce' => 'inarcassa_soggettivo',
+                'name' => '1ª rata Inarcassa Soggettivo',
+                'day' => 30, 'month' => 6,
+                'kind' => DeadlineKind::Payment,
+                'item' => 'inarcassa_soggettivo',
             ],
             [
-                'nome' => '2ª rata Inarcassa Soggettivo',
-                'giorno' => 30, 'mese' => 9,
-                'tipo' => TipoScadenza::Pagamento,
-                'voce' => 'inarcassa_soggettivo',
+                'name' => '2ª rata Inarcassa Soggettivo',
+                'day' => 30, 'month' => 9,
+                'kind' => DeadlineKind::Payment,
+                'item' => 'inarcassa_soggettivo',
             ],
             [
-                'nome' => 'Saldo Inarcassa Soggettivo',
-                'giorno' => 31, 'mese' => 12,
-                'tipo' => TipoScadenza::Pagamento,
-                'voce' => 'inarcassa_soggettivo',
-                'data_successivo' => true,
+                'name' => 'Saldo Inarcassa Soggettivo',
+                'day' => 31, 'month' => 12,
+                'kind' => DeadlineKind::Payment,
+                'item' => 'inarcassa_soggettivo',
+                'due_next' => true,
             ],
 
             // Inarcassa Integrativo — 2 rate acconto in N, saldo in N+1.
             [
-                'nome' => '1ª rata Inarcassa Integrativo',
-                'giorno' => 30, 'mese' => 6,
-                'tipo' => TipoScadenza::Pagamento,
-                'voce' => 'inarcassa_integrativo',
+                'name' => '1ª rata Inarcassa Integrativo',
+                'day' => 30, 'month' => 6,
+                'kind' => DeadlineKind::Payment,
+                'item' => 'inarcassa_integrativo',
             ],
             [
-                'nome' => '2ª rata Inarcassa Integrativo',
-                'giorno' => 30, 'mese' => 9,
-                'tipo' => TipoScadenza::Pagamento,
-                'voce' => 'inarcassa_integrativo',
+                'name' => '2ª rata Inarcassa Integrativo',
+                'day' => 30, 'month' => 9,
+                'kind' => DeadlineKind::Payment,
+                'item' => 'inarcassa_integrativo',
             ],
             [
-                'nome' => 'Saldo Inarcassa Integrativo',
-                'giorno' => 31, 'mese' => 12,
-                'tipo' => TipoScadenza::Pagamento,
-                'voce' => 'inarcassa_integrativo',
-                'data_successivo' => true,
+                'name' => 'Saldo Inarcassa Integrativo',
+                'day' => 31, 'month' => 12,
+                'kind' => DeadlineKind::Payment,
+                'item' => 'inarcassa_integrativo',
+                'due_next' => true,
             ],
 
-            // Inarcassa Maternità — quota unica annuale, cassa in N.
+            // Inarcassa Maternità — 2 rate acconto in N.
             [
-                'nome' => 'Inarcassa Maternità',
-                'giorno' => 30, 'mese' => 9,
-                'tipo' => TipoScadenza::Pagamento,
-                'voce' => 'inarcassa_maternita',
+                'name' => '1ª rata Inarcassa Maternità',
+                'day' => 30, 'month' => 6,
+                'kind' => DeadlineKind::Payment,
+                'item' => 'inarcassa_maternita',
+            ],
+            [
+                'name' => '2ª rata Inarcassa Maternità',
+                'day' => 30, 'month' => 9,
+                'kind' => DeadlineKind::Payment,
+                'item' => 'inarcassa_maternita',
             ],
 
             // Bolli — Q1, Q2, Q3 in N; Q4 paga in N+1 ma spesa di N.
             [
-                'nome' => 'Bolli — 1° trimestre',
-                'giorno' => 31, 'mese' => 5,
-                'tipo' => TipoScadenza::Pagamento,
-                'voce' => 'bolli',
+                'name' => 'Bolli — 1° trimestre',
+                'day' => 31, 'month' => 5,
+                'kind' => DeadlineKind::Payment,
+                'item' => 'bolli',
             ],
             [
-                'nome' => 'Bolli — 2° trimestre',
-                'giorno' => 30, 'mese' => 9,
-                'tipo' => TipoScadenza::Pagamento,
-                'voce' => 'bolli',
+                'name' => 'Bolli — 2° trimestre',
+                'day' => 30, 'month' => 9,
+                'kind' => DeadlineKind::Payment,
+                'item' => 'bolli',
             ],
             [
-                'nome' => 'Bolli — 3° trimestre',
-                'giorno' => 30, 'mese' => 11,
-                'tipo' => TipoScadenza::Pagamento,
-                'voce' => 'bolli',
+                'name' => 'Bolli — 3° trimestre',
+                'day' => 30, 'month' => 11,
+                'kind' => DeadlineKind::Payment,
+                'item' => 'bolli',
             ],
             [
-                'nome' => 'Bolli — 4° trimestre',
-                'giorno' => 28, 'mese' => 2,
-                'tipo' => TipoScadenza::Pagamento,
-                'voce' => 'bolli',
-                'data_successivo' => true,
+                'name' => 'Bolli — 4° trimestre',
+                'day' => 28, 'month' => 2,
+                'kind' => DeadlineKind::Payment,
+                'item' => 'bolli',
+                'due_next' => true,
             ],
 
             // Assicurazione + OATO — rinnovi a marzo (data N, spesa N).
             [
-                'nome' => 'Assicurazione professionale',
-                'giorno' => 31, 'mese' => 3,
-                'tipo' => TipoScadenza::Pagamento,
-                'voce' => 'assicurazione',
+                'name' => 'Assicurazione professionale',
+                'day' => 31, 'month' => 3,
+                'kind' => DeadlineKind::Payment,
+                'item' => 'assicurazione',
             ],
             [
-                'nome' => 'Quota Ordine (OATO)',
-                'giorno' => 31, 'mese' => 3,
-                'tipo' => TipoScadenza::Pagamento,
-                'voce' => 'oato',
+                'name' => 'Quota Ordine (OATO)',
+                'day' => 31, 'month' => 3,
+                'kind' => DeadlineKind::Payment,
+                'item' => 'oato',
             ],
 
-            // Commercialista — UNICO caso forward: data 31/12/N, spesa anno N+1.
+            // Commercialista — UNICO caso forward: data 31/12/N, spesa N+1.
             // Trigger pre-aperto N+1 se non esiste al wizard.
             [
-                'nome' => 'Commercialista (parcella anno successivo)',
-                'giorno' => 31, 'mese' => 12,
-                'tipo' => TipoScadenza::Pagamento,
-                'voce' => 'commercialista',
-                'spesa_successivo' => true,
+                'name' => 'Commercialista (parcella anno successivo)',
+                'day' => 31, 'month' => 12,
+                'kind' => DeadlineKind::Payment,
+                'item' => 'commercialista',
+                'expense_next' => true,
             ],
 
             // Adempimenti — nessun pagamento collegato.
             [
-                'nome' => 'Dichiarazione redditi',
-                'giorno' => 31, 'mese' => 10,
-                'tipo' => TipoScadenza::Adempimento,
-                'voce' => null,
-                'data_successivo' => true,
+                'name' => 'Dichiarazione redditi',
+                'day' => 31, 'month' => 5,
+                'kind' => DeadlineKind::Fulfillment,
+                'item' => null,
+                'due_next' => true,
             ],
             [
-                'nome' => 'Comunicazione reddituale Inarcassa (Dich.RED)',
-                'giorno' => 31, 'mese' => 10,
-                'tipo' => TipoScadenza::Adempimento,
-                'voce' => null,
-                'data_successivo' => true,
+                'name' => 'Comunicazione reddituale Inarcassa',
+                'day' => 31, 'month' => 10,
+                'kind' => DeadlineKind::Fulfillment,
+                'item' => null,
+                'due_next' => true,
             ],
         ];
 
         $created = [];
         foreach ($rows as $row) {
-            $created[] = $user->scadenzeTipo()->create([
-                'nome' => $row['nome'],
-                'giorno' => $row['giorno'],
-                'mese' => $row['mese'],
-                'tipo' => $row['tipo'],
-                'voce_spesa_id' => $row['voce'] !== null ? $voci[$row['voce']]->id : null,
-                'anno_data_scadenza' => ($row['data_successivo'] ?? false)
-                    ? AnnoDataScadenza::Successivo
-                    : AnnoDataScadenza::Corrente,
-                'anno_riferimento_spesa' => ($row['spesa_successivo'] ?? false)
-                    ? AnnoRiferimentoSpesa::Successivo
-                    : AnnoRiferimentoSpesa::Corrente,
+            $created[] = $user->recurringDeadlines()->create([
+                'name' => $row['name'],
+                'day' => $row['day'],
+                'month' => $row['month'],
+                'kind' => $row['kind'],
+                'expense_item_id' => $row['item'] !== null ? $items[$row['item']]->id : null,
+                'due_year_offset' => ($row['due_next'] ?? false)
+                    ? DueYearOffset::Next
+                    : DueYearOffset::Current,
+                'expense_year_offset' => ($row['expense_next'] ?? false)
+                    ? ExpenseYearOffset::Next
+                    : ExpenseYearOffset::Current,
             ]);
         }
 

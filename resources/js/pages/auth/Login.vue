@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import FormField from '@/components/forms/FormField.vue';
 import PasskeyVerify from '@/components/PasskeyVerify.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { FieldGroup } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
@@ -24,6 +25,18 @@ defineProps<{
     status?: string;
     canResetPassword: boolean;
 }>();
+
+const form = useForm({
+    email: '',
+    password: '',
+    remember: false as boolean,
+});
+
+function submit(): void {
+    form.post(store().url, {
+        onSuccess: () => form.reset('password'),
+    });
+}
 </script>
 
 <template>
@@ -38,66 +51,63 @@ defineProps<{
 
     <PasskeyVerify />
 
-    <Form
-        v-bind="store.form()"
-        :reset-on-success="['password']"
-        v-slot="{ errors, processing }"
-        class="flex flex-col gap-5"
-    >
-        <FormField label="Email" for="email" required>
-            <Input
-                id="email"
-                type="email"
-                name="email"
-                required
-                autofocus
-                :tabindex="1"
-                autocomplete="email"
-                placeholder="nome@studio.it"
-            />
-            <template v-if="errors.email" #error>{{ errors.email }}</template>
-        </FormField>
+    <form @submit.prevent="submit">
+        <FieldGroup>
+            <FormField label="Email" for="email" required>
+                <Input
+                    id="email"
+                    v-model="form.email"
+                    type="email"
+                    required
+                    autofocus
+                    :tabindex="1"
+                    autocomplete="email"
+                    placeholder="nome@studio.it"
+                />
+                <template v-if="form.errors.email" #error>{{ form.errors.email }}</template>
+            </FormField>
 
-        <FormField label="Password" for="password" required>
-            <PasswordInput
-                id="password"
-                name="password"
-                required
-                :tabindex="2"
-                autocomplete="current-password"
-            />
-            <template v-if="errors.password" #error>{{ errors.password }}</template>
-        </FormField>
+            <FormField label="Password" for="password" required>
+                <PasswordInput
+                    id="password"
+                    v-model="form.password"
+                    required
+                    :tabindex="2"
+                    autocomplete="current-password"
+                />
+                <template v-if="form.errors.password" #error>{{ form.errors.password }}</template>
+            </FormField>
 
-        <div class="flex items-center justify-between">
-            <Label for="remember" class="flex items-center gap-2.5 text-13">
-                <Checkbox id="remember" name="remember" :tabindex="3" />
-                <span>Ricordami su questo dispositivo</span>
-            </Label>
-            <TextLink
-                v-if="canResetPassword"
-                :href="request()"
-                class="text-xs"
-                :tabindex="5"
+            <div class="flex items-center justify-between">
+                <Label for="remember" class="flex items-center gap-2.5 text-13">
+                    <Checkbox id="remember" v-model="form.remember" :tabindex="3" />
+                    <span>Ricordami su questo dispositivo</span>
+                </Label>
+                <TextLink
+                    v-if="canResetPassword"
+                    :href="request()"
+                    class="text-xs"
+                    :tabindex="5"
+                >
+                    Password dimenticata?
+                </TextLink>
+            </div>
+
+            <Button
+                type="submit"
+                class="w-full"
+                :tabindex="4"
+                :disabled="form.processing"
+                data-test="login-button"
             >
-                Password dimenticata?
-            </TextLink>
-        </div>
+                <Spinner v-if="form.processing" />
+                Accedi
+            </Button>
+        </FieldGroup>
 
-        <Button
-            type="submit"
-            class="w-full"
-            :tabindex="4"
-            :disabled="processing"
-            data-test="login-button"
-        >
-            <Spinner v-if="processing" />
-            Accedi
-        </Button>
-
-        <p class="text-center text-xs text-muted-foreground">
+        <p class="mt-5 text-center text-xs text-muted-foreground">
             Non hai ancora un account?
             <TextLink :href="register()" :tabindex="5">Registrati</TextLink>
         </p>
-    </Form>
+    </form>
 </template>

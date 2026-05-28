@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Head, useForm } from '@inertiajs/vue3';
 import {
     index as confirmOptions,
     store as confirmStore,
@@ -8,6 +8,7 @@ import FormField from '@/components/forms/FormField.vue';
 import PasskeyVerify from '@/components/PasskeyVerify.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import { Button } from '@/components/ui/button';
+import { FieldGroup } from '@/components/ui/field';
 import { Spinner } from '@/components/ui/spinner';
 import { store } from '@/routes/password/confirm';
 
@@ -18,6 +19,14 @@ defineOptions({
             'Stai accedendo a un\'area sensibile. Conferma la password per continuare.',
     },
 });
+
+const form = useForm({ password: '' });
+
+function submit(): void {
+    form.post(store().url, {
+        onSuccess: () => form.reset(),
+    });
+}
 </script>
 
 <template>
@@ -33,31 +42,28 @@ defineOptions({
         separator="oppure conferma con password"
     />
 
-    <Form
-        v-bind="store.form()"
-        reset-on-success
-        v-slot="{ errors, processing }"
-        class="flex flex-col gap-5"
-    >
-        <FormField label="Password" for="password" required>
-            <PasswordInput
-                id="password"
-                name="password"
-                required
-                autocomplete="current-password"
-                autofocus
-            />
-            <template v-if="errors.password" #error>{{ errors.password }}</template>
-        </FormField>
+    <form @submit.prevent="submit">
+        <FieldGroup>
+            <FormField label="Password" for="password" required>
+                <PasswordInput
+                    id="password"
+                    v-model="form.password"
+                    required
+                    autocomplete="current-password"
+                    autofocus
+                />
+                <template v-if="form.errors.password" #error>{{ form.errors.password }}</template>
+            </FormField>
 
-        <Button
-            type="submit"
-            class="w-full"
-            :disabled="processing"
-            data-test="confirm-password-button"
-        >
-            <Spinner v-if="processing" />
-            Conferma password
-        </Button>
-    </Form>
+            <Button
+                type="submit"
+                class="w-full"
+                :disabled="form.processing"
+                data-test="confirm-password-button"
+            >
+                <Spinner v-if="form.processing" />
+                Conferma password
+            </Button>
+        </FieldGroup>
+    </form>
 </template>
