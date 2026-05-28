@@ -9,7 +9,6 @@
  *
  *   <ConfirmDialog
  *     v-model:open="deleteOpen"
- *     code="M.DEL"
  *     title="Eliminare il cliente?"
  *     description="Tutte le associazioni a progetti verranno mantenute, ma il cliente non sarà più visibile in elenco."
  *     confirm-label="Elimina"
@@ -27,8 +26,6 @@ import DialogStandardHeader from './DialogStandardHeader.vue'
 withDefaults(
     defineProps<{
         open: boolean
-        /** Code-pill identificatore della modale (es. M.DEL). Obbligatorio. */
-        code: string
         /** Titolo conferma (es. "Eliminare il cliente?"). */
         title: string
         /** Messaggio descrittivo (opzionale, ma consigliato per le distruttive). */
@@ -56,7 +53,7 @@ defineEmits<{
 <template>
     <Dialog :open="open" @update:open="(v) => $emit('update:open', v)">
         <DialogContent size="mini" :show-close-button="false">
-            <DialogStandardHeader :code="code" :title="title" />
+            <DialogStandardHeader :title="title" />
             <DialogBody v-if="description">
                 <p class="text-13 leading-relaxed text-muted-foreground">
                     {{ description }}

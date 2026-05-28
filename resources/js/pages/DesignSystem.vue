@@ -3790,24 +3790,21 @@ return;
                             >
                             <code
                                 class="font-mono text-2xs text-muted-foreground"
-                                >code, title, description?, #trailing</code
+                                >title, description?, #trailing</code
                             >
                             <span
                                 class="text-2xs leading-snug text-muted-foreground/85"
                             >
-                                Header con code-pill (obbligatorio) + title
-                                (obbligatorio) su una riga. Description
-                                (opzionale) sotto. Slot
+                                Title (obbligatorio) + description (opzionale)
+                                sotto. Slot
                                 <code class="font-mono">#trailing</code> per
                                 content a destra del title (es. WizardStepper).
-                                Close X renderizzata in-header automaticamente:
-                                passa
+                                La close X vive su
+                                <code class="font-mono">DialogContent</code> —
+                                per nasconderla passa
                                 <code class="font-mono"
                                     >:show-close-button="false"</code
-                                >
-                                a
-                                <code class="font-mono">DialogContent</code> per
-                                evitare il doppio.
+                                >.
                             </span>
                         </div>
                         <div
@@ -3856,7 +3853,7 @@ return;
   &lt;DialogTrigger as-child&gt;
     &lt;Button&gt;Apri&lt;/Button&gt;
   &lt;/DialogTrigger&gt;
-  &lt;DialogContent size="default" :show-close-button="false"&gt;
+  &lt;DialogContent size="default"&gt;
     &lt;DialogStandardHeader
       title="Nuova voce di spesa"
       description="Crea una voce di spesa riusabile dal template."
@@ -3906,7 +3903,7 @@ return;
                                         >Default (~580)</Button
                                     >
                                 </DialogTrigger>
-                                <DialogContent :show-close-button="false">
+                                <DialogContent>
                                     <DialogStandardHeader
                                         title="Nuova voce di spesa"
                                         description="Crea una voce di spesa riusabile dal template."
@@ -3943,10 +3940,7 @@ return;
                                 <DialogTrigger as-child>
                                     <Button variant="outline">Wide</Button>
                                 </DialogTrigger>
-                                <DialogContent
-                                    size="wide"
-                                    :show-close-button="false"
-                                >
+                                <DialogContent size="wide">
                                     <DialogStandardHeader
                                         title="Bianchi Studio srl"
                                         description="Aggiorna anagrafica, P.IVA/CF e flag ritenute. Le modifiche si applicano a tutte le fatture collegate."
@@ -3995,10 +3989,7 @@ return;
                                         >Fullscreen</Button
                                     >
                                 </DialogTrigger>
-                                <DialogContent
-                                    size="fullscreen"
-                                    :show-close-button="false"
-                                >
+                                <DialogContent size="fullscreen">
                                     <DialogStandardHeader
                                         title="Vista anno · 2026"
                                         description="Viewer denso — spazio massimo per il content, chrome ridotto al minimo."
@@ -6032,7 +6023,7 @@ setLayoutProps(&#123; pageTitle: 'Clienti', subbar: true &#125;)
                                     Apri Form Dialog
                                 </Button>
                             </DialogTrigger>
-                            <DialogContent :show-close-button="false">
+                            <DialogContent>
                                 <DialogStandardHeader
                                     title="Nuova voce di spesa"
                                     description="Aggiungi una voce di spesa ricorrente da usare in scadenze e bilancio annuale."

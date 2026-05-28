@@ -3,24 +3,20 @@
  * DialogStandardHeader — wrapper composto sopra DialogHeader + DialogTitle.
  *
  * Pattern canonico StudioOS:
- *   [code-pill] title (riga 1)
+ *   title (riga 1, opzionale slot #trailing a destra)
  *   description (riga 2, opzionale)
  *
- * Il `code` è OBBLIGATORIO ed è un identificatore tassonomico della sezione
- * modale (es. M.DEL, M.CRE, M.EDT, M.WIZ), come i codici cartiglio dei form.
- * Non è il codice dell'entità — quello eventualmente vive nel title.
+ * Il close X NON è renderizzato qui — vive su DialogContent
+ * (`showCloseButton` default true). Per Dialog senza close (es. ConfirmDialog)
+ * passare `:show-close-button="false"` su DialogContent.
  */
 import type { HTMLAttributes } from 'vue'
-import { PhX } from '@phosphor-icons/vue'
-import DialogClose from './DialogClose.vue'
 import DialogDescription from './DialogDescription.vue'
 import DialogHeader from './DialogHeader.vue'
 import DialogTitle from './DialogTitle.vue'
 
 defineProps<{
-  /** Code-pill — identificatore della sezione modale. Obbligatorio. */
-  code: string
-  /** Titolo principale. Es. "Acme Architettura srl". */
+  /** Titolo principale. Es. "Nuova voce di spesa". */
   title: string
   /** Riga descrittiva sotto il title (opzionale). */
   description?: string
@@ -31,18 +27,9 @@ defineProps<{
 <template>
   <DialogHeader :class="$props.class">
     <div class="flex items-center justify-between gap-4">
-      <div class="flex min-w-0 items-center gap-2">
-        <span class="code-pill">{{ code }}</span>
-        <DialogTitle>{{ title }}</DialogTitle>
-      </div>
-      <div class="flex shrink-0 items-center gap-3">
-        <slot v-if="$slots.trailing" name="trailing" />
-        <DialogClose
-          class="text-muted-foreground hover:text-foreground hover:bg-foreground/3 cursor-pointer rounded-md p-1.25 opacity-80 outline-none transition-colors hover:opacity-100 disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:size-3.5 [&_svg]:shrink-0"
-        >
-          <PhX />
-          <span class="sr-only">Close</span>
-        </DialogClose>
+      <DialogTitle class="min-w-0 truncate">{{ title }}</DialogTitle>
+      <div v-if="$slots.trailing" class="flex shrink-0 items-center gap-3">
+        <slot name="trailing" />
       </div>
     </div>
     <DialogDescription v-if="description">

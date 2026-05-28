@@ -1,6 +1,19 @@
 <script setup lang="ts">
+/**
+ * AppSidebar — sidebar principale.
+ *
+ * Modalità:
+ * - Default: nav principale (Lavoro + Sistema).
+ * - Settings (path /settings/voci-spesa o /settings/scadenze-tipo):
+ *   nav sostituita dalle voci di impostazioni di sistema + bottone
+ *   "← Indietro" che torna alla nav principale (link a Dashboard).
+ *
+ * Le impostazioni personali (profilo, sicurezza, aspetto) vivono al di
+ * fuori di questa sidebar — si accede dal dropdown utente.
+ */
 import { Link } from '@inertiajs/vue3';
 import {
+    PhArrowLeft,
     PhBell,
     PhBookOpen,
     PhCalendarDots,
@@ -8,10 +21,12 @@ import {
     PhCaretRight,
     PhGearSix,
     PhHouse,
+    PhListChecks,
     PhReceipt,
+    PhTag,
     PhUsers,
 } from '@phosphor-icons/vue';
-import type { Component } from 'vue';
+import { computed, type Component } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavUser from '@/components/NavUser.vue';
 import { Button } from '@/components/ui/button';
@@ -29,27 +44,30 @@ import {
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { dashboard, designSystem } from '@/routes';
+import { index as scadenzeTipoIndex } from '@/routes/settings/scadenze-tipo';
+import { index as vociSpesaIndex } from '@/routes/settings/voci-spesa';
 
 type NavLink = {
     label: string;
     icon: Component;
-    /** Target rotta. Le rotte di dominio reali arriveranno dalle fasi 2+;
-     *  per ora puntano a dashboard come placeholder navigabile. */
     href: string | ReturnType<typeof dashboard>;
 };
 
 type NavSection = { label: string; items: NavLink[] };
 
-/* TODO: sostituire i placeholder con le rotte reali via Wayfinder appena
- *       le fasi corrispondenti vengono completate (Fatture/Clienti/...).
- *
- * Sistema:
- * - "Impostazioni" qui = setup fiscale di sistema (catalogo voci di spesa
- *   template + scadenze tipo). Voce di Fase 2: per ora placeholder verso
- *   dashboard.
- * - le impostazioni personali (Profilo, Anagrafica, Sicurezza, Aspetto)
- *   NON vivono qui ma nel dropdown utente (NavUser). */
-const sections: NavSection[] = [
+const { isCurrentOrParentUrl, currentUrl } = useCurrentUrl();
+const { state, toggleSidebar } = useSidebar();
+
+const SETTINGS_PREFIXES = ['/settings/voci-spesa', '/settings/scadenze-tipo'];
+
+/* Modalità settings: la sidebar swap il content quando l'utente è dentro
+ * uno dei tab di sistema. /settings/profile (personali) NON triggerano lo
+ * swap perché vivono fuori dalla nav principale. */
+const isSettingsMode = computed(() =>
+    SETTINGS_PREFIXES.some((prefix) => currentUrl.value.startsWith(prefix)),
+);
+
+const mainSections: NavSection[] = [
     {
         label: 'Lavoro',
         items: [
@@ -63,14 +81,29 @@ const sections: NavSection[] = [
     {
         label: 'Sistema',
         items: [
-            { label: 'Impostazioni', icon: PhGearSix, href: dashboard() },
+            { label: 'Impostazioni', icon: PhGearSix, href: vociSpesaIndex() },
             { label: 'Design system', icon: PhBookOpen, href: designSystem() },
         ],
     },
 ];
 
-const { isCurrentOrParentUrl } = useCurrentUrl();
-const { state, toggleSidebar } = useSidebar();
+const settingsSections: NavSection[] = [
+    {
+        label: 'Impostazioni',
+        items: [
+            { label: 'Voci di spesa', icon: PhTag, href: vociSpesaIndex() },
+            {
+                label: 'Scadenze tipo',
+                icon: PhListChecks,
+                href: scadenzeTipoIndex(),
+            },
+        ],
+    },
+];
+
+const sections = computed(() =>
+    isSettingsMode.value ? settingsSections : mainSections,
+);
 </script>
 
 <template>
@@ -89,6 +122,25 @@ const { state, toggleSidebar } = useSidebar();
         </SidebarHeader>
 
         <SidebarContent class="gap-3 py-2">
+            <!-- Settings mode: bottone "← Indietro" come prima cosa. -->
+            <SidebarGroup v-if="isSettingsMode" class="px-0 py-1">
+                <SidebarGroupContent>
+                    <SidebarMenu class="gap-0.5">
+                        <SidebarMenuItem>
+                            <Link
+                                :href="dashboard()"
+                                class="group/nav relative flex items-center gap-2 px-4 py-1.75 text-13 text-foreground/75 transition-colors hover:text-foreground"
+                            >
+                                <PhArrowLeft :size="14" class="shrink-0" />
+                                <span class="truncate group-data-[collapsible=icon]:hidden">
+                                    Indietro
+                                </span>
+                            </Link>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                </SidebarGroupContent>
+            </SidebarGroup>
+
             <SidebarGroup
                 v-for="section in sections"
                 :key="section.label"

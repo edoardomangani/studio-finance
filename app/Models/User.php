@@ -7,6 +7,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -38,6 +39,16 @@ class User extends Authenticatable implements PasskeyUser
     public function professionalProfile(): HasOne
     {
         return $this->hasOne(ProfessionalProfile::class);
+    }
+
+    public function vociSpesa(): HasMany
+    {
+        return $this->hasMany(VoceSpesa::class);
+    }
+
+    public function scadenzeTipo(): HasMany
+    {
+        return $this->hasMany(ScadenzaTipo::class);
     }
 
     public function isOnboarded(): bool

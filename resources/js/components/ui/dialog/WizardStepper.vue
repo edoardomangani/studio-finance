@@ -7,7 +7,7 @@
  * (es. "Step 1 di 4 · Dati progetto"). Funziona meglio per wizard con
  * step ≤ 6 e flusso lineare.
  *
- *   <DialogStandardHeader code="M.WIZ" title="Nuovo progetto" :description="...">
+ *   <DialogStandardHeader title="Nuovo progetto" :description="...">
  *     <template #trailing>
  *       <WizardStepper :current="step" :total="4" />
  *     </template>

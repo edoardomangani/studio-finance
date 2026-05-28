@@ -2,7 +2,9 @@
 
 use App\Http\Controllers\Settings\ProfessionalController;
 use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Controllers\Settings\ScadenzeTipoController;
 use App\Http\Controllers\Settings\SecurityController;
+use App\Http\Controllers\Settings\VociSpesaController;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Route;
 
@@ -49,5 +51,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('professional.edit');
         Route::patch('settings/professional', [ProfessionalController::class, 'update'])
             ->name('professional.update');
+
+        // Cataloghi di sistema — voci di spesa template (Index.vue dedicato,
+        // CTA in topbar, sidebar in modalità settings).
+        Route::get('settings/voci-spesa', [VociSpesaController::class, 'index'])
+            ->name('settings.voci-spesa.index');
+        Route::post('settings/voci-spesa', [VociSpesaController::class, 'store'])
+            ->name('settings.voci-spesa.store');
+        Route::patch('settings/voci-spesa/{voceSpesa}', [VociSpesaController::class, 'update'])
+            ->name('settings.voci-spesa.update');
+        Route::delete('settings/voci-spesa/{voceSpesa}', [VociSpesaController::class, 'destroy'])
+            ->name('settings.voci-spesa.destroy');
+
+        // Scadenze tipo template (Index.vue dedicato).
+        Route::get('settings/scadenze-tipo', [ScadenzeTipoController::class, 'index'])
+            ->name('settings.scadenze-tipo.index');
+        Route::post('settings/scadenze-tipo', [ScadenzeTipoController::class, 'store'])
+            ->name('settings.scadenze-tipo.store');
+        Route::patch('settings/scadenze-tipo/{scadenzaTipo}', [ScadenzeTipoController::class, 'update'])
+            ->name('settings.scadenze-tipo.update');
+        Route::delete('settings/scadenze-tipo/{scadenzaTipo}', [ScadenzeTipoController::class, 'destroy'])
+            ->name('settings.scadenze-tipo.destroy');
     });
 });

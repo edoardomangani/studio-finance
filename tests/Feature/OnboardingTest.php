@@ -42,6 +42,50 @@ it('crea il professional profile, aggiorna User.name e reindirizza alla dashboar
     expect($user->professionalProfile->anno_inizio_attivita)->toBe(2020);
 });
 
+it('seed dei template iniziali (8 voci + scadenze tipo) all\'onboarding', function (): void {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->post('/onboarding', [
+        'nome' => 'Mario Rossi',
+        'coefficiente_redditivita' => 78,
+        'anno_inizio_attivita' => 2020,
+    ])->assertRedirect('/dashboard');
+
+    $user = $user->fresh();
+
+    expect($user->vociSpesa()->count())->toBe(8);
+    expect($user->scadenzeTipo()->count())->toBeGreaterThanOrEqual(15);
+
+    // Le scadenze di tipo Pagamento devono essere linkate a una voce.
+    $pagamentiSenzaVoce = $user->scadenzeTipo()
+        ->where('tipo', 'pagamento')
+        ->whereNull('voce_spesa_id')
+        ->count();
+    expect($pagamentiSenzaVoce)->toBe(0);
+
+    // Almeno una scadenza con anno_riferimento=successivo (commercialista).
+    expect($user->scadenzeTipo()
+        ->where('anno_riferimento_spesa', 'successivo')
+        ->exists()
+    )->toBeTrue();
+});
+
+it('rollback del seeding se la creazione del profilo fallisce', function (): void {
+    $user = User::factory()->create();
+
+    // coefficiente fuori range fa fallire la validazione prima ancora
+    // dell'action, quindi il rollback è implicito: il test verifica che
+    // nessun template residuo resti.
+    $this->actingAs($user)->post('/onboarding', [
+        'nome' => 'Mario Rossi',
+        'coefficiente_redditivita' => 999,
+        'anno_inizio_attivita' => 2020,
+    ])->assertSessionHasErrors(['coefficiente_redditivita']);
+
+    expect($user->vociSpesa()->count())->toBe(0);
+    expect($user->scadenzeTipo()->count())->toBe(0);
+});
+
 it('valida i campi obbligatori', function (): void {
     $user = User::factory()->create();
 

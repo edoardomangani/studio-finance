@@ -63,8 +63,14 @@ const statusToneClass: Record<StatusTone, string> = {
                         {{ c.label }}
                     </Link>
                     <span
-                        v-else
+                        v-else-if="i === fullCrumbs.length - 1"
                         class="truncate text-13 font-medium text-foreground uppercase"
+                    >
+                        {{ c.label }}
+                    </span>
+                    <span
+                        v-else
+                        class="shrink-0 truncate text-xs text-muted-foreground"
                     >
                         {{ c.label }}
                     </span>
