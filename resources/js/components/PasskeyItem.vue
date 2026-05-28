@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { KeyRound, Trash2 } from 'lucide-vue-next';
+import { PhKey, PhTrash } from '@phosphor-icons/vue';
 import { ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,29 +32,29 @@ const handleDelete = () => {
 </script>
 
 <template>
-    <div class="flex items-center justify-between border-b p-4 last:border-b-0">
-        <div class="flex items-center gap-4">
-            <div
-                class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted"
-            >
-                <KeyRound class="h-5 w-5 text-muted-foreground" />
-            </div>
-            <div class="space-y-1">
-                <div class="flex items-center gap-2.5">
-                    <p class="font-medium tracking-tight">{{ passkey.name }}</p>
+    <div
+        class="border-border-soft flex items-center justify-between gap-3 border-b px-3 py-2 last:border-b-0"
+    >
+        <div class="flex min-w-0 items-center gap-3">
+            <PhKey class="size-4 shrink-0 text-muted-foreground" />
+            <div class="min-w-0">
+                <div class="flex items-center gap-2">
+                    <p class="truncate text-13 font-medium text-foreground">
+                        {{ passkey.name }}
+                    </p>
                     <span
                         v-if="passkey.authenticator"
-                        class="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-[11px] font-medium tracking-wide text-muted-foreground uppercase ring-1 ring-border ring-inset"
+                        class="code-pill shrink-0"
                     >
                         {{ passkey.authenticator }}
                     </span>
                 </div>
-                <p class="text-sm text-muted-foreground">
-                    Added {{ passkey.created_at_diff }}
-                    <template v-if="passkey.last_used_at_diff">
-                        <span class="mx-1 text-muted-foreground/50">/</span>
-                        Last used {{ passkey.last_used_at_diff }}
-                    </template>
+                <p class="mt-0.5 text-xs text-muted-foreground">
+                    Aggiunta {{ passkey.created_at_diff }}<template
+                        v-if="passkey.last_used_at_diff"
+                    >
+                        · ultimo uso {{ passkey.last_used_at_diff }}</template
+                    >
                 </p>
             </div>
         </div>
@@ -63,30 +63,30 @@ const handleDelete = () => {
             <DialogTrigger as-child>
                 <Button
                     variant="ghost"
-                    size="sm"
-                    class="text-destructive hover:bg-destructive/10 hover:text-destructive"
+                    size="icon-sm"
+                    class="text-muted-foreground hover:text-destructive"
+                    aria-label="Rimuovi passkey"
                 >
-                    <Trash2 class="h-4 w-4" />
-                    <span class="sr-only">Remove</span>
+                    <PhTrash />
                 </Button>
             </DialogTrigger>
 
             <DialogContent>
-                <DialogTitle>Remove passkey</DialogTitle>
+                <DialogTitle>Rimuovere la passkey?</DialogTitle>
                 <DialogDescription>
-                    Are you sure you want to remove the "{{ passkey.name }}"
-                    passkey? You will no longer be able to use it to sign in.
+                    La passkey "{{ passkey.name }}" non sarà più utilizzabile
+                    per accedere all'account.
                 </DialogDescription>
                 <DialogFooter class="gap-2">
                     <DialogClose as-child>
-                        <Button variant="secondary">Cancel</Button>
+                        <Button variant="ghost">Annulla</Button>
                     </DialogClose>
                     <Button
                         variant="destructive"
                         :disabled="isDeleting"
                         @click="handleDelete"
                     >
-                        {{ isDeleting ? 'Removing...' : 'Remove passkey' }}
+                        {{ isDeleting ? 'Sto rimuovendo…' : 'Rimuovi passkey' }}
                     </Button>
                 </DialogFooter>
             </DialogContent>

@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { Form } from '@inertiajs/vue3';
-import { ShieldCheck } from 'lucide-vue-next';
+import { PhShieldCheck } from '@phosphor-icons/vue';
 import { onUnmounted, ref } from 'vue';
-import Heading from '@/components/Heading.vue';
 import TwoFactorRecoveryCodes from '@/components/TwoFactorRecoveryCodes.vue';
 import TwoFactorSetupModal from '@/components/TwoFactorSetupModal.vue';
 import { Button } from '@/components/ui/button';
@@ -28,58 +27,42 @@ onUnmounted(() => clearTwoFactorAuthData());
 </script>
 
 <template>
-    <div v-if="canManageTwoFactor" class="space-y-6">
-        <Heading
-            variant="small"
-            title="Two-factor authentication"
-            description="Manage your two-factor authentication settings"
-        />
-
-        <div
-            v-if="!twoFactorEnabled"
-            class="flex flex-col items-start justify-start space-y-4"
-        >
-            <p class="text-sm text-muted-foreground">
-                When you enable two-factor authentication, you will be prompted
-                for a secure pin during login. This pin can be retrieved from a
-                TOTP-supported application on your phone.
+    <div v-if="canManageTwoFactor" class="space-y-3">
+        <header>
+            <h3 class="section-title">Autenticazione a due fattori</h3>
+            <p class="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                Aggiunge un codice temporaneo (TOTP) al login per proteggere
+                l'account anche se la password viene compromessa.
             </p>
+        </header>
 
-            <div>
-                <Button v-if="hasSetupData" @click="showSetupModal = true">
-                    <ShieldCheck />Continue setup
+        <div v-if="!twoFactorEnabled">
+            <Button v-if="hasSetupData" size="sm" @click="showSetupModal = true">
+                <PhShieldCheck />
+                Continua configurazione
+            </Button>
+            <Form
+                v-else
+                v-bind="enable.form()"
+                @success="showSetupModal = true"
+                #default="{ processing }"
+            >
+                <Button type="submit" size="sm" :disabled="processing">
+                    Attiva 2FA
                 </Button>
-                <Form
-                    v-else
-                    v-bind="enable.form()"
-                    @success="showSetupModal = true"
-                    #default="{ processing }"
-                >
-                    <Button type="submit" :disabled="processing">
-                        Enable 2FA
-                    </Button>
-                </Form>
-            </div>
+            </Form>
         </div>
 
-        <div v-else class="flex flex-col items-start justify-start space-y-4">
-            <p class="text-sm text-muted-foreground">
-                You will be prompted for a secure, random pin during login,
-                which you can retrieve from the TOTP-supported application on
-                your phone.
-            </p>
-
-            <div class="relative inline">
-                <Form v-bind="disable.form()" #default="{ processing }">
-                    <Button
-                        variant="destructive"
-                        type="submit"
-                        :disabled="processing"
-                    >
-                        Disable 2FA
-                    </Button>
-                </Form>
-            </div>
+        <div v-else class="space-y-4">
+            <Form v-bind="disable.form()" #default="{ processing }">
+                <Button
+                    variant="destructive"
+                    type="submit"
+                    :disabled="processing"
+                >
+                    Disattiva 2FA
+                </Button>
+            </Form>
 
             <TwoFactorRecoveryCodes />
         </div>

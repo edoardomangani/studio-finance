@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
-import InputError from '@/components/InputError.vue';
+import FormField from '@/components/forms/FormField.vue';
 import PasskeyVerify from '@/components/PasskeyVerify.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import TextLink from '@/components/TextLink.vue';
@@ -15,8 +15,8 @@ import { request } from '@/routes/password';
 
 defineOptions({
     layout: {
-        title: 'Log in to your account',
-        description: 'Enter your email and password below to log in',
+        title: 'Accedi',
+        description: 'Inserisci email e password per entrare nel tuo account.',
     },
 });
 
@@ -27,11 +27,11 @@ defineProps<{
 </script>
 
 <template>
-    <Head title="Log in" />
+    <Head title="Accedi" />
 
     <div
         v-if="status"
-        class="mb-4 text-center text-sm font-medium text-green-600"
+        class="text-center text-xs font-medium text-accent-strong"
     >
         {{ status }}
     </div>
@@ -42,69 +42,62 @@ defineProps<{
         v-bind="store.form()"
         :reset-on-success="['password']"
         v-slot="{ errors, processing }"
-        class="flex flex-col gap-6"
+        class="flex flex-col gap-5"
     >
-        <div class="grid gap-6">
-            <div class="grid gap-2">
-                <Label for="email">Email address</Label>
-                <Input
-                    id="email"
-                    type="email"
-                    name="email"
-                    required
-                    autofocus
-                    :tabindex="1"
-                    autocomplete="email"
-                    placeholder="email@example.com"
-                />
-                <InputError :message="errors.email" />
-            </div>
+        <FormField label="Email" for="email" required>
+            <Input
+                id="email"
+                type="email"
+                name="email"
+                required
+                autofocus
+                :tabindex="1"
+                autocomplete="email"
+                placeholder="nome@studio.it"
+            />
+            <template v-if="errors.email" #error>{{ errors.email }}</template>
+        </FormField>
 
-            <div class="grid gap-2">
-                <div class="flex items-center justify-between">
-                    <Label for="password">Password</Label>
-                    <TextLink
-                        v-if="canResetPassword"
-                        :href="request()"
-                        class="text-sm"
-                        :tabindex="5"
-                    >
-                        Forgot your password?
-                    </TextLink>
-                </div>
-                <PasswordInput
-                    id="password"
-                    name="password"
-                    required
-                    :tabindex="2"
-                    autocomplete="current-password"
-                    placeholder="Password"
-                />
-                <InputError :message="errors.password" />
-            </div>
+        <FormField label="Password" for="password" required>
+            <PasswordInput
+                id="password"
+                name="password"
+                required
+                :tabindex="2"
+                autocomplete="current-password"
+            />
+            <template v-if="errors.password" #error>{{ errors.password }}</template>
+        </FormField>
 
-            <div class="flex items-center justify-between">
-                <Label for="remember" class="flex items-center space-x-3">
-                    <Checkbox id="remember" name="remember" :tabindex="3" />
-                    <span>Remember me</span>
-                </Label>
-            </div>
-
-            <Button
-                type="submit"
-                class="mt-4 w-full"
-                :tabindex="4"
-                :disabled="processing"
-                data-test="login-button"
+        <div class="flex items-center justify-between">
+            <Label for="remember" class="flex items-center gap-2.5 text-13">
+                <Checkbox id="remember" name="remember" :tabindex="3" />
+                <span>Ricordami su questo dispositivo</span>
+            </Label>
+            <TextLink
+                v-if="canResetPassword"
+                :href="request()"
+                class="text-xs"
+                :tabindex="5"
             >
-                <Spinner v-if="processing" />
-                Log in
-            </Button>
+                Password dimenticata?
+            </TextLink>
         </div>
 
-        <div class="text-center text-sm text-muted-foreground">
-            Don't have an account?
-            <TextLink :href="register()" :tabindex="5">Sign up</TextLink>
-        </div>
+        <Button
+            type="submit"
+            class="w-full"
+            :tabindex="4"
+            :disabled="processing"
+            data-test="login-button"
+        >
+            <Spinner v-if="processing" />
+            Accedi
+        </Button>
+
+        <p class="text-center text-xs text-muted-foreground">
+            Non hai ancora un account?
+            <TextLink :href="register()" :tabindex="5">Registrati</TextLink>
+        </p>
     </Form>
 </template>

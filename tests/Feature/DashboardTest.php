@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\ProfessionalProfile;
 use App\Models\User;
 
 test('guests are redirected to the login page', function () {
@@ -7,10 +8,20 @@ test('guests are redirected to the login page', function () {
     $response->assertRedirect(route('login'));
 });
 
-test('authenticated users can visit the dashboard', function () {
+test('authenticated and onboarded users can visit the dashboard', function () {
     $user = User::factory()->create();
+    ProfessionalProfile::factory()->for($user)->create();
+
     $this->actingAs($user);
 
     $response = $this->get(route('dashboard'));
     $response->assertOk();
+});
+
+test('authenticated users without a professional profile are redirected to onboarding', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    $response = $this->get(route('dashboard'));
+    $response->assertRedirect('/onboarding');
 });

@@ -27,14 +27,19 @@ defineProps<{
     required?: boolean;
     invalid?: boolean;
     hint?: string;
+    /** Lega `<label for>` all'input. Passare lo stesso valore dell'`id`
+     * sull'input figlio per a11y completa (click label → focus input). */
+    for?: string;
 }>();
 </script>
 
 <template>
     <Field :required="required" :invalid="invalid">
-        <FieldLabel v-if="label">{{ label }}</FieldLabel>
+        <FieldLabel v-if="label" :for="$props.for">{{ label }}</FieldLabel>
         <slot />
-        <FieldDescription v-if="hint">{{ hint }}</FieldDescription>
+        <FieldDescription v-if="hint">
+            <slot name="hint">{{ hint }}</slot>
+        </FieldDescription>
         <FieldError v-if="$slots.error">
             <slot name="error" />
         </FieldError>

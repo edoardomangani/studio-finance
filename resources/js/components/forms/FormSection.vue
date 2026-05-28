@@ -32,12 +32,7 @@ withDefaults(
             'pb-0': last,
         }"
     >
-        <h2
-            v-if="title"
-            class="text-2xs font-semibold tracking-tight text-muted-foreground uppercase"
-        >
-            {{ title }}
-        </h2>
+        <h2 v-if="title" class="section-title">{{ title }}</h2>
         <FieldGroup>
             <slot />
         </FieldGroup>

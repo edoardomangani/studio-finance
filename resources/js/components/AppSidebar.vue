@@ -29,7 +29,6 @@ import {
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { dashboard, designSystem } from '@/routes';
-import { edit as profileEdit } from '@/routes/profile';
 
 type NavLink = {
     label: string;
@@ -42,7 +41,14 @@ type NavLink = {
 type NavSection = { label: string; items: NavLink[] };
 
 /* TODO: sostituire i placeholder con le rotte reali via Wayfinder appena
- *       le fasi corrispondenti vengono completate (Fatture/Clienti/...). */
+ *       le fasi corrispondenti vengono completate (Fatture/Clienti/...).
+ *
+ * Sistema:
+ * - "Impostazioni" qui = setup fiscale di sistema (catalogo voci di spesa
+ *   template + scadenze tipo). Voce di Fase 2: per ora placeholder verso
+ *   dashboard.
+ * - le impostazioni personali (Profilo, Anagrafica, Sicurezza, Aspetto)
+ *   NON vivono qui ma nel dropdown utente (NavUser). */
 const sections: NavSection[] = [
     {
         label: 'Lavoro',
@@ -57,7 +63,7 @@ const sections: NavSection[] = [
     {
         label: 'Sistema',
         items: [
-            { label: 'Impostazioni', icon: PhGearSix, href: profileEdit() },
+            { label: 'Impostazioni', icon: PhGearSix, href: dashboard() },
             { label: 'Design system', icon: PhBookOpen, href: designSystem() },
         ],
     },

@@ -135,7 +135,7 @@
     --c-bg: oklch(98.5% 0.001 286); /* zinc-50 — canvas */
     --c-bg-2: oklch(96.7% 0.002 286); /* zinc-100 — muted bg */
     --c-bg-3: oklch(96.7% 0.002 286); /* sidebar nav bg */
-    --c-surface: oklch(98.5% 0.001 286); /* card / popover */
+    --c-surface: oklch(100% 0 0); /* card / popover — white puro per stacco da canvas */
     --c-line: oklch(91.9% 0.004 286); /* zinc-200 — border standard */
     --c-line-2: oklch(94% 0.003 286); /* border-soft / hover */
     --c-ink: oklch(21% 0.006 286); /* zinc-900 — testo primary */
@@ -168,11 +168,13 @@
     --scrollbar-thumb-hover: oklch(70.4% 0.012 286); /* zinc-400 */
 
     /* ─── Token semantici shadcn (legati ai --c-* sopra) ─── */
-    /* Surfaces — zinc Tailwind 50/100, canvas = card = sidebar = popover */
+    /* Surfaces. Canvas in zinc-50, card/popover in white puro per dare
+       stacco rispetto al canvas (input + card si differenziano sempre
+       dal background senza ricorrere a shadow). */
     --background: oklch(98.5% 0.001 286); /* zinc-50 */
-    --card: oklch(98.5% 0.001 286);
+    --card: oklch(100% 0 0); /* white puro */
     --card-foreground: oklch(21% 0.006 286);
-    --popover: oklch(98.5% 0.001 286);
+    --popover: oklch(100% 0 0);
     --popover-foreground: oklch(21% 0.006 286);
     --surface-2: oklch(96.7% 0.002 286); /* zinc-100 — hover row, kbd bg */
 
@@ -425,12 +427,25 @@
 
 /* ─── Utility custom — kicker, numeric, code-pill, pill, hairline ─────────── */
 @layer components {
+    /* Kicker — eyebrow label decorativa sopra heading o info di gruppo.
+       Letter-spacing largo, peso medio. Es. sopra titoli pagina ("MANIFESTO"). */
     .kicker {
         font-size: var(--text-2xs);
         text-transform: uppercase;
         letter-spacing: 0.06em;
         color: var(--muted-foreground);
         font-weight: 500;
+    }
+
+    /* Section title — h2/h3 funzionale per testate di sezione e sotto-sezione
+       (FormSection, blocchi dentro Settings, ecc.). Semibold + tracking tight,
+       più compatto del kicker. Stessa scala (11px) ma peso più strutturale. */
+    .section-title {
+        font-size: var(--text-2xs);
+        text-transform: uppercase;
+        letter-spacing: -0.005em;
+        color: var(--muted-foreground);
+        font-weight: 600;
     }
 
     .numeric {

@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { router } from '@inertiajs/vue3';
-import { KeyRound } from 'lucide-vue-next';
+import { PhKey } from '@phosphor-icons/vue';
 import { destroy } from '@/actions/Laravel/Passkeys/Http/Controllers/PasskeyRegistrationController';
-import Heading from '@/components/Heading.vue';
 import PasskeyItem from '@/components/PasskeyItem.vue';
 import PasskeyRegister from '@/components/PasskeyRegister.vue';
 import type { Passkey } from '@/types/auth';
@@ -30,34 +29,35 @@ const handleRegisterSuccess = () => {
 </script>
 
 <template>
-    <div v-if="canManagePasskeys" class="space-y-6">
-        <Heading
-            variant="small"
-            title="Passkeys"
-            description="Manage your passkeys for passwordless sign-in"
-        />
+    <div v-if="canManagePasskeys" class="space-y-3">
+        <header>
+            <h3 class="section-title">Passkey</h3>
+            <p class="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                Accesso senza password tramite dispositivo (Face ID, Touch ID,
+                YubiKey, Windows Hello).
+            </p>
+        </header>
 
-        <div class="overflow-hidden rounded-lg border border-border">
-            <template v-if="passkeys.length">
-                <PasskeyItem
-                    v-for="passkey in passkeys"
-                    :key="passkey.id"
-                    :passkey="passkey"
-                    @remove="handleDelete"
-                />
-            </template>
+        <div
+            v-if="passkeys.length"
+            class="overflow-hidden rounded-md border border-border"
+        >
+            <PasskeyItem
+                v-for="passkey in passkeys"
+                :key="passkey.id"
+                :passkey="passkey"
+                @remove="handleDelete"
+            />
+        </div>
 
-            <div v-else class="p-8 text-center">
-                <div
-                    class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-muted"
-                >
-                    <KeyRound class="h-7 w-7 text-muted-foreground" />
-                </div>
-                <p class="font-medium">No passkeys yet</p>
-                <p class="mt-1 text-sm text-muted-foreground">
-                    Add a passkey to sign in without a password
-                </p>
-            </div>
+        <div
+            v-else
+            class="flex items-center gap-3 rounded-md border border-dashed border-border bg-muted/30 px-4 py-3"
+        >
+            <PhKey class="size-4 shrink-0 text-muted-foreground" />
+            <p class="text-xs text-muted-foreground">
+                Nessuna passkey registrata.
+            </p>
         </div>
 
         <PasskeyRegister @success="handleRegisterSuccess" />

@@ -4,66 +4,60 @@ import {
     index as confirmOptions,
     store as confirmStore,
 } from '@/actions/Laravel/Passkeys/Http/Controllers/PasskeyConfirmationController';
-import InputError from '@/components/InputError.vue';
+import FormField from '@/components/forms/FormField.vue';
 import PasskeyVerify from '@/components/PasskeyVerify.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
 import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { store } from '@/routes/password/confirm';
 
 defineOptions({
     layout: {
-        title: 'Confirm password',
+        title: 'Conferma password',
         description:
-            'This is a secure area of the application. Please confirm your password before continuing.',
+            'Stai accedendo a un\'area sensibile. Conferma la password per continuare.',
     },
 });
 </script>
 
 <template>
-    <Head title="Confirm password" />
+    <Head title="Conferma password" />
 
     <PasskeyVerify
         :routes="{
             options: confirmOptions(),
             submit: confirmStore(),
         }"
-        label="Confirm with passkey"
-        loading-label="Confirming..."
-        separator="Or confirm with password"
+        label="Conferma con passkey"
+        loading-label="Sto confermando…"
+        separator="oppure conferma con password"
     />
 
     <Form
         v-bind="store.form()"
         reset-on-success
         v-slot="{ errors, processing }"
+        class="flex flex-col gap-5"
     >
-        <div class="space-y-6">
-            <div class="grid gap-2">
-                <Label htmlFor="password">Password</Label>
-                <PasswordInput
-                    id="password"
-                    name="password"
-                    class="mt-1 block w-full"
-                    required
-                    autocomplete="current-password"
-                    autofocus
-                />
+        <FormField label="Password" for="password" required>
+            <PasswordInput
+                id="password"
+                name="password"
+                required
+                autocomplete="current-password"
+                autofocus
+            />
+            <template v-if="errors.password" #error>{{ errors.password }}</template>
+        </FormField>
 
-                <InputError :message="errors.password" />
-            </div>
-
-            <div class="flex items-center">
-                <Button
-                    class="w-full"
-                    :disabled="processing"
-                    data-test="confirm-password-button"
-                >
-                    <Spinner v-if="processing" />
-                    Confirm password
-                </Button>
-            </div>
-        </div>
+        <Button
+            type="submit"
+            class="w-full"
+            :disabled="processing"
+            data-test="confirm-password-button"
+        >
+            <Spinner v-if="processing" />
+            Conferma password
+        </Button>
     </Form>
 </template>

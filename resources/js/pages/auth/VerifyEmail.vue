@@ -8,9 +8,9 @@ import { send } from '@/routes/verification';
 
 defineOptions({
     layout: {
-        title: 'Email verification',
+        title: 'Verifica email',
         description:
-            'Please verify your email address by clicking on the link we just emailed to you.',
+            'Apri il link che abbiamo inviato al tuo indirizzo email per confermare l\'account.',
     },
 });
 
@@ -20,28 +20,28 @@ defineProps<{
 </script>
 
 <template>
-    <Head title="Email verification" />
+    <Head title="Verifica email" />
 
     <div
         v-if="status === 'verification-link-sent'"
-        class="mb-4 text-center text-sm font-medium text-green-600"
+        class="text-center text-xs font-medium text-accent-strong"
     >
-        A new verification link has been sent to the email address you provided
-        during registration.
+        Abbiamo inviato un nuovo link di verifica all'indirizzo email
+        utilizzato per la registrazione.
     </div>
 
     <Form
         v-bind="send.form()"
-        class="space-y-6 text-center"
         v-slot="{ processing }"
+        class="flex flex-col items-center gap-4"
     >
-        <Button :disabled="processing" variant="secondary">
+        <Button type="submit" :disabled="processing" variant="outline">
             <Spinner v-if="processing" />
-            Resend verification email
+            Reinvia email di verifica
         </Button>
 
-        <TextLink :href="logout()" as="button" class="mx-auto block text-sm">
-            Log out
+        <TextLink :href="logout()" as="button" class="text-xs">
+            Esci
         </TextLink>
     </Form>
 </template>

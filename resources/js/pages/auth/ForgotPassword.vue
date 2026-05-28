@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import { Form, Head } from '@inertiajs/vue3';
-import InputError from '@/components/InputError.vue';
+import FormField from '@/components/forms/FormField.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
 import { login } from '@/routes';
 import { email } from '@/routes/password';
 
 defineOptions({
     layout: {
-        title: 'Forgot password',
-        description: 'Enter your email to receive a password reset link',
+        title: 'Password dimenticata',
+        description: 'Inserisci l\'email del tuo account. Ti invieremo un link per reimpostare la password.',
     },
 });
 
@@ -22,45 +21,44 @@ defineProps<{
 </script>
 
 <template>
-    <Head title="Forgot password" />
+    <Head title="Password dimenticata" />
 
     <div
         v-if="status"
-        class="mb-4 text-center text-sm font-medium text-green-600"
+        class="text-center text-xs font-medium text-accent-strong"
     >
         {{ status }}
     </div>
 
-    <div class="space-y-6">
-        <Form v-bind="email.form()" v-slot="{ errors, processing }">
-            <div class="grid gap-2">
-                <Label for="email">Email address</Label>
-                <Input
-                    id="email"
-                    type="email"
-                    name="email"
-                    autocomplete="off"
-                    autofocus
-                    placeholder="email@example.com"
-                />
-                <InputError :message="errors.email" />
-            </div>
+    <Form
+        v-bind="email.form()"
+        v-slot="{ errors, processing }"
+        class="flex flex-col gap-5"
+    >
+        <FormField label="Email" for="email" required>
+            <Input
+                id="email"
+                type="email"
+                name="email"
+                autocomplete="email"
+                autofocus
+                placeholder="nome@studio.it"
+            />
+            <template v-if="errors.email" #error>{{ errors.email }}</template>
+        </FormField>
 
-            <div class="my-6 flex items-center justify-start">
-                <Button
-                    class="w-full"
-                    :disabled="processing"
-                    data-test="email-password-reset-link-button"
-                >
-                    <Spinner v-if="processing" />
-                    Email password reset link
-                </Button>
-            </div>
-        </Form>
+        <Button
+            type="submit"
+            class="w-full"
+            :disabled="processing"
+            data-test="email-password-reset-link-button"
+        >
+            <Spinner v-if="processing" />
+            Invia link di reset
+        </Button>
 
-        <div class="space-x-1 text-center text-sm text-muted-foreground">
-            <span>Or, return to</span>
-            <TextLink :href="login()">log in</TextLink>
-        </div>
-    </div>
+        <p class="text-center text-xs text-muted-foreground">
+            <TextLink :href="login()">Torna al login</TextLink>
+        </p>
+    </Form>
 </template>

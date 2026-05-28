@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
-import { PhGearSix, PhSignOut } from '@phosphor-icons/vue';
+import { PhUserCircle, PhSignOut } from '@phosphor-icons/vue';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import UserInfo from '@/components/UserInfo.vue';
 import { logout } from '@/routes';
-import { edit } from '@/routes/profile';
+import { edit } from '@/routes/professional';
 import type { User } from '@/types';
 
 type Props = {
@@ -33,8 +33,8 @@ defineProps<Props>();
     <DropdownMenuGroup>
         <DropdownMenuItem :as-child="true">
             <Link class="block w-full cursor-pointer" :href="edit()" prefetch>
-                <PhGearSix class="mr-2 size-4" />
-                Impostazioni
+                <PhUserCircle class="mr-2 size-4" />
+                Profilo personale
             </Link>
         </DropdownMenuItem>
     </DropdownMenuGroup>

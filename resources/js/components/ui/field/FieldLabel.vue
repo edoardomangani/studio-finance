@@ -6,6 +6,8 @@ import { useFieldContext } from './context'
 
 const props = defineProps<{
   class?: HTMLAttributes['class']
+  /** Lega il label all'input tramite attributo `for` (id dell'input). */
+  for?: string
 }>()
 
 const { required } = useFieldContext()
@@ -14,6 +16,7 @@ const { required } = useFieldContext()
 <template>
   <Label
     data-slot="field-label"
+    :for="props.for"
     :class="cn(
       'group/field-label peer/field-label flex w-fit gap-1 leading-snug group-data-[disabled=true]/field:opacity-50',
       'has-[>[data-slot=field]]:w-full has-[>[data-slot=field]]:flex-col has-[>[data-slot=field]]:rounded-md has-[>[data-slot=field]]:border *:data-[slot=field]:p-4',

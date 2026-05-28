@@ -5,7 +5,16 @@ use Illuminate\Support\Facades\Hash;
 use Inertia\Testing\AssertableInertia as Assert;
 use Laravel\Fortify\Features;
 
-test('security page is displayed', function () {
+test('legacy /settings/security redirects to the monolite profile page', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)
+        ->withSession(['auth.password_confirmed_at' => time()])
+        ->get(route('security.edit'))
+        ->assertRedirect('/settings/profile?tab=security');
+});
+
+test('the settings profile page exposes 2FA and passkey props', function () {
     $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
 
     Features::twoFactorAuthentication([
@@ -19,10 +28,9 @@ test('security page is displayed', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user)
-        ->withSession(['auth.password_confirmed_at' => time()])
-        ->get(route('security.edit'))
+        ->get(route('profile.edit'))
         ->assertInertia(fn (Assert $page) => $page
-            ->component('settings/Security')
+            ->component('settings/Profile')
             ->where('canManagePasskeys', true)
             ->where('passkeys', [])
             ->where('canManageTwoFactor', true)
@@ -30,23 +38,16 @@ test('security page is displayed', function () {
         );
 });
 
-test('security page requires password confirmation when enabled', function () {
-    $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
-
+test('legacy /settings/security redirige senza richiedere conferma password (la conferma vive sui veri endpoint sensibili)', function () {
     $user = User::factory()->create();
-
-    Features::twoFactorAuthentication([
-        'confirm' => true,
-        'confirmPassword' => true,
-    ]);
 
     $response = $this->actingAs($user)
         ->get(route('security.edit'));
 
-    $response->assertRedirect(route('password.confirm'));
+    $response->assertRedirect('/settings/profile?tab=security');
 });
 
-test('security page renders without two factor when feature is disabled', function () {
+test('the settings profile page renders without two factor props when feature is disabled', function () {
     $this->skipUnlessFortifyHas(Features::twoFactorAuthentication());
 
     config(['fortify.features' => []]);
@@ -54,11 +55,10 @@ test('security page renders without two factor when feature is disabled', functi
     $user = User::factory()->create();
 
     $this->actingAs($user)
-        ->withSession(['auth.password_confirmed_at' => time()])
-        ->get(route('security.edit'))
+        ->get(route('profile.edit'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('settings/Security')
+            ->component('settings/Profile')
             ->where('canManagePasskeys', false)
             ->where('passkeys', [])
             ->where('canManageTwoFactor', false)
@@ -72,7 +72,7 @@ test('password can be updated', function () {
 
     $response = $this
         ->actingAs($user)
-        ->from(route('security.edit'))
+        ->from(route('profile.edit'))
         ->put(route('user-password.update'), [
             'current_password' => 'password',
             'password' => 'new-password',
@@ -81,7 +81,7 @@ test('password can be updated', function () {
 
     $response
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('security.edit'));
+        ->assertRedirect(route('profile.edit'));
 
     expect(Hash::check('new-password', $user->refresh()->password))->toBeTrue();
 });
@@ -91,7 +91,7 @@ test('correct password must be provided to update password', function () {
 
     $response = $this
         ->actingAs($user)
-        ->from(route('security.edit'))
+        ->from(route('profile.edit'))
         ->put(route('user-password.update'), [
             'current_password' => 'wrong-password',
             'password' => 'new-password',
@@ -100,5 +100,5 @@ test('correct password must be provided to update password', function () {
 
     $response
         ->assertSessionHasErrors('current_password')
-        ->assertRedirect(route('security.edit'));
+        ->assertRedirect(route('profile.edit'));
 });

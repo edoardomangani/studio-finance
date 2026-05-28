@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { usePasskeyRegister } from '@laravel/passkeys/vue';
 import { ref } from 'vue';
-import InputError from '@/components/InputError.vue';
+import FormField from '@/components/forms/FormField.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import { Spinner } from '@/components/ui/spinner';
 
 const emit = defineEmits<{
     success: [];
@@ -21,7 +21,7 @@ const getDefaultPasskeyName = () => {
         new RegExp(os).test(ua),
     );
 
-    return [browser, os].filter(Boolean).join(' on ') || '';
+    return [browser, os].filter(Boolean).join(' · ') || '';
 };
 
 const name = ref(getDefaultPasskeyName());
@@ -52,42 +52,57 @@ const handleCancel = () => {
 </script>
 
 <template>
-    <div v-if="!isSupported" class="text-sm text-muted-foreground">
-        Passkeys are not supported in this browser.
-    </div>
+    <p v-if="!isSupported" class="text-xs text-muted-foreground">
+        Le passkey non sono supportate da questo browser.
+    </p>
 
-    <Button v-else-if="!showForm" variant="outline" @click="showForm = true">
-        Add passkey
+    <Button
+        v-else-if="!showForm"
+        size="sm"
+        variant="outline"
+        @click="showForm = true"
+    >
+        Aggiungi passkey
     </Button>
 
     <form
         v-else
         @submit="handleSubmit"
-        class="space-y-4 rounded-lg border border-border bg-muted/50 p-4"
+        class="space-y-4 rounded-md border border-border bg-muted/30 p-4"
     >
-        <div class="grid gap-2">
-            <Label for="passkey-name">Passkey name</Label>
+        <FormField
+            label="Nome passkey"
+            for="passkey-name"
+            required
+            hint="Ti aiuta a riconoscerla in seguito."
+            :invalid="!!error"
+        >
             <Input
                 id="passkey-name"
                 type="text"
                 v-model="name"
-                placeholder="e.g., MacBook Pro, iPhone"
-                class="mt-1 block w-full border-foreground/20"
+                placeholder="Es. MacBook Pro · iPhone"
                 autofocus
             />
-            <p class="text-xs text-muted-foreground">
-                A name helps you identify this passkey later.
-            </p>
-        </div>
-
-        <InputError v-if="error" :message="error" />
+            <template v-if="error" #error>{{ error }}</template>
+        </FormField>
 
         <div class="flex gap-2">
-            <Button type="submit" :disabled="isLoading || !name.trim()">
-                {{ isLoading ? 'Registering...' : 'Register passkey' }}
+            <Button
+                type="submit"
+                size="sm"
+                :disabled="isLoading || !name.trim()"
+            >
+                <Spinner v-if="isLoading" />
+                {{ isLoading ? 'Sto registrando…' : 'Registra passkey' }}
             </Button>
-            <Button type="button" variant="ghost" @click="handleCancel">
-                Cancel
+            <Button
+                type="button"
+                size="sm"
+                variant="ghost"
+                @click="handleCancel"
+            >
+                Annulla
             </Button>
         </div>
     </form>
