@@ -131,11 +131,7 @@ function submit(): void {
                         </FormField>
 
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <FormField
-                                label="P.IVA"
-                                for="client-vat"
-                                hint="Almeno uno tra P.IVA e CF è obbligatorio."
-                            >
+                            <FormField label="P.IVA" for="client-vat">
                                 <Input
                                     id="client-vat"
                                     v-model="form.vat_number"
@@ -162,7 +158,7 @@ function submit(): void {
                                 v-model="form.bank_withholding"
                             />
                             <FieldLabel for="client-withholding" class="font-normal">
-                                Soggetto a ritenuta bancaria 8%
+                                Ritenuta bancaria 8%
                             </FieldLabel>
                         </Field>
 
@@ -185,7 +181,7 @@ function submit(): void {
                     :disabled="form.processing"
                 >
                     <Spinner v-if="form.processing" />
-                    {{ isEditing ? 'Salva modifiche' : 'Crea cliente' }}
+                    {{ isEditing ? 'Salva modifiche' : 'Aggiungi cliente' }}
                 </Button>
             </DialogStandardFooter>
         </DialogContent>

@@ -38,10 +38,6 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - You must follow all existing code conventions used in this application. When creating or editing a file, check sibling files for the correct structure, approach, and naming.
 - Use descriptive names for variables and methods. For example, `isRegisteredForDiscounts`, not `discount()`.
 - Check for existing components to reuse before writing a new one.
-- Prefer shadcn-vue components over raw HTML or custom-built equivalents. If shadcn-vue ships a Button, Input, Dialog, Sheet, Table, Card, Select, etc., use it — do not rewrite `<button class="...">` or hand-roll a dialog. Extend via the project's variants and CSS tokens (see DESIGN.md), never by reimplementing the primitive.
-- Some shadcn-vue components may not be installed in this project yet. Before assuming a primitive does not exist, consult the `shadcn-vue` skill or the official shadcn-vue docs to discover and install it. Do not write a custom version because "it isn't in the project."
-- For all forms, use the `Field` family: `Field`, `FieldGroup`, `FieldLabel`, `FieldDescription`, `FieldError`. Do not assemble labels + inputs + helper text by hand. If you are unsure of the correct composition (slots, props, accessibility wiring), consult the `shadcn-vue` skill or docs before writing.
-- If a needed primitive truly is not in shadcn-vue, check the reka-ui layer it builds on before writing from scratch.
 
 ## Verification Scripts
 
@@ -109,7 +105,7 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Always use curly braces for control structures, even for single-line bodies.
 - Use PHP 8 constructor property promotion: `public function __construct(public GitHub $github) { }`. Do not leave empty zero-parameter `__construct()` methods unless the constructor is private.
 - Use explicit return type declarations and type hints for all method parameters: `function isAccessible(User $user, ?string $path = null): bool`
-- Use TitleCase for Enum keys: `FavoritePerson`, `BestLake`, `Monthly`.
+- Follow existing application Enum naming conventions.
 - Prefer PHPDoc blocks over inline comments. Only add inline comments for exceptionally complex logic.
 - Use array shape type definitions in PHPDoc blocks.
 
@@ -253,5 +249,16 @@ If a phase is committed before its gates run, the gates must be invoked retroact
 
 ## Table action columns
 
-Domain tables (Clients, future Invoices, ...) and settings tables (Expense items, Recurring deadlines) use the same action-cell pattern for consistency: a single kebab `<DropdownMenu>` trigger (`PhDotsThreeVertical`) in the last column with `align="end"`, containing `Modifica` (`PhPencil`) and `Archivia` (`PhArchive`, `variant="destructive"`). No `DropdownMenuSeparator` between the two — keep the menu dense. Row-click can navigate elsewhere (Show page) or duplicate the Modifica action; either is acceptable as long as the dropdown is always present and consistent.
+Domain tables (Clients, future Invoices, ...) and settings tables (Expense items, Recurring deadlines) use the same action-cell pattern for consistency: a single kebab `<DropdownMenu>` trigger (`PhDotsThreeVertical`) in the last column with `align="end"`, containing `Modifica` (`PhPencil`) and `Archivia` (`PhArchive`, `variant="destructive"`). No `DropdownMenuSeparator` between the two — keep the menu dense. Row-click is also wired to open the edit modal (or navigate to Show on entities like Clients that have a detail page) — the dropdown and row-click are redundant on purpose to maximize discoverability and click-target area.
+
+## Service layer
+
+Every domain entity (Client, ExpenseItem, RecurringDeadline, and any future entity) has its own `Service` class in `app/Services/` that owns: list/paginate queries with mapping to the JSON shape sent to Inertia, single-record `forShow()` mapping, `create()`, `update()`, `archive()` (soft delete). Controllers stay thin: receive request → inject service via constructor or method DI → invoke service → return Inertia/Redirect. **Even simple CRUD goes through the service** — no Eloquent queries directly in controllers, no `Model::create($request->validated())` in controllers. Action classes (`app/Actions/Studiofinance/`) remain for orchestration that crosses multiple entities or transactions (e.g. `CompleteOnboarding`).
+
+## Pre-production hardening (deferred)
+
+A short list of items deliberately deferred until before the first real-user go-live:
+
+- **PII encryption at rest (GDPR).** `clients.tax_code` is the Italian Codice Fiscale, which encodes birth date, gender and birthplace. `clients.notes` may also contain PII. Both are currently plaintext. Encrypting via Eloquent `encrypted` cast is straightforward, but it breaks (a) search via `LOWER(...) LIKE`, (b) the partial unique index `(user_id, tax_code) WHERE tax_code IS NOT NULL`. Production-grade solution: a deterministic SHA-256 hash column for lookup/uniqueness paired with an encrypted blob column for storage. Implement before any real PII enters the database.
+- **Algorithmic validation of P.IVA (Luhn-modified checksum) and Codice Fiscale (control letter).** Currently only structural regex is enforced. A typo passes server-side. Acceptable while volumes are small (commercialista catches errors), needed before scale or any auto-import flow.
 

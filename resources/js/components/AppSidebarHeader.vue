@@ -1,7 +1,9 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { PhCaretRight } from '@phosphor-icons/vue';
+import { PhCaretRight, PhList } from '@phosphor-icons/vue';
 import { computed } from 'vue';
+import { Button } from '@/components/ui/button';
+import { useSidebar } from '@/components/ui/sidebar';
 
 type Crumb = { label: string; href?: string };
 type StatusTone = 'positive' | 'negative' | 'neutral' | 'warning';
@@ -41,14 +43,33 @@ const statusToneClass: Record<StatusTone, string> = {
     neutral: 'pill pill--neutral',
     warning: 'pill pill--warning',
 };
+
+/* Mobile-only sidebar trigger: sotto md la Sidebar diventa Sheet senza
+   modo nativo di essere aperta. Su md+ esiste il toggle a cavallo del
+   bordo in AppSidebar.vue, quindi qui md:hidden. */
+const { toggleSidebar } = useSidebar();
 </script>
 
 <template>
     <header class="shrink-0 bg-background">
         <!-- ─── FASCIA TOP (h-12): breadcrumb-titolo · azioni pagina ─── -->
         <div
-            class="border-border-soft flex h-12 items-center gap-3 border-b px-3 md:px-5"
+            class="border-border-soft flex h-12 items-center gap-2 border-b px-3 md:gap-3 md:px-5"
         >
+            <!-- Mobile-only: hamburger per aprire la Sidebar in modalità Sheet
+                 (sotto 768px). Su md+ nascosto: il toggle vive a cavallo del
+                 bordo della sidebar (vedi AppSidebar.vue). -->
+            <Button
+                type="button"
+                variant="ghost"
+                size="icon-sm"
+                class="-ml-1 md:hidden"
+                aria-label="Apri menu di navigazione"
+                @click="toggleSidebar"
+            >
+                <PhList :size="16" weight="bold" />
+            </Button>
+
             <!-- Breadcrumb: parent muted, ultimo segmento promosso a titolo -->
             <nav
                 class="flex min-w-0 flex-1 items-center gap-1.5"

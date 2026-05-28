@@ -241,7 +241,8 @@ function formatDefault(item: ExpenseItem): string {
                 v-for="item in expenseItems"
                 v-else
                 :key="item.id"
-                :class="[!item.active && 'opacity-60']"
+                :class="['cursor-pointer transition-colors hover:bg-muted/40', !item.active && 'opacity-60']"
+                @click="openEdit(item)"
             >
                 <TableCell class="font-medium text-foreground">
                     {{ item.name }}
@@ -257,7 +258,7 @@ function formatDefault(item: ExpenseItem): string {
                         {{ item.active ? 'Attiva' : 'Inattiva' }}
                     </Badge>
                 </TableCell>
-                <TableCell class="text-right">
+                <TableCell class="text-right" @click.stop>
                     <DropdownMenu>
                         <DropdownMenuTrigger as-child>
                             <Button

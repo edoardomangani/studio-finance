@@ -30,8 +30,10 @@ withDefaults(
 
 <template>
   <DialogFooter :class="cn('sm:justify-between', $props.class)">
+    <!-- Annulla nascosto su mobile: la X in alto a destra (DialogContent)
+         è già l'affordance convenzionale di cancel/close. -->
     <DialogClose as-child>
-      <Button variant="ghost">{{ cancelLabel }}</Button>
+      <Button variant="ghost" class="hidden sm:inline-flex">{{ cancelLabel }}</Button>
     </DialogClose>
     <div class="flex items-center gap-3">
       <span

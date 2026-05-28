@@ -257,7 +257,7 @@ class StudiofinanceTemplatesSeeder extends Seeder
             // ordinaria 30/11 dell'anno successivo al periodo d'imposta.
             [
                 'name' => 'Dichiarazione redditi',
-                'day' => 30, 'month' => 11,
+                'day' => 31, 'month' => 5,
                 'kind' => DeadlineKind::Fulfillment,
                 'item' => null,
                 'due_next' => true,

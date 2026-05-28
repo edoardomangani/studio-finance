@@ -59,3 +59,24 @@ export type Client = {
     notes: string | null;
     created_at_diff?: string | null;
 };
+
+/**
+ * Shape della paginazione Laravel `->paginate()` (default, senza API
+ * Resources). Generic su T per riusare su Invoices, Payments, ecc.
+ */
+export type PaginatedList<T> = {
+    data: T[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    from: number | null;
+    to: number | null;
+    first_page_url: string;
+    last_page_url: string;
+    next_page_url: string | null;
+    prev_page_url: string | null;
+    path: string;
+    links: { url: string | null; label: string; active: boolean }[];
+};
+

@@ -2,9 +2,10 @@
 /**
  * Clients — Index page.
  *
- * Tabella clienti con search (denominazione/P.IVA/CF). CTA "Nuovo cliente"
- * in topbar via Teleport. Click su riga → /clients/{id}. Kebab menu per
- * archivia inline (soft delete).
+ * Tabella paginata (50/pagina) con search reattiva su denominazione,
+ * P.IVA e codice fiscale. CTA "Nuovo cliente" + ricerca nel topbar via
+ * Teleport. Click su riga → /clients/{id}. Dropdown azioni per Modifica
+ * (apre dialog inline) e Archivia (soft delete, confirm dialog).
  */
 import { Head, router, setLayoutProps, useForm } from '@inertiajs/vue3';
 import {
@@ -14,7 +15,7 @@ import {
     PhPencil,
     PhPlus,
 } from '@phosphor-icons/vue';
-import { ref, watch } from 'vue';
+import { onUnmounted, ref, watch } from 'vue';
 import ClientController from '@/actions/App/Http/Controllers/ClientController';
 import ClientFormDialog from '@/pages/clients/ClientFormDialog.vue';
 import { Badge } from '@/components/ui/badge';
@@ -28,6 +29,14 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import {
+    Pagination,
+    PaginationContent,
+    PaginationEllipsis,
+    PaginationItem,
+    PaginationNext,
+    PaginationPrevious,
+} from '@/components/ui/pagination';
+import {
     Table,
     TableBody,
     TableCell,
@@ -36,11 +45,11 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import type { Client } from '@/types';
 import { index as clientsIndex } from '@/routes/clients';
+import type { Client, PaginatedList } from '@/types';
 
 const props = defineProps<{
-    clients: Client[];
+    clients: PaginatedList<Client>;
     search: string;
 }>();
 
@@ -52,12 +61,14 @@ setLayoutProps({
 
 const searchTerm = ref(props.search);
 
-// Search reattiva: ricarica index quando l'utente cambia il testo (debounce
-// implicito via Inertia preserveState/preserveScroll). Inertia mantiene
-// l'URL aggiornato (`?search=...`).
+// Search reattiva con debounce 250ms. Inertia preserveState/preserveScroll
+// + replace per non sporcare la cronologia. Cleanup del timeout su unmount
+// per evitare callback dopo che il componente è smontato.
 let searchTimeout: ReturnType<typeof setTimeout> | null = null;
 watch(searchTerm, (value) => {
-    if (searchTimeout) clearTimeout(searchTimeout);
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
     searchTimeout = setTimeout(() => {
         router.get(
             clientsIndex().url,
@@ -65,6 +76,12 @@ watch(searchTerm, (value) => {
             { preserveState: true, preserveScroll: true, replace: true },
         );
     }, 250);
+});
+
+onUnmounted(() => {
+    if (searchTimeout) {
+        clearTimeout(searchTimeout);
+    }
 });
 
 const newClientOpen = ref(false);
@@ -87,7 +104,9 @@ function askArchive(client: Client): void {
 }
 
 function confirmArchive(): void {
-    if (!archiveTarget.value) return;
+    if (!archiveTarget.value) {
+        return;
+    }
     archiveForm.delete(
         ClientController.destroy.url({ client: archiveTarget.value.id }),
         {
@@ -102,6 +121,14 @@ function confirmArchive(): void {
 
 function openClient(client: Client): void {
     router.visit(ClientController.show.url({ client: client.id }));
+}
+
+function goToPage(page: number): void {
+    router.get(
+        clientsIndex().url,
+        { search: props.search || undefined, page },
+        { preserveState: true, preserveScroll: true },
+    );
 }
 </script>
 
@@ -135,15 +162,15 @@ function openClient(client: Client): void {
                 <TableHead>P.IVA</TableHead>
                 <TableHead>Codice Fiscale</TableHead>
                 <TableHead class="w-[120px] text-right">Ritenuta 8%</TableHead>
-                <TableHead class="w-[60px]" />
+                <TableHead class="w-[48px]" />
             </TableRow>
         </TableHeader>
         <TableBody>
-            <TableEmpty v-if="clients.length === 0" :colspan="5">
-                {{ search ? 'Nessun cliente trovato.' : 'Nessun cliente registrato. Crea il primo dal pulsante in alto.' }}
+            <TableEmpty v-if="clients.data.length === 0" :colspan="5">
+                {{ search ? 'Nessun cliente trovato.' : 'Nessun cliente. Creane uno dal pulsante in alto.' }}
             </TableEmpty>
             <TableRow
-                v-for="client in clients"
+                v-for="client in clients.data"
                 v-else
                 :key="client.id"
                 class="cursor-pointer transition-colors hover:bg-muted/40"
@@ -194,6 +221,47 @@ function openClient(client: Client): void {
             </TableRow>
         </TableBody>
     </Table>
+
+    <!-- Pagination footer: visibile solo se più di una pagina. Counter
+         risultati a sinistra, paginator numerico (shadcn) a destra.
+         Stack verticale sotto sm (iPhone SE ~320px): counter + paginator
+         insieme escono dal viewport, quindi gap-2 col su mobile. -->
+    <footer
+        v-if="clients.last_page > 1"
+        class="mt-3 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between"
+    >
+        <span class="tabular text-xs text-muted-foreground">
+            {{ clients.from }}–{{ clients.to }} di {{ clients.total }}
+        </span>
+        <Pagination
+            :total="clients.total"
+            :items-per-page="clients.per_page"
+            :page="clients.current_page"
+            :sibling-count="1"
+            show-edges
+            @update:page="goToPage"
+        >
+            <PaginationContent v-slot="{ items }">
+                <PaginationPrevious />
+                <template v-for="(item, idx) in items">
+                    <PaginationItem
+                        v-if="item.type === 'page'"
+                        :key="item.value"
+                        :value="item.value"
+                        :is-active="item.value === clients.current_page"
+                    >
+                        {{ item.value }}
+                    </PaginationItem>
+                    <PaginationEllipsis
+                        v-else
+                        :key="`e-${idx}`"
+                        :index="idx"
+                    />
+                </template>
+                <PaginationNext />
+            </PaginationContent>
+        </Pagination>
+    </footer>
 
     <ClientFormDialog v-model:open="newClientOpen" :client="null" />
     <ClientFormDialog v-model:open="editOpen" :client="editTarget" />

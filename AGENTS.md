@@ -38,10 +38,6 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - You must follow all existing code conventions used in this application. When creating or editing a file, check sibling files for the correct structure, approach, and naming.
 - Use descriptive names for variables and methods. For example, `isRegisteredForDiscounts`, not `discount()`.
 - Check for existing components to reuse before writing a new one.
-- Prefer shadcn-vue components over raw HTML or custom-built equivalents. If shadcn-vue ships a Button, Input, Dialog, Sheet, Table, Card, Select, etc., use it — do not rewrite `<button class="...">` or hand-roll a dialog. Extend via the project's variants and CSS tokens (see DESIGN.md), never by reimplementing the primitive.
-- Some shadcn-vue components may not be installed in this project yet. Before assuming a primitive does not exist, consult the `shadcn-vue` skill or the official shadcn-vue docs to discover and install it. Do not write a custom version because "it isn't in the project."
-- For all forms, use the `Field` family: `Field`, `FieldGroup`, `FieldLabel`, `FieldDescription`, `FieldError`. Do not assemble labels + inputs + helper text by hand. If you are unsure of the correct composition (slots, props, accessibility wiring), consult the `shadcn-vue` skill or docs before writing.
-- If a needed primitive truly is not in shadcn-vue, check the reka-ui layer it builds on before writing from scratch.
 
 ## Verification Scripts
 
@@ -109,7 +105,7 @@ This project has domain-specific skills available in `**/skills/**`. You MUST ac
 - Always use curly braces for control structures, even for single-line bodies.
 - Use PHP 8 constructor property promotion: `public function __construct(public GitHub $github) { }`. Do not leave empty zero-parameter `__construct()` methods unless the constructor is private.
 - Use explicit return type declarations and type hints for all method parameters: `function isAccessible(User $user, ?string $path = null): bool`
-- Use TitleCase for Enum keys: `FavoritePerson`, `BestLake`, `Monthly`.
+- Follow existing application Enum naming conventions.
 - Prefer PHPDoc blocks over inline comments. Only add inline comments for exceptionally complex logic.
 - Use array shape type definitions in PHPDoc blocks.
 

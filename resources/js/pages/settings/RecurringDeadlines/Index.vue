@@ -262,7 +262,8 @@ function formatDate(deadline: RecurringDeadline): string {
                 v-for="deadline in recurringDeadlines"
                 v-else
                 :key="deadline.id"
-                :class="[!deadline.active && 'opacity-60']"
+                :class="['cursor-pointer transition-colors hover:bg-muted/40', !deadline.active && 'opacity-60']"
+                @click="openEdit(deadline)"
             >
                 <TableCell class="tabular text-foreground">
                     {{ formatDate(deadline) }}
@@ -284,7 +285,7 @@ function formatDate(deadline: RecurringDeadline): string {
                         {{ deadline.active ? 'Attiva' : 'Inattiva' }}
                     </Badge>
                 </TableCell>
-                <TableCell class="text-right">
+                <TableCell class="text-right" @click.stop>
                     <DropdownMenu>
                         <DropdownMenuTrigger as-child>
                             <Button

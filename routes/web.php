@@ -16,8 +16,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::inertia('dashboard', 'Dashboard')->name('dashboard');
 
         // Clienti — CRUD completo (resource controller). Soft delete = archivia.
+        // Rate limit difensivo (60 req/min per utente loggato) per evitare
+        // script che riempiono il DB di clienti senza significato. Le route
+        // GET (index/show) hanno lo stesso throttle: i target sono lookup
+        // umani, non interrogazioni programmaticamente massicce.
         Route::resource('clients', ClientController::class)
-            ->except(['create', 'edit']);
+            ->except(['create', 'edit'])
+            ->middleware('throttle:60,1');
 
         // Design system page: showroom dei componenti, accessibile solo in dev.
         // In production la rotta non esiste affatto.

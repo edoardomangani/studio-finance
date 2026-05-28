@@ -12,7 +12,7 @@ function onboardedClient(): User
     return $user;
 }
 
-it('mostra la pagina clients con tabella + props search', function (): void {
+it('mostra la pagina clients con tabella paginata + props search', function (): void {
     $user = onboardedClient();
     Client::factory()->for($user)->count(3)->create();
 
@@ -21,7 +21,11 @@ it('mostra la pagina clients con tabella + props search', function (): void {
         ->assertOk()
         ->assertInertia(fn ($page) => $page
             ->component('clients/Index')
-            ->has('clients', 3)
+            ->has('clients.data', 3)
+            ->has('clients.current_page')
+            ->has('clients.last_page')
+            ->has('clients.total')
+            ->has('clients.links')
             ->has('search'),
         );
 });
@@ -43,9 +47,7 @@ it('filtra clienti per denominazione', function (): void {
     $this->actingAs($user)
         ->get('/clients?search=acme')
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->where('clients', fn ($clients) => count($clients) === 2),
-        );
+        ->assertInertia(fn ($page) => $page->has('clients.data', 2));
 });
 
 it('filtra clienti per P.IVA', function (): void {
@@ -62,9 +64,7 @@ it('filtra clienti per P.IVA', function (): void {
     $this->actingAs($user)
         ->get('/clients?search=123')
         ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->where('clients', fn ($clients) => count($clients) === 1),
-        );
+        ->assertInertia(fn ($page) => $page->has('clients.data', 1));
 });
 
 it('crea un cliente con P.IVA', function (): void {
@@ -100,12 +100,15 @@ it('crea un cliente con solo CF', function (): void {
 it('rifiuta cliente senza P.IVA né CF', function (): void {
     $user = onboardedClient();
 
+    // required_without applicato solo a vat_number (asimmetrico) per
+    // mostrare un singolo errore quando entrambi mancano.
     $this->actingAs($user)->post('/clients', [
         'name' => 'No identifier',
         'vat_number' => null,
         'tax_code' => null,
         'bank_withholding' => false,
-    ])->assertSessionHasErrors(['vat_number', 'tax_code']);
+    ])->assertSessionHasErrors(['vat_number'])
+        ->assertSessionDoesntHaveErrors(['tax_code']);
 });
 
 it('valida name required', function (): void {
