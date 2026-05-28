@@ -12,14 +12,13 @@ return new class extends Migration
             $table->id();
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
             $table->string('name');
-            // Calculation type: i valori IRPEF / IVA / bolli sono termini fiscali
-            // italiani specifici e restano nel codice come tali.
-            $table->enum('calculation_type', [
-                'percentage_of_irpef_income',
-                'percentage_of_iva_revenue',
-                'fixed_annual',
-                'sum_of_bolli',
-            ]);
+            // Calculation type: store come string + cast a [[App\Enums\ExpenseCalculationType]]
+            // sul Model. Si evita il CHECK constraint PostgreSQL dell'enum() Laravel
+            // che richiede ALTER TABLE acrobatici per aggiungere valori. Validazione
+            // dei valori ammessi gestita lato Form Request via Rule::enum().
+            // Valori: percentage_of_irpef_income | percentage_of_iva_revenue
+            //       | fixed_annual | sum_of_bolli.
+            $table->string('calculation_type');
             $table->decimal('default_rate', 5, 2)->nullable();
             $table->decimal('default_minimum', 12, 2)->nullable();
             $table->decimal('default_maximum', 12, 2)->nullable();

@@ -10,7 +10,12 @@
  * Kind `fulfillment` non ha collegamenti.
  */
 import { Head, setLayoutProps, useForm } from '@inertiajs/vue3';
-import { PhArchive, PhPlus } from '@phosphor-icons/vue';
+import {
+    PhArchive,
+    PhDotsThreeVertical,
+    PhPencil,
+    PhPlus,
+} from '@phosphor-icons/vue';
 import { computed, ref, watch } from 'vue';
 import RecurringDeadlineController from '@/actions/App/Http/Controllers/Settings/RecurringDeadlineController';
 import FormField from '@/components/forms/FormField.vue';
@@ -24,6 +29,12 @@ import {
     DialogStandardFooter,
     DialogStandardHeader,
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import {
@@ -59,7 +70,7 @@ import type {
     RecurringDeadline,
 } from '@/types';
 
-const props = defineProps<{
+defineProps<{
     recurringDeadlines: RecurringDeadline[];
     kinds: EnumOption[];
     dueYearOffsets: EnumOption[];
@@ -119,6 +130,7 @@ const form = useForm<FormPayload>(emptyForm());
 
 const archiveOpen = ref(false);
 const archiveTarget = ref<RecurringDeadline | null>(null);
+const archiveForm = useForm({});
 
 const isPayment = computed(() => form.kind === 'payment');
 
@@ -196,7 +208,7 @@ function askArchive(deadline: RecurringDeadline): void {
 
 function confirmArchive(): void {
     if (!archiveTarget.value) return;
-    useForm({}).delete(
+    archiveForm.delete(
         RecurringDeadlineController.destroy.url({
             recurringDeadline: archiveTarget.value.id,
         }),
@@ -215,12 +227,9 @@ function formatDate(deadline: RecurringDeadline): string {
     const mm = String(deadline.month).padStart(2, '0');
 
     return deadline.due_year_offset === 'next'
-        ? `${dd}/${mm}/(N+1)`
+        ? `${dd}/${mm} (N+1)`
         : `${dd}/${mm}`;
 }
-
-// suppress unused warning
-void props;
 </script>
 
 <template>
@@ -242,19 +251,18 @@ void props;
                 <TableHead>Voce collegata</TableHead>
                 <TableHead>Anno spesa</TableHead>
                 <TableHead class="w-[80px] text-right">Stato</TableHead>
-                <TableHead class="w-[60px]" />
+                <TableHead class="w-[48px]" />
             </TableRow>
         </TableHeader>
         <TableBody>
             <TableEmpty v-if="recurringDeadlines.length === 0" :colspan="7">
-                Nessuna scadenza tipo nel catalogo.
+                Nessuna scadenza tipo. Creane una dal pulsante in alto.
             </TableEmpty>
             <TableRow
                 v-for="deadline in recurringDeadlines"
                 v-else
                 :key="deadline.id"
-                :class="['cursor-pointer transition-colors hover:bg-muted/40', !deadline.active && 'opacity-60']"
-                @click="openEdit(deadline)"
+                :class="[!deadline.active && 'opacity-60']"
             >
                 <TableCell class="tabular text-foreground">
                     {{ formatDate(deadline) }}
@@ -273,21 +281,35 @@ void props;
                 </TableCell>
                 <TableCell class="text-right">
                     <Badge :variant="deadline.active ? 'default' : 'outline'">
-                        {{ deadline.active ? 'Attiva' : 'Disattiva' }}
+                        {{ deadline.active ? 'Attiva' : 'Inattiva' }}
                     </Badge>
                 </TableCell>
-                <TableCell class="text-right" @click.stop>
-                    <div class="flex items-center justify-end gap-1">
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label="Archivia scadenza"
-                            @click="askArchive(deadline)"
-                        >
-                            <PhArchive :size="14" />
-                        </Button>
-                    </div>
+                <TableCell class="text-right">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger as-child>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                aria-label="Azioni scadenza"
+                            >
+                                <PhDotsThreeVertical :size="14" weight="bold" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem @select="openEdit(deadline)">
+                                <PhPencil :size="14" />
+                                Modifica
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                variant="destructive"
+                                @select="askArchive(deadline)"
+                            >
+                                <PhArchive :size="14" />
+                                Archivia
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </TableCell>
             </TableRow>
         </TableBody>
@@ -396,7 +418,10 @@ void props;
                             for="d-item"
                             required
                         >
-                            <Select v-model.number="form.expense_item_id">
+                            <Select
+                                v-model.number="form.expense_item_id"
+                                :disabled="activeExpenseItems.length === 0"
+                            >
                                 <SelectTrigger id="d-item" class="w-full">
                                     <SelectValue placeholder="Seleziona una voce…" />
                                 </SelectTrigger>
@@ -410,6 +435,14 @@ void props;
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
+                            <template
+                                v-if="activeExpenseItems.length === 0"
+                                #hint
+                            >
+                                Nessuna voce di spesa attiva. Vai a Voci di
+                                spesa per crearne una prima di collegarla a
+                                un pagamento.
+                            </template>
                             <template v-if="form.errors.expense_item_id" #error>{{ form.errors.expense_item_id }}</template>
                         </FormField>
 
@@ -453,7 +486,7 @@ void props;
                     :disabled="form.processing"
                 >
                     <Spinner v-if="form.processing" />
-                    {{ editing ? 'Salva modifiche' : 'Crea scadenza' }}
+                    {{ editing ? 'Salva modifiche' : 'Aggiungi scadenza' }}
                 </Button>
             </DialogStandardFooter>
         </DialogContent>

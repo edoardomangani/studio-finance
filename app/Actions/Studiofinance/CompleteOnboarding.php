@@ -26,7 +26,7 @@ class CompleteOnboarding
     public function __invoke(User $user, array $payload): ProfessionalProfile
     {
         return DB::transaction(function () use ($user, $payload): ProfessionalProfile {
-            $user->forceFill(['name' => $payload['name']])->save();
+            $user->update(['name' => $payload['name']]);
 
             $profile = $user->professionalProfile()->create([
                 'profitability_coefficient' => $payload['profitability_coefficient'],

@@ -24,10 +24,10 @@ export type ExpenseItem = {
     name: string;
     calculation_type: ExpenseCalculationType;
     calculation_type_label: string;
-    default_rate: string | number | null;
-    default_minimum: string | number | null;
-    default_maximum: string | number | null;
-    default_amount: string | number | null;
+    default_rate: number | null;
+    default_minimum: number | null;
+    default_maximum: number | null;
+    default_amount: number | null;
     active: boolean;
     position: number;
 };
@@ -49,3 +49,13 @@ export type RecurringDeadline = {
 };
 
 export type EnumOption = { value: string; label: string };
+
+export type Client = {
+    id: number;
+    name: string;
+    vat_number: string | null;
+    tax_code: string | null;
+    bank_withholding: boolean;
+    notes: string | null;
+    created_at_diff?: string | null;
+};

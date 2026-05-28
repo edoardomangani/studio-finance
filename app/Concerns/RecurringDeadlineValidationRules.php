@@ -7,6 +7,7 @@ use App\Enums\DueYearOffset;
 use App\Enums\ExpenseYearOffset;
 use App\Models\ExpenseItem;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\Rule;
 
 /**
@@ -14,9 +15,12 @@ use Illuminate\Validation\Rule;
  * UpdateRecurringDeadlineRequest.
  *
  * Validazione cross-field:
- * - se kind == payment → expense_item_id è required, deve appartenere
- *   all'utente (global scope su ExpenseItem). Si veda
- *   [[App\Models\Concerns\BelongsToUser]].
+ * - se kind == payment → expense_item_id è required e deve appartenere
+ *   all'utente autenticato. `Rule::exists` esegue SQL diretto, non passa
+ *   per Eloquent → il global scope di [[App\Concerns\BelongsToUser]] NON
+ *   si applica. Scoping esplicito via `->where('user_id', Auth::id())`
+ *   è obbligatorio per evitare IDOR (un utente potrebbe linkare un
+ *   expense item di un altro tenant).
  * - se kind == fulfillment → expense_item_id deve essere NULL.
  * - day: 1-31 (la validità del giorno per il mese specifico non è
  *   enforced server-side; l'UI usa selettore giorno + mese visuale e
@@ -39,7 +43,11 @@ trait RecurringDeadlineValidationRules
             'month' => ['required', 'integer', 'between:1,12'],
             'kind' => ['required', Rule::enum(DeadlineKind::class)],
             'expense_item_id' => $isPayment
-                ? ['required', Rule::exists((new ExpenseItem)->getTable(), 'id')]
+                ? [
+                    'required',
+                    Rule::exists((new ExpenseItem)->getTable(), 'id')
+                        ->where('user_id', Auth::id()),
+                ]
                 : ['nullable', 'prohibited'],
             'due_year_offset' => [
                 'required',

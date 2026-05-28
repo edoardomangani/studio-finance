@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ClientController;
 use App\Http\Controllers\OnboardingController;
 use Illuminate\Support\Facades\Route;
 
@@ -13,6 +14,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     Route::middleware(['onboarded'])->group(function () {
         Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+
+        // Clienti — CRUD completo (resource controller). Soft delete = archivia.
+        Route::resource('clients', ClientController::class)
+            ->except(['create', 'edit']);
 
         // Design system page: showroom dei componenti, accessibile solo in dev.
         // In production la rotta non esiste affatto.

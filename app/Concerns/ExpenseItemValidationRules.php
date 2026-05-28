@@ -3,6 +3,7 @@
 namespace App\Concerns;
 
 use App\Enums\ExpenseCalculationType;
+use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
 /**
@@ -13,6 +14,8 @@ use Illuminate\Validation\Rule;
  *   non la blocchiamo server-side: l'utente potrebbe voler salvare un
  *   valore "in stand-by" e cambiare tipo poi. La UI guida il flusso,
  *   la validazione tiene larga.
+ *
+ * @mixin FormRequest
  */
 trait ExpenseItemValidationRules
 {

@@ -4,7 +4,7 @@
  *
  * Modalità:
  * - Default: nav principale (Lavoro + Sistema).
- * - Settings (path /settings/voci-spesa o /settings/scadenze-tipo):
+ * - Settings (path /settings/expense-items o /settings/recurring-deadlines):
  *   nav sostituita dalle voci di impostazioni di sistema + bottone
  *   "← Indietro" che torna alla nav principale (link a Dashboard).
  *
@@ -14,15 +14,12 @@
 import { Link } from '@inertiajs/vue3';
 import {
     PhArrowLeft,
-    PhBell,
     PhBookOpen,
-    PhCalendarDots,
     PhCaretLeft,
     PhCaretRight,
     PhGearSix,
     PhHouse,
     PhListChecks,
-    PhReceipt,
     PhTag,
     PhUsers,
 } from '@phosphor-icons/vue';
@@ -44,6 +41,7 @@ import {
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { dashboard, designSystem } from '@/routes';
+import { index as clientsIndex } from '@/routes/clients';
 import { index as expenseItemsIndex } from '@/routes/settings/expense-items';
 import { index as recurringDeadlinesIndex } from '@/routes/settings/recurring-deadlines';
 
@@ -72,6 +70,7 @@ const mainSections: NavSection[] = [
         label: 'Lavoro',
         items: [
             { label: 'Dashboard', icon: PhHouse, href: dashboard() },
+            { label: 'Clienti', icon: PhUsers, href: clientsIndex() },
         ],
     },
     {

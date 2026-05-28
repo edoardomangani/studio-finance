@@ -7,7 +7,12 @@
  * via Teleport.
  */
 import { Head, setLayoutProps, useForm } from '@inertiajs/vue3';
-import { PhArchive, PhPlus } from '@phosphor-icons/vue';
+import {
+    PhArchive,
+    PhDotsThreeVertical,
+    PhPencil,
+    PhPlus,
+} from '@phosphor-icons/vue';
 import { computed, ref } from 'vue';
 import ExpenseItemController from '@/actions/App/Http/Controllers/Settings/ExpenseItemController';
 import FormField from '@/components/forms/FormField.vue';
@@ -21,6 +26,12 @@ import {
     DialogStandardFooter,
     DialogStandardHeader,
 } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import {
@@ -50,7 +61,7 @@ import {
 } from '@/components/ui/table';
 import type { EnumOption, ExpenseCalculationType, ExpenseItem } from '@/types';
 
-const props = defineProps<{
+defineProps<{
     expenseItems: ExpenseItem[];
     calculationTypes: EnumOption[];
 }>();
@@ -92,6 +103,7 @@ const form = useForm<FormPayload>(emptyForm());
 
 const archiveOpen = ref(false);
 const archiveTarget = ref<ExpenseItem | null>(null);
+const archiveForm = useForm({});
 
 const isPercentage = computed(
     () =>
@@ -123,14 +135,10 @@ function openEdit(item: ExpenseItem): void {
     const next: FormPayload = {
         name: item.name,
         calculation_type: item.calculation_type,
-        default_rate:
-            item.default_rate !== null ? Number(item.default_rate) : null,
-        default_minimum:
-            item.default_minimum !== null ? Number(item.default_minimum) : null,
-        default_maximum:
-            item.default_maximum !== null ? Number(item.default_maximum) : null,
-        default_amount:
-            item.default_amount !== null ? Number(item.default_amount) : null,
+        default_rate: item.default_rate,
+        default_minimum: item.default_minimum,
+        default_maximum: item.default_maximum,
+        default_amount: item.default_amount,
         active: item.active,
         position: item.position,
     };
@@ -176,7 +184,7 @@ function askArchive(item: ExpenseItem): void {
 
 function confirmArchive(): void {
     if (!archiveTarget.value) return;
-    useForm({}).delete(
+    archiveForm.delete(
         ExpenseItemController.destroy.url({
             expenseItem: archiveTarget.value.id,
         }),
@@ -193,19 +201,16 @@ function confirmArchive(): void {
 function formatDefault(item: ExpenseItem): string {
     if (item.calculation_type === 'fixed_annual') {
         return item.default_amount !== null
-            ? `€ ${Number(item.default_amount).toFixed(2)}`
+            ? `€ ${item.default_amount.toFixed(2)}`
             : '—';
     }
     if (item.calculation_type === 'sum_of_bolli') {
         return 'derivata';
     }
     return item.default_rate !== null
-        ? `${Number(item.default_rate).toFixed(2)} %`
+        ? `${item.default_rate.toFixed(2)} %`
         : '—';
 }
-
-// suppress unused warning
-void props;
 </script>
 
 <template>
@@ -225,19 +230,18 @@ void props;
                 <TableHead>Tipo calcolo</TableHead>
                 <TableHead class="text-right">Default</TableHead>
                 <TableHead class="w-[80px] text-right">Stato</TableHead>
-                <TableHead class="w-[60px]" />
+                <TableHead class="w-[48px]" />
             </TableRow>
         </TableHeader>
         <TableBody>
             <TableEmpty v-if="expenseItems.length === 0" :colspan="5">
-                Nessuna voce di spesa nel catalogo.
+                Nessuna voce di spesa. Creane una dal pulsante in alto.
             </TableEmpty>
             <TableRow
                 v-for="item in expenseItems"
                 v-else
                 :key="item.id"
-                :class="['cursor-pointer transition-colors hover:bg-muted/40', !item.active && 'opacity-60']"
-                @click="openEdit(item)"
+                :class="[!item.active && 'opacity-60']"
             >
                 <TableCell class="font-medium text-foreground">
                     {{ item.name }}
@@ -250,21 +254,35 @@ void props;
                 </TableCell>
                 <TableCell class="text-right">
                     <Badge :variant="item.active ? 'default' : 'outline'">
-                        {{ item.active ? 'Attiva' : 'Disattiva' }}
+                        {{ item.active ? 'Attiva' : 'Inattiva' }}
                     </Badge>
                 </TableCell>
-                <TableCell class="text-right" @click.stop>
-                    <div class="flex items-center justify-end gap-1">
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon-sm"
-                            aria-label="Archivia voce"
-                            @click="askArchive(item)"
-                        >
-                            <PhArchive :size="14" />
-                        </Button>
-                    </div>
+                <TableCell class="text-right">
+                    <DropdownMenu>
+                        <DropdownMenuTrigger as-child>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                aria-label="Azioni voce"
+                            >
+                                <PhDotsThreeVertical :size="14" weight="bold" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem @select="openEdit(item)">
+                                <PhPencil :size="14" />
+                                Modifica
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                variant="destructive"
+                                @select="askArchive(item)"
+                            >
+                                <PhArchive :size="14" />
+                                Archivia
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </TableCell>
             </TableRow>
         </TableBody>
@@ -393,7 +411,7 @@ void props;
                     :disabled="form.processing"
                 >
                     <Spinner v-if="form.processing" />
-                    {{ editing ? 'Salva modifiche' : 'Crea voce' }}
+                    {{ editing ? 'Salva modifiche' : 'Aggiungi voce' }}
                 </Button>
             </DialogStandardFooter>
         </DialogContent>

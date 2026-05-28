@@ -67,6 +67,17 @@ class ExpenseItemController extends Controller
     private function mapExpenseItems(): array
     {
         return ExpenseItem::query()
+            ->select([
+                'id',
+                'name',
+                'calculation_type',
+                'default_rate',
+                'default_minimum',
+                'default_maximum',
+                'default_amount',
+                'active',
+                'position',
+            ])
             ->orderBy('position')
             ->orderBy('id')
             ->get()
@@ -75,10 +86,13 @@ class ExpenseItemController extends Controller
                 'name' => $item->name,
                 'calculation_type' => $item->calculation_type->value,
                 'calculation_type_label' => $item->calculation_type->label(),
-                'default_rate' => $item->default_rate,
-                'default_minimum' => $item->default_minimum,
-                'default_maximum' => $item->default_maximum,
-                'default_amount' => $item->default_amount,
+                // decimal:2 Eloquent restituisce string: castiamo a float
+                // in modo che il frontend riceva tipi consistenti `number | null`
+                // e non debba fare Number(value) sparso nei componenti.
+                'default_rate' => $item->default_rate !== null ? (float) $item->default_rate : null,
+                'default_minimum' => $item->default_minimum !== null ? (float) $item->default_minimum : null,
+                'default_maximum' => $item->default_maximum !== null ? (float) $item->default_maximum : null,
+                'default_amount' => $item->default_amount !== null ? (float) $item->default_amount : null,
                 'active' => $item->active,
                 'position' => $item->position,
             ])

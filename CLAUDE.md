@@ -221,7 +221,7 @@ Vue components must have a single root element.
 
 ## Naming
 
-- **Database tables, columns, model classes, enum classes, controllers, requests, Vue components and props are all in English.** UI-facing labels, copy, toasts, breadcrumb labels and route URL segments stay in Italian. Italian fiscal acronyms and proper nouns (IRPEF, IVA, Inarcassa, OATO, "bolli") are preserved as-is in code when they appear inside enum values or domain terms — they are technical terms without English equivalents.
+- **Database tables, columns, model classes, enum classes, controllers, requests, route URL segments, Vue components and props are all in English.** UI-facing labels, copy, toasts and breadcrumb labels stay in Italian. Italian fiscal acronyms and proper nouns (IRPEF, IVA, Inarcassa, OATO, "bolli") are preserved as-is in code when they appear inside enum values or domain terms — they are technical terms without English equivalents.
 
 ## Forms convention
 
@@ -244,4 +244,14 @@ The project follows the shadcn-vue Field family rules (see `shadcn-vue` skill `r
 | 3 | Action-only POST (no fields) | Just `<Button @click="form.post(url)">` |
 | 4 | Domain page with one or more `FormSection` | `<form>` wraps the `<FormSection>` (never inside) |
 | 5 | Monolite page with global topbar submit | No `<form>`, programmatic submit |
+
+## Phase quality gates
+
+Each implementation phase listed in `~/.claude/plans/piano-studiofinance-brief.md` declares its own quality gate skills (see the "Quality gates" section of the plan). **A phase is NOT considered closed until every gate listed for it has been invoked formally via the relevant Skill (`review-backend`, `review-frontend`, `review-security`, `review-component-size`, `review-feature`) and the issues raised have been triaged.** Same applies to `impeccable` skills declared in the phase steps (`/impeccable shape`, `/impeccable polish`, `/impeccable adapt`): inline reasoning in chat does NOT substitute for invoking the skill.
+
+If a phase is committed before its gates run, the gates must be invoked retroactively on the committed paths (passing the path argument to the skill) before starting the next phase. Skipping is never the default.
+
+## Table action columns
+
+Domain tables (Clients, future Invoices, ...) and settings tables (Expense items, Recurring deadlines) use the same action-cell pattern for consistency: a single kebab `<DropdownMenu>` trigger (`PhDotsThreeVertical`) in the last column with `align="end"`, containing `Modifica` (`PhPencil`) and `Archivia` (`PhArchive`, `variant="destructive"`). No `DropdownMenuSeparator` between the two — keep the menu dense. Row-click can navigate elsewhere (Show page) or duplicate the Modifica action; either is acceptable as long as the dropdown is always present and consistent.
 

@@ -49,6 +49,11 @@ class User extends Authenticatable implements PasskeyUser
         return $this->hasMany(RecurringDeadline::class);
     }
 
+    public function clients(): HasMany
+    {
+        return $this->hasMany(Client::class);
+    }
+
     public function isOnboarded(): bool
     {
         return $this->professionalProfile()->exists();

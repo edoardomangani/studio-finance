@@ -67,6 +67,17 @@ class RecurringDeadlineController extends Controller
     private function mapRecurringDeadlines(): array
     {
         return RecurringDeadline::query()
+            ->select([
+                'id',
+                'name',
+                'day',
+                'month',
+                'kind',
+                'expense_item_id',
+                'due_year_offset',
+                'expense_year_offset',
+                'active',
+            ])
             ->with('expenseItem:id,name')
             ->orderBy('month')
             ->orderBy('day')

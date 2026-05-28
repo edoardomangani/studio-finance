@@ -253,9 +253,11 @@ class StudiofinanceTemplatesSeeder extends Seeder
             ],
 
             // Adempimenti — nessun pagamento collegato.
+            // Dichiarazione redditi (Modello Redditi PF): dal 2024 scadenza
+            // ordinaria 30/11 dell'anno successivo al periodo d'imposta.
             [
                 'name' => 'Dichiarazione redditi',
-                'day' => 31, 'month' => 5,
+                'day' => 30, 'month' => 11,
                 'kind' => DeadlineKind::Fulfillment,
                 'item' => null,
                 'due_next' => true,
