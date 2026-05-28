@@ -20,6 +20,7 @@ import {
     PhGearSix,
     PhHouse,
     PhListChecks,
+    PhReceipt,
     PhTag,
     PhUsers,
 } from '@phosphor-icons/vue';
@@ -42,6 +43,7 @@ import {
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { dashboard, designSystem } from '@/routes';
 import { index as clientsIndex } from '@/routes/clients';
+import { index as invoicesIndex } from '@/routes/invoices';
 import { index as expenseItemsIndex } from '@/routes/settings/expense-items';
 import { index as recurringDeadlinesIndex } from '@/routes/settings/recurring-deadlines';
 
@@ -71,6 +73,7 @@ const mainSections: NavSection[] = [
         items: [
             { label: 'Dashboard', icon: PhHouse, href: dashboard() },
             { label: 'Clienti', icon: PhUsers, href: clientsIndex() },
+            { label: 'Fatture', icon: PhReceipt, href: invoicesIndex() },
         ],
     },
     {

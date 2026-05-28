@@ -7,7 +7,7 @@
  * Teleport. Click su riga → /clients/{id}. Dropdown azioni per Modifica
  * (apre dialog inline) e Archivia (soft delete, confirm dialog).
  */
-import { Head, router, setLayoutProps, useForm } from '@inertiajs/vue3';
+import { Head, router, setLayoutProps } from '@inertiajs/vue3';
 import {
     PhArchive,
     PhDotsThreeVertical,
@@ -45,6 +45,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { useArchiveAction } from '@/composables/useArchiveAction';
 import { index as clientsIndex } from '@/routes/clients';
 import type { Client, PaginatedList } from '@/types';
 
@@ -89,34 +90,13 @@ const newClientOpen = ref(false);
 const editOpen = ref(false);
 const editTarget = ref<Client | null>(null);
 
-const archiveOpen = ref(false);
-const archiveTarget = ref<Client | null>(null);
-const archiveForm = useForm({});
+const { archiveOpen, archiveTarget, askArchive, confirmArchive } = useArchiveAction<Client>(
+    (client) => ClientController.destroy.url({ client: client.id }),
+);
 
 function askEdit(client: Client): void {
     editTarget.value = client;
     editOpen.value = true;
-}
-
-function askArchive(client: Client): void {
-    archiveTarget.value = client;
-    archiveOpen.value = true;
-}
-
-function confirmArchive(): void {
-    if (!archiveTarget.value) {
-        return;
-    }
-    archiveForm.delete(
-        ClientController.destroy.url({ client: archiveTarget.value.id }),
-        {
-            preserveScroll: true,
-            onFinish: () => {
-                archiveOpen.value = false;
-                archiveTarget.value = null;
-            },
-        },
-    );
 }
 
 function openClient(client: Client): void {

@@ -2,8 +2,15 @@
 /**
  * ClientFormDialog — dialog di create/edit cliente.
  *
- * Riutilizzato sia in Index (nuova creazione) sia in Show (modifica). Il
- * caller passa `client` (null = nuovo) e gestisce open/close via v-model.
+ * Riutilizzato sia in Index (nuova creazione) sia in Show (modifica) sia da
+ * ClientPicker dentro il form fattura (modalità inline). Il caller passa
+ * `client` (null = nuovo) e gestisce open/close via v-model.
+ *
+ * Modalità inline: quando `inline=true` (uso da ClientPicker), invia
+ * `_inline: true` al server; il controller, invece di redirect a
+ * /clients/{id}, fa `back()` e flasha `new_client_id`. Il parent legge il
+ * flash per auto-selezionare il cliente appena creato. `initialName`
+ * precompila il nome (es. dal testo digitato nel picker).
  *
  * Validazione cross-field: almeno uno tra P.IVA e CF (lato server via
  * `required_without`; lato UI mostriamo l'errore sotto entrambi i campi).
@@ -27,8 +34,21 @@ import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import type { Client } from '@/types';
 
-const props = defineProps<{
-    client?: Client | null;
+const props = withDefaults(
+    defineProps<{
+        client?: Client | null;
+        /** Quando true, dopo il submit resta sulla pagina corrente e flasha
+         *  `new_client_id` (uso da ClientPicker). Default false: il
+         *  controller redirige a /clients/{id}. */
+        inline?: boolean;
+        /** Precompila il campo "Denominazione" quando si crea da zero. */
+        initialName?: string;
+    }>(),
+    { inline: false, initialName: '' },
+);
+
+const emit = defineEmits<{
+    (e: 'created'): void;
 }>();
 
 const open = defineModel<boolean>('open', { default: false });
@@ -75,7 +95,7 @@ watch(open, (isOpen) => {
               bank_withholding: props.client.bank_withholding,
               notes: props.client.notes ?? '',
           }
-        : emptyForm();
+        : { ...emptyForm(), name: props.initialName ?? '' };
     form.defaults(next);
     form.reset();
 });
@@ -83,11 +103,15 @@ watch(open, (isOpen) => {
 function submit(): void {
     // Le stringhe vuote di P.IVA/CF/note vanno mandate come null al server,
     // così il vincolo required_without scatta correttamente sul partner.
+    // Quando inline=true aggiungiamo `_inline: true` per fare in modo che
+    // il controller ritorni back() con flash new_client_id invece di
+    // navigare a /clients/{id}.
     form.transform((data) => ({
         ...data,
         vat_number: data.vat_number.trim() || null,
         tax_code: data.tax_code.trim() || null,
         notes: data.notes.trim() || null,
+        ...(props.inline ? { _inline: true } : {}),
     }));
 
     if (isEditing.value && props.client) {
@@ -102,8 +126,13 @@ function submit(): void {
         );
     } else {
         form.post(ClientController.store.url(), {
+            preserveScroll: props.inline,
             onSuccess: () => {
                 open.value = false;
+
+                if (props.inline) {
+                    emit('created');
+                }
             },
         });
     }

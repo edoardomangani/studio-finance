@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OnboardingController;
 use Illuminate\Support\Facades\Route;
 
@@ -22,6 +23,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // umani, non interrogazioni programmaticamente massicce.
         Route::resource('clients', ClientController::class)
             ->except(['create', 'edit'])
+            ->middleware('throttle:60,1');
+
+        // Fatture — CRUD completo come pagina dedicata (la Create vive su
+        // /invoices/create, dialog troppo stretto per 8 campi). Rate limit
+        // identico ai clienti: 60 req/min per utente. Soft delete = archivia.
+        Route::resource('invoices', InvoiceController::class)
             ->middleware('throttle:60,1');
 
         // Design system page: showroom dei componenti, accessibile solo in dev.

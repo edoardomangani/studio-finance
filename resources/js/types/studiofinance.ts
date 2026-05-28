@@ -60,6 +60,44 @@ export type Client = {
     created_at_diff?: string | null;
 };
 
+/** Cliente shape compatta per il ClientPicker (no notes). */
+export type ClientForPicker = {
+    id: number;
+    name: string;
+    vat_number: string | null;
+    tax_code: string | null;
+    bank_withholding: boolean;
+};
+
+/** Riga della lista fatture (Index.vue). */
+export type InvoiceListItem = {
+    id: number;
+    number: string;
+    issued_at: string | null;
+    amount: number;
+    total: number;
+    bank_withholding: boolean;
+    client: {
+        id: number;
+        name: string;
+    };
+};
+
+/** Fattura completa per Show / Edit. */
+export type Invoice = {
+    id: number;
+    number: string;
+    issued_at: string | null;
+    amount: number;
+    inarcassa_amount: number;
+    stamp_amount: number;
+    art_15_amount: number;
+    bank_withholding: boolean;
+    total: number;
+    withholding_amount: number;
+    client: ClientForPicker;
+};
+
 /**
  * Shape della paginazione Laravel `->paginate()` (default, senza API
  * Resources). Generic su T per riusare su Invoices, Payments, ecc.

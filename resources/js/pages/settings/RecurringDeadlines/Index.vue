@@ -62,6 +62,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { useArchiveAction } from '@/composables/useArchiveAction';
 import type {
     DeadlineKind,
     DueYearOffset,
@@ -128,9 +129,9 @@ const dialogOpen = ref(false);
 const editing = ref<RecurringDeadline | null>(null);
 const form = useForm<FormPayload>(emptyForm());
 
-const archiveOpen = ref(false);
-const archiveTarget = ref<RecurringDeadline | null>(null);
-const archiveForm = useForm({});
+const { archiveOpen, archiveTarget, askArchive, confirmArchive } = useArchiveAction<RecurringDeadline>(
+    (deadline) => RecurringDeadlineController.destroy.url({ recurringDeadline: deadline.id }),
+);
 
 const isPayment = computed(() => form.kind === 'payment');
 
@@ -201,26 +202,6 @@ function onSubmit(): void {
     }
 }
 
-function askArchive(deadline: RecurringDeadline): void {
-    archiveTarget.value = deadline;
-    archiveOpen.value = true;
-}
-
-function confirmArchive(): void {
-    if (!archiveTarget.value) return;
-    archiveForm.delete(
-        RecurringDeadlineController.destroy.url({
-            recurringDeadline: archiveTarget.value.id,
-        }),
-        {
-            preserveScroll: true,
-            onFinish: () => {
-                archiveOpen.value = false;
-                archiveTarget.value = null;
-            },
-        },
-    );
-}
 
 function formatDate(deadline: RecurringDeadline): string {
     const dd = String(deadline.day).padStart(2, '0');

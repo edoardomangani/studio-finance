@@ -59,6 +59,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { useArchiveAction } from '@/composables/useArchiveAction';
 import type { EnumOption, ExpenseCalculationType, ExpenseItem } from '@/types';
 
 defineProps<{
@@ -101,9 +102,9 @@ const dialogOpen = ref(false);
 const editing = ref<ExpenseItem | null>(null);
 const form = useForm<FormPayload>(emptyForm());
 
-const archiveOpen = ref(false);
-const archiveTarget = ref<ExpenseItem | null>(null);
-const archiveForm = useForm({});
+const { archiveOpen, archiveTarget, askArchive, confirmArchive } = useArchiveAction<ExpenseItem>(
+    (item) => ExpenseItemController.destroy.url({ expenseItem: item.id }),
+);
 
 const isPercentage = computed(
     () =>
@@ -175,27 +176,6 @@ function onSubmit(): void {
             },
         });
     }
-}
-
-function askArchive(item: ExpenseItem): void {
-    archiveTarget.value = item;
-    archiveOpen.value = true;
-}
-
-function confirmArchive(): void {
-    if (!archiveTarget.value) return;
-    archiveForm.delete(
-        ExpenseItemController.destroy.url({
-            expenseItem: archiveTarget.value.id,
-        }),
-        {
-            preserveScroll: true,
-            onFinish: () => {
-                archiveOpen.value = false;
-                archiveTarget.value = null;
-            },
-        },
-    );
 }
 
 function formatDefault(item: ExpenseItem): string {

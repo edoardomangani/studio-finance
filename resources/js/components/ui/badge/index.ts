@@ -15,6 +15,8 @@ export const badgeVariants = cva(
         // (Bozza, Chiuso) usa la utility .pill-status-soft--neutral, non questa.
         secondary:
           "border-transparent bg-accent-vivid/10 text-accent-strong [a&]:hover:bg-accent-vivid/15",
+        white:
+          "bg-card text-foreground [a&]:hover:bg-accent [a&]:hover:text-accent-foreground",
         destructive:
           "border-transparent bg-destructive text-white [a&]:hover:bg-destructive/90 dark:bg-destructive/60",
         outline:
