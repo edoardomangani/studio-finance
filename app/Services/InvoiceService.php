@@ -204,6 +204,9 @@ class InvoiceService
             'number' => $invoice->number,
             'issued_at' => $invoice->issued_at?->format('Y-m-d'),
             'amount' => (float) $invoice->amount,
+            'inarcassa_amount' => (float) $invoice->inarcassa_amount,
+            'stamp_amount' => (float) $invoice->stamp_amount,
+            'art_15_amount' => (float) $invoice->art_15_amount,
             'total' => (float) $invoice->total,
             'bank_withholding' => $invoice->bank_withholding,
             'client' => [

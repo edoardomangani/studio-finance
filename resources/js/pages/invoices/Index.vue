@@ -268,16 +268,20 @@ function openInvoice(invoice: InvoiceListItem): void {
     <Table boxed>
         <TableHeader>
             <TableRow>
-                <TableHead class="w-[110px]">Data</TableHead>
-                <TableHead class="w-[130px]">Numero</TableHead>
+                <TableHead class="w-[100px]">Data</TableHead>
+                <TableHead class="w-[110px]">Numero</TableHead>
                 <TableHead>Cliente</TableHead>
-                <TableHead class="w-[140px] text-right">Totale</TableHead>
-                <TableHead class="w-[100px] text-right">Ritenuta</TableHead>
+                <TableHead class="text-right">Imponibile</TableHead>
+                <TableHead class="text-right">Bollo</TableHead>
+                <TableHead class="text-right">Cassa</TableHead>
+                <TableHead class="text-right">Art.15</TableHead>
+                <TableHead class="text-right">Totale</TableHead>
+                <TableHead class="w-[80px] text-right">Ritenuta</TableHead>
                 <TableHead class="w-[48px]" />
             </TableRow>
         </TableHeader>
         <TableBody>
-            <TableEmpty v-if="invoices.data.length === 0" :colspan="6">
+            <TableEmpty v-if="invoices.data.length === 0" :colspan="10">
                 <span v-if="hasActiveFilters">
                     Nessuna fattura trovata con questi filtri.
                 </span>
@@ -296,7 +300,7 @@ function openInvoice(invoice: InvoiceListItem): void {
                     {{ formatDateIT(invoice.issued_at) }}
                 </TableCell>
                 <TableCell class="tabular font-medium text-foreground">
-                    <span class="block max-w-[120px] truncate" :title="invoice.number">
+                    <span class="block max-w-[110px] truncate" :title="invoice.number">
                         {{ invoice.number }}
                     </span>
                 </TableCell>
@@ -304,6 +308,18 @@ function openInvoice(invoice: InvoiceListItem): void {
                     <span class="block truncate" :title="invoice.client.name">
                         {{ invoice.client.name }}
                     </span>
+                </TableCell>
+                <TableCell class="tabular text-right text-muted-foreground">
+                    {{ formatEUR(invoice.amount) }}
+                </TableCell>
+                <TableCell class="tabular text-right text-muted-foreground">
+                    {{ formatEUR(invoice.stamp_amount) }}
+                </TableCell>
+                <TableCell class="tabular text-right text-muted-foreground">
+                    {{ formatEUR(invoice.inarcassa_amount) }}
+                </TableCell>
+                <TableCell class="tabular text-right text-muted-foreground">
+                    {{ formatEUR(invoice.art_15_amount) }}
                 </TableCell>
                 <TableCell class="tabular text-right font-medium text-foreground">
                     {{ formatEUR(invoice.total) }}

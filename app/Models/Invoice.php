@@ -36,6 +36,7 @@ class Invoice extends Model
         'stamp_amount',
         'art_15_amount',
         'bank_withholding',
+        'xml_path',
     ];
 
     protected function casts(): array

@@ -75,6 +75,9 @@ export type InvoiceListItem = {
     number: string;
     issued_at: string | null;
     amount: number;
+    inarcassa_amount: number;
+    stamp_amount: number;
+    art_15_amount: number;
     total: number;
     bank_withholding: boolean;
     client: {
