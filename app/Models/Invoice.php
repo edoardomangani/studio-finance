@@ -41,6 +41,34 @@ class Invoice extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        // `number_sort` è sempre derivato da `number` ad ogni salvataggio,
+        // indipendentemente dal path di scrittura (InvoiceService o
+        // ImportInvoices). Mai impostato a mano: single source of truth.
+        static::saving(function (Invoice $invoice): void {
+            $invoice->number_sort = self::naturalSortKey((string) $invoice->number);
+        });
+    }
+
+    /**
+     * Chiave di ordinamento "naturale" per `number`: ogni sequenza di cifre
+     * viene zero-paddata a larghezza fissa, così l'ordinamento lessicografico
+     * della chiave coincide con quello umano (`9` < `10` < `10A` < `10B`).
+     * Identico su qualsiasi driver perché calcolato in PHP. Le parti non
+     * numeriche sono lowercased per un ordine case-insensitive deterministico.
+     */
+    public static function naturalSortKey(string $number): string
+    {
+        $padded = preg_replace_callback(
+            '/\d+/',
+            fn (array $m): string => str_pad($m[0], 20, '0', STR_PAD_LEFT),
+            $number,
+        ) ?? $number;
+
+        return strtolower($padded);
+    }
+
     public function client(): BelongsTo
     {
         return $this->belongsTo(Client::class);

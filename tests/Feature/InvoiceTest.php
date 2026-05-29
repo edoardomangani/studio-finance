@@ -4,6 +4,7 @@ use App\Models\Client;
 use App\Models\Invoice;
 use App\Models\ProfessionalProfile;
 use App\Models\User;
+use App\Services\InvoiceService;
 
 function onboardedInvoiceUser(): User
 {
@@ -442,4 +443,46 @@ it('harden: deep link ?client=X valido viene mantenuto', function (): void {
 
     $this->get("/invoices/create?client={$client->id}")
         ->assertInertia(fn ($p) => $p->where('preselectedClientId', $client->id));
+});
+
+it('naturalSortKey: zero-padda i run di cifre per ordine umano', function (): void {
+    expect(Invoice::naturalSortKey('9'))->toBe(str_pad('9', 20, '0', STR_PAD_LEFT))
+        ->and(Invoice::naturalSortKey('10'))->toBe(str_pad('10', 20, '0', STR_PAD_LEFT))
+        // '9' < '10' lessicograficamente una volta paddati (era il bug).
+        ->and(Invoice::naturalSortKey('9') < Invoice::naturalSortKey('10'))->toBeTrue()
+        // Suffisso lettere dopo il numero, lowercased.
+        ->and(Invoice::naturalSortKey('10A'))->toBe(str_pad('10', 20, '0', STR_PAD_LEFT).'a')
+        ->and(Invoice::naturalSortKey('10') < Invoice::naturalSortKey('10A'))->toBeTrue();
+});
+
+it('number_sort è derivato da number ad ogni save (anche update)', function (): void {
+    $user = onboardedInvoiceUser();
+    $this->actingAs($user);
+    $invoice = Invoice::factory()->for(Client::factory()->for($user))->create(['number' => '7B']);
+
+    expect($invoice->fresh()->number_sort)->toBe(Invoice::naturalSortKey('7B'));
+
+    $invoice->update(['number' => '42']);
+    expect($invoice->fresh()->number_sort)->toBe(Invoice::naturalSortKey('42'));
+});
+
+it('paginate: a parità di data ordina i numeri in modo naturale (10 prima di 9)', function (): void {
+    $user = onboardedInvoiceUser();
+    $this->actingAs($user);
+    $client = Client::factory()->for($user)->create();
+
+    foreach (['9', '10', '10A', '10B', '2'] as $number) {
+        Invoice::factory()->for($client)->create([
+            'number' => $number,
+            'issued_at' => '2026-03-15',
+        ]);
+    }
+
+    $numbers = app(InvoiceService::class)
+        ->paginate()
+        ->pluck('number')
+        ->all();
+
+    // DESC naturale: 10B, 10A, 10, 9, 2.
+    expect($numbers)->toBe(['10B', '10A', '10', '9', '2']);
 });

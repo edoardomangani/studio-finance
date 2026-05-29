@@ -60,7 +60,7 @@ class InvoiceService
                 fn ($q) => $q->where('bank_withholding', $filters['withholding']),
             )
             ->orderByDesc('issued_at')
-            ->orderByDesc('number')
+            ->orderByDesc('number_sort')
             ->orderByDesc('id')
             ->paginate(self::PER_PAGE)
             ->withQueryString()
@@ -211,6 +211,7 @@ class InvoiceService
         return Invoice::query()
             ->where('client_id', $client->id)
             ->orderByDesc('issued_at')
+            ->orderByDesc('number_sort')
             ->orderByDesc('id')
             ->get(['id', 'number', 'issued_at', 'amount', 'inarcassa_amount', 'stamp_amount', 'art_15_amount', 'bank_withholding'])
             ->map(fn (Invoice $i) => [
