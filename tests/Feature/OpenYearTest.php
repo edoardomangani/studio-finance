@@ -11,27 +11,6 @@ use App\Models\Payment;
 use App\Models\User;
 use App\Models\Year;
 use App\Services\YearOpeningPlanner;
-use Database\Seeders\StudiofinanceTemplatesSeeder;
-
-/**
- * Utente onboarded con i template standard (8 voci, 20 scadenze tipo) e
- * autenticato — così il global scope e la forzatura user_id agiscono come in
- * un vero request.
- */
-function onboardedUserWithTemplates(float $coefficient = 78.00): User
-{
-    $user = User::factory()->create();
-    test()->actingAs($user);
-
-    $user->professionalProfile()->create([
-        'profitability_coefficient' => $coefficient,
-        'business_start_year' => 2020,
-    ]);
-
-    (new StudiofinanceTemplatesSeeder)->seedForUser($user);
-
-    return $user;
-}
 
 function openYear(User $user, int $year, ?callable $editPlan = null): Year
 {

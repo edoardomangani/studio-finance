@@ -1,5 +1,7 @@
 <?php
 
+use App\Models\User;
+use Database\Seeders\StudiofinanceTemplatesSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -44,7 +46,23 @@ expect()->extend('toBeOne', function () {
 |
 */
 
-function something()
+/**
+ * Utente onboarded con i template standard (8 voci di spesa + 20 scadenze
+ * tipo) e autenticato, così il global scope di tenancy e la forzatura
+ * `user_id` agiscono come in un vero request. Condiviso da OpenYearTest e
+ * YearControllerTest.
+ */
+function onboardedUserWithTemplates(float $coefficient = 78.00): User
 {
-    // ..
+    $user = User::factory()->create();
+    test()->actingAs($user);
+
+    $user->professionalProfile()->create([
+        'profitability_coefficient' => $coefficient,
+        'business_start_year' => 2020,
+    ]);
+
+    (new StudiofinanceTemplatesSeeder)->seedForUser($user);
+
+    return $user;
 }

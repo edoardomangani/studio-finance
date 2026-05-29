@@ -4,6 +4,7 @@ use App\Http\Controllers\ClientController;
 use App\Http\Controllers\ImportXmlController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\YearController;
 use Illuminate\Support\Facades\Route;
 
 Route::inertia('/', 'Welcome')->name('home');
@@ -46,6 +47,26 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->middleware('throttle:10,1');
 
         Route::resource('invoices', InvoiceController::class)
+            ->middleware('throttle:60,1');
+
+        // Anni — vista pluriennale, wizard di apertura, vista anno. Le rotte
+        // statiche (index, open, store) sono definite PRIMA di `years/{year}`
+        // per evitare la collisione con il segmento dinamico; `whereNumber`
+        // sul parametro chiude il vincolo. URL segment in inglese (convenzione
+        // progetto); label sidebar in italiano. Store con throttle più stretto
+        // (apre un anno = transazione pesante, non spammabile).
+        Route::get('years/open', [YearController::class, 'openForm'])
+            ->name('years.open')
+            ->middleware('throttle:60,1');
+        Route::get('years', [YearController::class, 'index'])
+            ->name('years.index')
+            ->middleware('throttle:60,1');
+        Route::post('years', [YearController::class, 'store'])
+            ->name('years.store')
+            ->middleware('throttle:20,1');
+        Route::get('years/{year}', [YearController::class, 'show'])
+            ->whereNumber('year')
+            ->name('years.show')
             ->middleware('throttle:60,1');
 
         // Design system page: showroom dei componenti, accessibile solo in dev.

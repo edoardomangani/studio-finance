@@ -164,6 +164,79 @@ export type Invoice = {
     client: ClientForPicker;
 };
 
+/** Riga della lista anni (years/Index.vue). */
+export type YearListItem = {
+    id: number;
+    year: number;
+    profitability_coefficient: number;
+    pre_opened: boolean;
+    expenses_count: number;
+    deadlines_count: number;
+};
+
+/** Voce di spesa nel piano di apertura anno (copia editabile del template). */
+export type YearPlanExpense = {
+    expense_item_id: number | null;
+    name: string;
+    calculation_type: ExpenseCalculationType;
+    rate: number | null;
+    minimum: number | null;
+    maximum: number | null;
+    amount: number | null;
+    previous_year_credit: number | null;
+};
+
+/** Scadenza nel piano di apertura anno (con data calcolata). */
+export type YearPlanDeadline = {
+    recurring_deadline_id: number | null;
+    name: string;
+    due_at: string;
+    kind: DeadlineKind;
+    expense_item_id: number | null;
+    expense_year_offset: ExpenseYearOffset;
+};
+
+/**
+ * Piano editabile prodotto da YearOpeningPlanner e consumato dal wizard
+ * (years/OpenWizard.vue). `cross_year_deadlines` elenca le scadenze che
+ * referenziano l'anno N+1; `next_year_needs_preopen` è true quando N+1 va
+ * pre-aperto.
+ */
+export type YearPlan = {
+    year: number;
+    profitability_coefficient: number;
+    note: string | null;
+    expenses: YearPlanExpense[];
+    deadlines: YearPlanDeadline[];
+    cross_year_deadlines: string[];
+    next_year: number;
+    next_year_exists: boolean;
+    next_year_needs_preopen: boolean;
+};
+
+/** Spesa annuale nella vista anno (years/Show.vue). */
+export type YearShowExpense = {
+    id: number;
+    name: string;
+    calculation_type: ExpenseCalculationType;
+    calculation_type_label: string;
+    rate: number | null;
+    minimum: number | null;
+    maximum: number | null;
+    amount: number | null;
+};
+
+/** Vista anno (placeholder Fase 6, KPI fiscali in Fase 9). */
+export type YearShow = {
+    id: number;
+    year: number;
+    profitability_coefficient: number;
+    pre_opened: boolean;
+    note: string | null;
+    deadlines_count: number;
+    expenses: YearShowExpense[];
+};
+
 /**
  * Shape della paginazione Laravel `->paginate()` (default, senza API
  * Resources). Generic su T per riusare su Invoices, Payments, ecc.

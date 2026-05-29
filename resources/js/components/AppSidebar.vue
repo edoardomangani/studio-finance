@@ -15,6 +15,7 @@ import { Link } from '@inertiajs/vue3';
 import {
     PhArrowLeft,
     PhBookOpen,
+    PhCalendarBlank,
     PhCaretLeft,
     PhCaretRight,
     PhGearSix,
@@ -24,7 +25,8 @@ import {
     PhTag,
     PhUsers,
 } from '@phosphor-icons/vue';
-import { computed, type Component } from 'vue';
+import { computed  } from 'vue';
+import type {Component} from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavUser from '@/components/NavUser.vue';
 import { Button } from '@/components/ui/button';
@@ -46,6 +48,7 @@ import { index as clientsIndex } from '@/routes/clients';
 import { index as invoicesIndex } from '@/routes/invoices';
 import { index as expenseItemsIndex } from '@/routes/settings/expense-items';
 import { index as recurringDeadlinesIndex } from '@/routes/settings/recurring-deadlines';
+import { index as yearsIndex } from '@/routes/years';
 
 type NavLink = {
     label: string;
@@ -72,8 +75,9 @@ const mainSections: NavSection[] = [
         label: 'Lavoro',
         items: [
             { label: 'Dashboard', icon: PhHouse, href: dashboard() },
-            { label: 'Clienti', icon: PhUsers, href: clientsIndex() },
+            { label: 'Anni', icon: PhCalendarBlank, href: yearsIndex() },
             { label: 'Fatture', icon: PhReceipt, href: invoicesIndex() },
+            { label: 'Clienti', icon: PhUsers, href: clientsIndex() },
         ],
     },
     {
