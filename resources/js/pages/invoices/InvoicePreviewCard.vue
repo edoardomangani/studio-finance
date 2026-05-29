@@ -206,7 +206,7 @@ const triggerAriaLabel = computed(
              estendono il bg di hover/focus fino ai bordi della card
              (clip via `overflow-hidden` su AccordionItem) — così click
              e feedback visivo coprono "tutto tranne il checkbox". -->
-        <div class="flex items-center gap-3 px-4 py-3">
+        <div class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/30">
             <!-- Checkbox: includi nel batch (uncheck = scartato). Disabled
                  su parse-fail: file rotto non si può "includere".
                  `@click.stop` impedisce bubble al trigger sibling. -->
@@ -224,7 +224,7 @@ const triggerAriaLabel = computed(
                     :class="[
                         'grid flex-1 min-w-0 cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1',
                         '-my-3 -ml-3 -mr-4 py-3 pl-3 pr-4',
-                        'text-left outline-none transition-colors hover:bg-muted/30',
+                        'text-left outline-none transition-colors',
                         'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
                         '[&[data-state=open]_[data-caret]]:rotate-90',
                         'md:flex md:items-center md:gap-3',
