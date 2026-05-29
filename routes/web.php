@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\ImportXmlController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OnboardingController;
 use Illuminate\Support\Facades\Route;
@@ -28,6 +29,22 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Fatture — CRUD completo come pagina dedicata (la Create vive su
         // /invoices/create, dialog troppo stretto per 8 campi). Rate limit
         // identico ai clienti: 60 req/min per utente. Soft delete = archivia.
+        //
+        // Import XML: rotte DEFINITE PRIMA del resource per evitare la
+        // collisione `/invoices/import` ↔ `/invoices/{invoice}`. Throttle
+        // differenziato: la GET show è una pagina come le altre
+        // (throttle:60,1 standard); parse + store processano file utente
+        // o batch creano fatture, quindi bucket più stretto (10,1).
+        Route::get('invoices/import', [ImportXmlController::class, 'show'])
+            ->name('invoices.import.show')
+            ->middleware('throttle:60,1');
+        Route::post('invoices/import/parse', [ImportXmlController::class, 'parse'])
+            ->name('invoices.import.parse')
+            ->middleware('throttle:10,1');
+        Route::post('invoices/import', [ImportXmlController::class, 'store'])
+            ->name('invoices.import.store')
+            ->middleware('throttle:10,1');
+
         Route::resource('invoices', InvoiceController::class)
             ->middleware('throttle:60,1');
 

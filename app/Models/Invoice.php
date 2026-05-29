@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Concerns\BelongsToUser;
+use App\Services\InvoiceCalculator;
 use Database\Factories\InvoiceFactory;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -14,17 +15,6 @@ class Invoice extends Model
 {
     /** @use HasFactory<InvoiceFactory> */
     use BelongsToUser, HasFactory, SoftDeletes;
-
-    /**
-     * Aliquota ritenuta bancaria 8% applicata al totale fattura quando il
-     * flag `bank_withholding` è attivo (vedi RB3). Costante anche per i
-     * service di calcolo derivati: l'aliquota legale non cambia ed evitare
-     * un magic number in più posti.
-     *
-     * **Sync col frontend**: il composable `useInvoiceTotals.ts` ha la
-     * stessa costante per il calcolo live. Se cambia, aggiornare entrambi.
-     */
-    public const BANK_WITHHOLDING_RATE = 0.08;
 
     protected $fillable = [
         'user_id',
@@ -76,12 +66,16 @@ class Invoice extends Model
     /**
      * Ritenuta bancaria 8% sul totale, calcolata al volo se il flag è attivo.
      * 0 se disattivata. Derivato, mai persistito.
+     *
+     * L'aliquota legale vive in [[InvoiceCalculator::BANK_WITHHOLDING_RATE]]
+     * (single source of truth): evita drift se cambia. Sync col composable
+     * frontend `useInvoiceTotals.ts` documentato in InvoiceCalculator.
      */
     protected function withholdingAmount(): Attribute
     {
         return Attribute::get(fn (): string => number_format(
             $this->bank_withholding
-                ? (float) $this->total * self::BANK_WITHHOLDING_RATE
+                ? (float) $this->total * InvoiceCalculator::BANK_WITHHOLDING_RATE
                 : 0.0,
             2,
             '.',

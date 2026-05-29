@@ -86,6 +86,39 @@ class ClientService
     }
 
     /**
+     * Lookup cliente esistente per identificativo fiscale, dell'utente
+     * corrente. Priorità: P.IVA prima, poi CF. Restituisce `null` se
+     * entrambi gli argomenti sono nulli o se nessun cliente combacia.
+     *
+     * Usata dal flusso import XML (matching anteprima + safety-net
+     * pre-create). `BelongsToUser` global scope filtra automaticamente
+     * sull'utente loggato — il chiamante deve essere in contesto auth.
+     */
+    public function findByFiscalIds(?string $vatNumber, ?string $taxCode): ?Client
+    {
+        $vat = $vatNumber !== null && trim($vatNumber) !== '' ? trim($vatNumber) : null;
+        $tax = $taxCode !== null && trim($taxCode) !== '' ? trim($taxCode) : null;
+
+        if ($vat === null && $tax === null) {
+            return null;
+        }
+
+        if ($vat !== null) {
+            $byVat = Client::query()->where('vat_number', $vat)->first();
+
+            if ($byVat !== null) {
+                return $byVat;
+            }
+        }
+
+        if ($tax !== null) {
+            return Client::query()->where('tax_code', $tax)->first();
+        }
+
+        return null;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function toListItem(Client $client): array

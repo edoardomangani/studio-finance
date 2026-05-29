@@ -1,0 +1,262 @@
+[
+    {
+        "name": "amount sotto soglia bollo: nessun bollo auto, cassa su solo amount",
+        "input": {
+            "amount": 50.00,
+            "stamp_amount": 0.00,
+            "inarcassa_amount": 2.00,
+            "art_15_amount": 0.00,
+            "bank_withholding": false
+        },
+        "expected": {
+            "amount": 50.00,
+            "stamp_amount": 0.00,
+            "inarcassa_amount": 2.00,
+            "art_15_amount": 0.00,
+            "bank_withholding": false,
+            "total": 52.00,
+            "withholding_amount": 0.00,
+            "net_amount": 52.00
+        }
+    },
+    {
+        "name": "amount sopra soglia: bollo auto 2.00, cassa su amount + bollo",
+        "input": {
+            "amount": 1000.00,
+            "stamp_amount": 2.00,
+            "inarcassa_amount": 40.08,
+            "art_15_amount": 0.00,
+            "bank_withholding": false
+        },
+        "expected": {
+            "amount": 1000.00,
+            "stamp_amount": 2.00,
+            "inarcassa_amount": 40.08,
+            "art_15_amount": 0.00,
+            "bank_withholding": false,
+            "total": 1042.08,
+            "withholding_amount": 0.00,
+            "net_amount": 1042.08
+        }
+    },
+    {
+        "name": "amount = soglia esatta 77.47: no bollo (strict >)",
+        "input": {
+            "amount": 77.47,
+            "stamp_amount": 0.00,
+            "inarcassa_amount": 3.10,
+            "art_15_amount": 0.00,
+            "bank_withholding": false
+        },
+        "expected": {
+            "amount": 77.47,
+            "stamp_amount": 0.00,
+            "inarcassa_amount": 3.10,
+            "art_15_amount": 0.00,
+            "bank_withholding": false,
+            "total": 80.57,
+            "withholding_amount": 0.00,
+            "net_amount": 80.57
+        }
+    },
+    {
+        "name": "amount = 77.48 (appena sopra soglia): bollo auto kicks in",
+        "input": {
+            "amount": 77.48,
+            "stamp_amount": 2.00,
+            "inarcassa_amount": 3.18,
+            "art_15_amount": 0.00,
+            "bank_withholding": false
+        },
+        "expected": {
+            "amount": 77.48,
+            "stamp_amount": 2.00,
+            "inarcassa_amount": 3.18,
+            "art_15_amount": 0.00,
+            "bank_withholding": false,
+            "total": 82.66,
+            "withholding_amount": 0.00,
+            "net_amount": 82.66
+        }
+    },
+    {
+        "name": "ritenuta bancaria 8% attiva: netto = totale - 8%",
+        "input": {
+            "amount": 1000.00,
+            "stamp_amount": 2.00,
+            "inarcassa_amount": 40.08,
+            "art_15_amount": 0.00,
+            "bank_withholding": true
+        },
+        "expected": {
+            "amount": 1000.00,
+            "stamp_amount": 2.00,
+            "inarcassa_amount": 40.08,
+            "art_15_amount": 0.00,
+            "bank_withholding": true,
+            "total": 1042.08,
+            "withholding_amount": 83.37,
+            "net_amount": 958.71
+        }
+    },
+    {
+        "name": "art.15 incluso nel totale ma escluso da basi cassa",
+        "input": {
+            "amount": 1000.00,
+            "stamp_amount": 2.00,
+            "inarcassa_amount": 40.08,
+            "art_15_amount": 50.00,
+            "bank_withholding": false
+        },
+        "expected": {
+            "amount": 1000.00,
+            "stamp_amount": 2.00,
+            "inarcassa_amount": 40.08,
+            "art_15_amount": 50.00,
+            "bank_withholding": false,
+            "total": 1092.08,
+            "withholding_amount": 0.00,
+            "net_amount": 1092.08
+        }
+    },
+    {
+        "name": "amount = 0: tutto zero, no withholding",
+        "input": {
+            "amount": 0.00,
+            "stamp_amount": 0.00,
+            "inarcassa_amount": 0.00,
+            "art_15_amount": 0.00,
+            "bank_withholding": false
+        },
+        "expected": {
+            "amount": 0.00,
+            "stamp_amount": 0.00,
+            "inarcassa_amount": 0.00,
+            "art_15_amount": 0.00,
+            "bank_withholding": false,
+            "total": 0.00,
+            "withholding_amount": 0.00,
+            "net_amount": 0.00
+        }
+    },
+    {
+        "name": "override bollo: utente manda 5.00 invece di 2.00 auto, viene preservato",
+        "input": {
+            "amount": 1000.00,
+            "stamp_amount": 5.00,
+            "inarcassa_amount": 40.20,
+            "art_15_amount": 0.00,
+            "bank_withholding": false
+        },
+        "expected": {
+            "amount": 1000.00,
+            "stamp_amount": 5.00,
+            "inarcassa_amount": 40.20,
+            "art_15_amount": 0.00,
+            "bank_withholding": false,
+            "total": 1045.20,
+            "withholding_amount": 0.00,
+            "net_amount": 1045.20
+        }
+    },
+    {
+        "name": "override cassa: utente manda 50.00 invece di 40.08 auto, viene preservato",
+        "input": {
+            "amount": 1000.00,
+            "stamp_amount": 2.00,
+            "inarcassa_amount": 50.00,
+            "art_15_amount": 0.00,
+            "bank_withholding": false
+        },
+        "expected": {
+            "amount": 1000.00,
+            "stamp_amount": 2.00,
+            "inarcassa_amount": 50.00,
+            "art_15_amount": 0.00,
+            "bank_withholding": false,
+            "total": 1052.00,
+            "withholding_amount": 0.00,
+            "net_amount": 1052.00
+        }
+    },
+    {
+        "name": "override bollo + cassa già aggiornata FE sul nuovo bollo (canonical match)",
+        "input": {
+            "amount": 1000.00,
+            "stamp_amount": 5.00,
+            "inarcassa_amount": 40.20,
+            "art_15_amount": 0.00,
+            "bank_withholding": false
+        },
+        "expected": {
+            "amount": 1000.00,
+            "stamp_amount": 5.00,
+            "inarcassa_amount": 40.20,
+            "art_15_amount": 0.00,
+            "bank_withholding": false,
+            "total": 1045.20,
+            "withholding_amount": 0.00,
+            "net_amount": 1045.20
+        }
+    },
+    {
+        "name": "payload manomesso: cassa stale rispetto a stamp override (preservata come override)",
+        "input": {
+            "amount": 1000.00,
+            "stamp_amount": 5.00,
+            "inarcassa_amount": 40.08,
+            "art_15_amount": 0.00,
+            "bank_withholding": false
+        },
+        "expected": {
+            "amount": 1000.00,
+            "stamp_amount": 5.00,
+            "inarcassa_amount": 40.08,
+            "art_15_amount": 0.00,
+            "bank_withholding": false,
+            "total": 1045.08,
+            "withholding_amount": 0.00,
+            "net_amount": 1045.08
+        }
+    },
+    {
+        "name": "valori sub-cent: tolleranza match, ricalcolo canonico",
+        "input": {
+            "amount": 1000.00,
+            "stamp_amount": 2.00,
+            "inarcassa_amount": 40.075,
+            "art_15_amount": 0.00,
+            "bank_withholding": false
+        },
+        "expected": {
+            "amount": 1000.00,
+            "stamp_amount": 2.00,
+            "inarcassa_amount": 40.08,
+            "art_15_amount": 0.00,
+            "bank_withholding": false,
+            "total": 1042.08,
+            "withholding_amount": 0.00,
+            "net_amount": 1042.08
+        }
+    },
+    {
+        "name": "ritenuta + override bollo: cascade corretto",
+        "input": {
+            "amount": 2000.00,
+            "stamp_amount": 10.00,
+            "inarcassa_amount": 80.40,
+            "art_15_amount": 0.00,
+            "bank_withholding": true
+        },
+        "expected": {
+            "amount": 2000.00,
+            "stamp_amount": 10.00,
+            "inarcassa_amount": 80.40,
+            "art_15_amount": 0.00,
+            "bank_withholding": true,
+            "total": 2090.40,
+            "withholding_amount": 167.23,
+            "net_amount": 1923.17
+        }
+    }
+]

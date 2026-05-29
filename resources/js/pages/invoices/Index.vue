@@ -22,6 +22,7 @@ import {
     PhMagnifyingGlass,
     PhPencil,
     PhPlus,
+    PhUploadSimple,
     PhX,
 } from '@phosphor-icons/vue';
 import { useMediaQuery } from '@vueuse/core';
@@ -224,6 +225,12 @@ function openInvoice(invoice: InvoiceListItem): void {
     <Head title="Fatture" />
 
     <Teleport to="#page-topbar-actions" defer>
+        <Button as-child variant="outline" size="sm">
+            <Link href="/invoices/import">
+                <PhUploadSimple :size="14" />
+                Importa XML
+            </Link>
+        </Button>
         <Button as-child size="sm">
             <Link :href="invoicesCreate().url">
                 <PhPlus :size="14" weight="bold" />
@@ -251,6 +258,7 @@ function openInvoice(invoice: InvoiceListItem): void {
             variant="outline"
             size="sm"
             class="relative"
+            :aria-pressed="filtersOpen"
             @click="filtersOpen = !filtersOpen"
         >
             <PhFunnel :size="14" />
@@ -411,22 +419,16 @@ function openInvoice(invoice: InvoiceListItem): void {
                 <div class="mb-4 flex items-center justify-between">
                     <span class="text-13 font-medium text-foreground">Filtri</span>
                     <div class="flex items-center gap-2">
-                        <button
+                        <Button
                             v-if="activeFilterCount > 0"
                             type="button"
-                            class="text-2xs text-muted-foreground hover:text-foreground"
+                            variant="link"
+                            size="sm"
                             @click="clearAllFilters"
                         >
                             Pulisci
-                        </button>
-                        <button
-                            type="button"
-                            class="text-muted-foreground hover:text-foreground"
-                            aria-label="Chiudi pannello filtri"
-                            @click="filtersOpen = false"
-                        >
-                            <PhX :size="14" />
-                        </button>
+                        </Button>
+                        
                     </div>
                 </div>
                 <InvoiceFilters

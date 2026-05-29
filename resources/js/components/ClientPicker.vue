@@ -14,7 +14,7 @@
  * il selectedId precedente e apriamo il dialog.
  */
 import { Link, usePage } from '@inertiajs/vue3';
-import { PhCheck, PhPlus } from '@phosphor-icons/vue';
+import { PhCheck, PhPlus, PhArrowRight } from '@phosphor-icons/vue';
 import { computed, nextTick, ref, watch } from 'vue';
 import ClientFormDialog from '@/pages/clients/ClientFormDialog.vue';
 import { Button } from '@/components/ui/button';
@@ -154,12 +154,16 @@ watch(
                     <span :class="selectedClient ? '' : 'text-muted-foreground/70'">
                         {{ selectedClient?.name ?? 'Cerca cliente…' }}
                     </span>
-                    <span
-                        v-if="selectedClient?.vat_number"
-                        class="ml-2 tabular text-xs text-muted-foreground"
-                    >
-                        {{ selectedClient.vat_number }}
-                    </span>
+                    <div class="flex items-center">
+                        <span
+                            v-if="selectedClient?.vat_number"
+                            class="ml-2 tabular text-xs text-muted-foreground"
+                        >
+                            {{ selectedClient.vat_number }}
+                        </span>
+                        <PhArrowRight class="ml-2 size-3.5 rotate-90 opacity-50"/>
+                    </div>
+                    
                 </Button>
             </ComboboxTrigger>
         </ComboboxAnchor>

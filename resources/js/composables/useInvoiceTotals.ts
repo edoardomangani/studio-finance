@@ -1,4 +1,13 @@
 /**
+ * **Sync col backend**: la fonte di verità autoritativa è
+ * `app/Services/InvoiceCalculator.php`. Questo composable è il mirror
+ * frontend per UX live (preview reattiva); il backend canonicalizza ogni
+ * valore al salvataggio. Le formule QUI devono restare in parità con
+ * quelle PHP — il file `tests/Fixtures/invoice_calc_cases.json` è il
+ * "contratto" condiviso (testato in `tests/Unit/InvoiceCalculatorTest.php`).
+ * Modificare una formula qui senza aggiornare PHP + fixture causerà
+ * divergenza visibile tra UI preview e salvato.
+ *
  * useInvoiceTotals — calcoli live + default dirty-aware per il form fattura.
  *
  * Espone:
@@ -17,8 +26,9 @@
  * - Ritenuta = totale × 8% se flag attivo
  *
  * **Sync col backend**: `BANK_WITHHOLDING_RATE` qui deve restare allineato
- * a `App\Models\Invoice::BANK_WITHHOLDING_RATE`. Se cambia l'aliquota
- * legale aggiornare entrambi.
+ * a `App\Services\InvoiceCalculator::BANK_WITHHOLDING_RATE` (fonte di
+ * verità unica; `Invoice::withholdingAmount()` accessor delega lì). Se
+ * cambia l'aliquota legale aggiornare entrambi.
  */
 import { computed, ref, watch } from 'vue';
 

@@ -86,6 +86,69 @@ export type InvoiceListItem = {
     };
 };
 
+/**
+ * Divergenza tra valore estratto da XML e valore atteso dal calcolatore
+ * standard (regime Inarcassa 4%, bollo €2 sopra €77,47). Segnala probabile
+ * errore del gestionale o regime non standard. Mostrata inline accanto
+ * al campo nella card anteprima.
+ */
+export type ImportDiscrepancy = {
+    xml: number;
+    expected: number;
+    delta: number;
+};
+
+/**
+ * Anteprima di una fattura XML parsata server-side, restituita dal
+ * controller di import. Quando `parsed=false`, solo `filename` + `error`
+ * sono valorizzati; il frontend mostra la card come scartata.
+ */
+export type ImportPreviewServer = {
+    filename: string;
+    parsed: boolean;
+    error?: string;
+    number?: string;
+    issued_at?: string;
+    amount?: number;
+    inarcassa_amount?: number;
+    stamp_amount?: number;
+    art_15_amount?: number;
+    bank_withholding?: boolean;
+    client_from_xml?: {
+        name: string;
+        vat_number: string | null;
+        tax_code: string | null;
+    };
+    matched_client_id?: number | null;
+    /** Mappa per campo → divergenza. Solo i campi con `delta > 0.01`. */
+    discrepancies?: Partial<Record<'stamp_amount' | 'inarcassa_amount', ImportDiscrepancy>>;
+};
+
+/** Payload upload XML batch → POST /invoices/import/parse. */
+export type ImportXmlUploadPayload = { files: File[] };
+
+/** Singola fattura nel payload di conferma import. */
+export type ImportInvoiceSubmit = {
+    number: string;
+    issued_at: string;
+    amount: string;
+    inarcassa_amount: string;
+    stamp_amount: string;
+    art_15_amount: string;
+    bank_withholding: boolean;
+    client_mode: 'existing' | 'new';
+    existing_client_id: number | null;
+    new_client: {
+        name: string;
+        vat_number: string | null;
+        tax_code: string | null;
+        bank_withholding: boolean;
+    } | null;
+};
+
+/** Payload conferma import batch → POST /invoices/import. */
+export type ImportInvoicesSubmitPayload = { previews: ImportInvoiceSubmit[] };
+
 /** Fattura completa per Show / Edit. */
 export type Invoice = {
     id: number;

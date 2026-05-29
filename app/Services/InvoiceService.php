@@ -19,6 +19,8 @@ class InvoiceService
 {
     private const PER_PAGE = 50;
 
+    public function __construct(private readonly InvoiceCalculator $calculator) {}
+
     /**
      * Lista paginata. Filtri opzionali: search testuale (numero o nome
      * cliente), anno di emissione, cliente, ritenuta (tri-state:
@@ -58,6 +60,7 @@ class InvoiceService
                 fn ($q) => $q->where('bank_withholding', $filters['withholding']),
             )
             ->orderByDesc('issued_at')
+            ->orderByDesc('number')
             ->orderByDesc('id')
             ->paginate(self::PER_PAGE)
             ->withQueryString()
@@ -151,7 +154,7 @@ class InvoiceService
      */
     public function create(array $data): Invoice
     {
-        return Invoice::create($data);
+        return Invoice::create($this->canonicalize($data));
     }
 
     /**
@@ -159,9 +162,36 @@ class InvoiceService
      */
     public function update(Invoice $invoice, array $data): Invoice
     {
-        $invoice->update($data);
+        $invoice->update($this->canonicalize($data));
 
         return $invoice;
+    }
+
+    /**
+     * Canonicalizza gli importi calcolati (stamp, inarcassa) via
+     * [[InvoiceCalculator::canonicalize]]: i valori inviati che
+     * corrispondono ai default vengono ricalcolati canonici, gli
+     * override utente sono preservati. Difesa contro payload manomessi
+     * e drift sub-cent.
+     *
+     * `total`/`withholding_amount`/`net_amount` sono derivati a render
+     * via accessor su [[Invoice]], non vengono persistiti — non
+     * propaghiamo le chiavi del calculator output.
+     *
+     * @param  array<string, mixed>  $data
+     * @return array<string, mixed>
+     */
+    private function canonicalize(array $data): array
+    {
+        $computed = $this->calculator->canonicalize($data);
+
+        // Override mirato: solo i 2 campi canonicalizzati, il resto del
+        // payload originale (number, issued_at, client_id, ecc.) passa
+        // intatto. `Invoice::$fillable` filtra eventuali chiavi extra.
+        $data['stamp_amount'] = $computed['stamp_amount'];
+        $data['inarcassa_amount'] = $computed['inarcassa_amount'];
+
+        return $data;
     }
 
     public function archive(Invoice $invoice): void
