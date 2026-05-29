@@ -1,0 +1,66 @@
+<?php
+
+namespace App\Models;
+
+use App\Concerns\BelongsToUser;
+use App\Enums\ExpenseCalculationType;
+use Database\Factories\AnnualExpenseFactory;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
+class AnnualExpense extends Model
+{
+    /** @use HasFactory<AnnualExpenseFactory> */
+    use BelongsToUser, HasFactory, SoftDeletes;
+
+    protected $fillable = [
+        'user_id',
+        'year_id',
+        'expense_item_id',
+        'name',
+        'calculation_type',
+        'rate',
+        'minimum',
+        'maximum',
+        'amount',
+        'effective_amount',
+        'previous_year_credit',
+        'note',
+    ];
+
+    protected function casts(): array
+    {
+        return [
+            'calculation_type' => ExpenseCalculationType::class,
+            'rate' => 'decimal:2',
+            'minimum' => 'decimal:2',
+            'maximum' => 'decimal:2',
+            'amount' => 'decimal:2',
+            'effective_amount' => 'decimal:2',
+            'previous_year_credit' => 'decimal:2',
+        ];
+    }
+
+    public function year(): BelongsTo
+    {
+        return $this->belongsTo(Year::class);
+    }
+
+    public function expenseItem(): BelongsTo
+    {
+        return $this->belongsTo(ExpenseItem::class);
+    }
+
+    public function payments(): HasMany
+    {
+        return $this->hasMany(Payment::class);
+    }
+
+    public function deadlines(): HasMany
+    {
+        return $this->hasMany(Deadline::class);
+    }
+}

@@ -54,6 +54,11 @@ class User extends Authenticatable implements PasskeyUser
         return $this->hasMany(Client::class);
     }
 
+    public function years(): HasMany
+    {
+        return $this->hasMany(Year::class);
+    }
+
     public function isOnboarded(): bool
     {
         return $this->professionalProfile()->exists();
