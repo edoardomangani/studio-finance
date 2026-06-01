@@ -24,12 +24,13 @@ import {
 import type { YearPlanDeadline } from '@/types';
 
 defineProps<{
-    deadlines: YearPlanDeadline[];
     crossYearDeadlines: string[];
     nextYear: number;
     needsConfirm: boolean;
 }>();
 
+// Two-way: editiamo le date via v-model:deadlines (no mutazione diretta di prop).
+const deadlines = defineModel<YearPlanDeadline[]>('deadlines', { required: true });
 const crossYearConfirmed = defineModel<boolean>('crossYearConfirmed', { required: true });
 </script>
 
@@ -42,6 +43,7 @@ const crossYearConfirmed = defineModel<boolean>('crossYearConfirmed', { required
         <!-- Alert cross-year: full-border petrol soft, niente side-stripe. -->
         <div
             v-if="needsConfirm"
+            role="status"
             class="rounded-lg border border-accent-line bg-accent px-4 py-3 text-13 text-accent-foreground"
         >
             <p class="font-medium">L'anno {{ nextYear }} verrà creato come pre-aperto</p>

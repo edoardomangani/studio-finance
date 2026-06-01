@@ -128,7 +128,9 @@ watch(
 
 <template>
     <Dialog :open="isOpen" @update:open="isOpen = $event">
-        <DialogContent class="sm:max-w-md">
+        <!-- Header centrato custom (flusso setup QR): non usa
+             DialogStandardHeader, quindi la X resta floating sul content. -->
+        <DialogContent class="sm:max-w-md" show-close-button>
             <DialogHeader class="flex items-center justify-center">
                 <div
                     class="mb-3 w-auto rounded-full border border-border bg-card p-0.5 shadow-sm"

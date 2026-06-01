@@ -35,13 +35,6 @@ import {
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import {
-    NumberField,
-    NumberFieldContent,
-    NumberFieldDecrement,
-    NumberFieldIncrement,
-    NumberFieldInput,
-} from '@/components/ui/number-field';
-import {
     Select,
     SelectContent,
     SelectItem,
@@ -60,6 +53,8 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { useArchiveAction } from '@/composables/useArchiveAction';
+import { clampNumber } from '@/lib/clampNumber';
+import { formatEUR, formatPercent } from '@/lib/format';
 import type { EnumOption, ExpenseCalculationType, ExpenseItem } from '@/types';
 
 defineProps<{
@@ -76,13 +71,15 @@ setLayoutProps({
     subbar: false,
 });
 
+// Campi numerici `number | string`: input grezzi (no formattazione in edit), il
+// vuoto è '' (Laravel ConvertEmptyStringsToNull → null lato server).
 type FormPayload = {
     name: string;
     calculation_type: ExpenseCalculationType;
-    default_rate: number | null;
-    default_minimum: number | null;
-    default_maximum: number | null;
-    default_amount: number | null;
+    default_rate: number | string;
+    default_minimum: number | string;
+    default_maximum: number | string;
+    default_amount: number | string;
     active: boolean;
     position: number;
 };
@@ -90,10 +87,10 @@ type FormPayload = {
 const emptyForm = (): FormPayload => ({
     name: '',
     calculation_type: 'fixed_annual',
-    default_rate: null,
-    default_minimum: null,
-    default_maximum: null,
-    default_amount: null,
+    default_rate: '',
+    default_minimum: '',
+    default_maximum: '',
+    default_amount: '',
     active: true,
     position: 0,
 });
@@ -136,10 +133,10 @@ function openEdit(item: ExpenseItem): void {
     const next: FormPayload = {
         name: item.name,
         calculation_type: item.calculation_type,
-        default_rate: item.default_rate,
-        default_minimum: item.default_minimum,
-        default_maximum: item.default_maximum,
-        default_amount: item.default_amount,
+        default_rate: item.default_rate ?? '',
+        default_minimum: item.default_minimum ?? '',
+        default_maximum: item.default_maximum ?? '',
+        default_amount: item.default_amount ?? '',
         active: item.active,
         position: item.position,
     };
@@ -150,12 +147,13 @@ function openEdit(item: ExpenseItem): void {
 
 function onSubmit(): void {
     if (!isPercentage.value) {
-        form.default_rate = null;
-        form.default_minimum = null;
-        form.default_maximum = null;
+        form.default_rate = '';
+        form.default_minimum = '';
+        form.default_maximum = '';
     }
+
     if (!isFixed.value) {
-        form.default_amount = null;
+        form.default_amount = '';
     }
 
     if (editing.value) {
@@ -180,16 +178,14 @@ function onSubmit(): void {
 
 function formatDefault(item: ExpenseItem): string {
     if (item.calculation_type === 'fixed_annual') {
-        return item.default_amount !== null
-            ? `€ ${item.default_amount.toFixed(2)}`
-            : '—';
+        return item.default_amount !== null ? formatEUR(item.default_amount) : '—';
     }
+
     if (item.calculation_type === 'sum_of_bolli') {
         return 'derivata';
     }
-    return item.default_rate !== null
-        ? `${item.default_rate.toFixed(2)} %`
-        : '—';
+
+    return item.default_rate !== null ? formatPercent(item.default_rate) : '—';
 }
 </script>
 
@@ -307,72 +303,23 @@ function formatDefault(item: ExpenseItem): string {
 
                         <div v-if="isPercentage" class="grid grid-cols-1 gap-4 md:grid-cols-3">
                             <FormField label="Aliquota (%)" for="item-rate">
-                                <NumberField
-                                    id="item-rate"
-                                    v-model="form.default_rate"
-                                    :min="0"
-                                    :max="100"
-                                    :step="0.5"
-                                    :format-options="{ maximumFractionDigits: 2 }"
-                                >
-                                    <NumberFieldContent>
-                                        <NumberFieldDecrement />
-                                        <NumberFieldInput class="tabular" />
-                                        <NumberFieldIncrement />
-                                    </NumberFieldContent>
-                                </NumberField>
+                                <Input id="item-rate" v-model="form.default_rate" type="number" inputmode="decimal" step="0.01" min="0" max="100" class="tabular text-right" placeholder="0,00" @blur="form.default_rate = clampNumber(form.default_rate, 0, 100)" />
                                 <template v-if="form.errors.default_rate" #error>{{ form.errors.default_rate }}</template>
                             </FormField>
 
                             <FormField label="Minimale (€)" for="item-min">
-                                <NumberField
-                                    id="item-min"
-                                    v-model="form.default_minimum"
-                                    :min="0"
-                                    :step="50"
-                                    :format-options="{ maximumFractionDigits: 2 }"
-                                >
-                                    <NumberFieldContent>
-                                        <NumberFieldDecrement />
-                                        <NumberFieldInput class="tabular" />
-                                        <NumberFieldIncrement />
-                                    </NumberFieldContent>
-                                </NumberField>
+                                <Input id="item-min" v-model="form.default_minimum" type="number" inputmode="decimal" step="0.01" min="0" class="tabular text-right" placeholder="0,00" />
                                 <template v-if="form.errors.default_minimum" #error>{{ form.errors.default_minimum }}</template>
                             </FormField>
 
                             <FormField label="Massimale (€)" for="item-max">
-                                <NumberField
-                                    id="item-max"
-                                    v-model="form.default_maximum"
-                                    :min="0"
-                                    :step="1000"
-                                    :format-options="{ maximumFractionDigits: 2 }"
-                                >
-                                    <NumberFieldContent>
-                                        <NumberFieldDecrement />
-                                        <NumberFieldInput class="tabular" />
-                                        <NumberFieldIncrement />
-                                    </NumberFieldContent>
-                                </NumberField>
+                                <Input id="item-max" v-model="form.default_maximum" type="number" inputmode="decimal" step="0.01" min="0" class="tabular text-right" placeholder="0,00" />
                                 <template v-if="form.errors.default_maximum" #error>{{ form.errors.default_maximum }}</template>
                             </FormField>
                         </div>
 
                         <FormField v-if="isFixed" label="Importo annuale (€)" for="item-amount">
-                            <NumberField
-                                id="item-amount"
-                                v-model="form.default_amount"
-                                :min="0"
-                                :step="1"
-                                :format-options="{ maximumFractionDigits: 2 }"
-                            >
-                                <NumberFieldContent>
-                                    <NumberFieldDecrement />
-                                    <NumberFieldInput class="tabular" />
-                                    <NumberFieldIncrement />
-                                </NumberFieldContent>
-                            </NumberField>
+                            <Input id="item-amount" v-model="form.default_amount" type="number" inputmode="decimal" step="0.01" min="0" class="tabular text-right" placeholder="0,00" />
                             <template v-if="form.errors.default_amount" #error>{{ form.errors.default_amount }}</template>
                         </FormField>
 

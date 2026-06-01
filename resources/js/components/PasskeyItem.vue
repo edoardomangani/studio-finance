@@ -2,15 +2,7 @@
 import { PhKey, PhTrash } from '@phosphor-icons/vue';
 import { ref } from 'vue';
 import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogClose,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogTitle,
-    DialogTrigger,
-} from '@/components/ui/dialog';
+import { ConfirmDialog } from '@/components/ui/dialog';
 import type { Passkey } from '@/types/auth';
 
 const props = defineProps<{
@@ -21,6 +13,7 @@ const emit = defineEmits<{
     remove: [id: number, onError: () => void];
 }>();
 
+const confirmOpen = ref(false);
 const isDeleting = ref(false);
 
 const handleDelete = () => {
@@ -59,37 +52,24 @@ const handleDelete = () => {
             </div>
         </div>
 
-        <Dialog>
-            <DialogTrigger as-child>
-                <Button
-                    variant="ghost"
-                    size="icon-sm"
-                    class="text-muted-foreground hover:text-destructive"
-                    aria-label="Rimuovi passkey"
-                >
-                    <PhTrash />
-                </Button>
-            </DialogTrigger>
+        <Button
+            variant="ghost"
+            size="icon-sm"
+            class="text-muted-foreground hover:text-destructive"
+            aria-label="Rimuovi passkey"
+            @click="confirmOpen = true"
+        >
+            <PhTrash />
+        </Button>
 
-            <DialogContent>
-                <DialogTitle>Rimuovere la passkey?</DialogTitle>
-                <DialogDescription>
-                    La passkey "{{ passkey.name }}" non sarà più utilizzabile
-                    per accedere all'account.
-                </DialogDescription>
-                <DialogFooter class="gap-2">
-                    <DialogClose as-child>
-                        <Button variant="ghost">Annulla</Button>
-                    </DialogClose>
-                    <Button
-                        variant="destructive"
-                        :disabled="isDeleting"
-                        @click="handleDelete"
-                    >
-                        {{ isDeleting ? 'Sto rimuovendo…' : 'Rimuovi passkey' }}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+        <ConfirmDialog
+            v-model:open="confirmOpen"
+            title="Rimuovere la passkey?"
+            :description="`La passkey «${passkey.name}» non sarà più utilizzabile per accedere all'account.`"
+            confirm-label="Rimuovi passkey"
+            destructive
+            :loading="isDeleting"
+            @confirm="handleDelete"
+        />
     </div>
 </template>

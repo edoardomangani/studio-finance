@@ -423,6 +423,19 @@
         color: var(--placeholder-foreground);
         font-size: var(--placeholder-font-size);
     }
+    /* Niente spinner nativi del browser sugli <input type="number">: in tutta
+       l'app gli importi/aliquote sono input puliti allineati a destra. Per i
+       controlli +/- usare lo stepper esplicito del DS (NumberField), che ha un
+       input proprio non-number e quindi non è toccato da questa regola. */
+    input[type='number']::-webkit-inner-spin-button,
+    input[type='number']::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+    input[type='number'] {
+        -moz-appearance: textfield;
+        appearance: textfield;
+    }
 }
 
 /* ─── Utility custom — kicker, numeric, code-pill, pill, hairline ─────────── */

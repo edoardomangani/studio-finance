@@ -226,7 +226,7 @@ const sections = computed(() =>
         size="icon"
         :aria-label="state === 'expanded' ? 'Collassa sidebar' : 'Espandi sidebar'"
         class="
-            fixed top-3.5 z-50 hidden md:inline-flex
+            fixed top-3.5 z-50 hidden lg:inline-flex
             text-muted-foreground bg-card hover:bg-card
             transition-[left,background-color,border-color,color]
             duration-200 ease-linear

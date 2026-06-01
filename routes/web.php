@@ -49,14 +49,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::resource('invoices', InvoiceController::class)
             ->middleware('throttle:60,1');
 
-        // Anni — vista pluriennale, wizard di apertura, vista anno. Le rotte
-        // statiche (index, open, store) sono definite PRIMA di `years/{year}`
-        // per evitare la collisione con il segmento dinamico; `whereNumber`
-        // sul parametro chiude il vincolo. URL segment in inglese (convenzione
-        // progetto); label sidebar in italiano. Store con throttle più stretto
-        // (apre un anno = transazione pesante, non spammabile).
-        Route::get('years/open', [YearController::class, 'openForm'])
-            ->name('years.open')
+        // Anni — vista pluriennale, piano di apertura (JSON per il wizard-
+        // dialog), apertura, vista anno. Le rotte statiche (index, plan, store)
+        // sono definite PRIMA di `years/{year}` per evitare la collisione con
+        // il segmento dinamico; `whereNumber` sul parametro chiude il vincolo.
+        // URL segment in inglese (convenzione progetto); label sidebar in
+        // italiano. Store con throttle più stretto (apre un anno = transazione
+        // pesante, non spammabile).
+        Route::get('years/plan', [YearController::class, 'plan'])
+            ->name('years.plan')
             ->middleware('throttle:60,1');
         Route::get('years', [YearController::class, 'index'])
             ->name('years.index')

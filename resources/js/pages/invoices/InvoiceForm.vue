@@ -25,7 +25,7 @@ import ClientPicker from '@/components/ClientPicker.vue';
 import DateField from '@/components/forms/DateField.vue';
 import FormField from '@/components/forms/FormField.vue';
 import FormSection from '@/components/forms/FormSection.vue';
-import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
+import { Field, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useInvoiceTotals } from '@/composables/useInvoiceTotals';
@@ -210,7 +210,7 @@ defineExpose({ processing: computed(() => form.processing) });
                         min="0"
                         max="9999999.99"
                         inputmode="decimal"
-                        class="tabular"
+                        class="tabular text-right"
                         placeholder="0,00"
                     />
                     <template v-if="form.errors.amount" #error>
@@ -229,7 +229,7 @@ defineExpose({ processing: computed(() => form.processing) });
                         min="0"
                         max="9999999.99"
                         inputmode="decimal"
-                        class="tabular"
+                        class="tabular text-right"
                         @input="markStampDirty"
                     />
                     <template v-if="form.errors.stamp_amount" #error>
@@ -246,7 +246,7 @@ defineExpose({ processing: computed(() => form.processing) });
                         min="0"
                         max="9999999.99"
                         inputmode="decimal"
-                        class="tabular"
+                        class="tabular text-right"
                         @input="markInarcassaDirty"
                     />
                     <template v-if="form.errors.inarcassa_amount" #error>
@@ -263,7 +263,7 @@ defineExpose({ processing: computed(() => form.processing) });
                         min="0"
                         max="9999999.99"
                         inputmode="decimal"
-                        class="tabular"
+                        class="tabular text-right"
                     />
                     <template v-if="form.errors.art_15_amount" #error>
                         {{ form.errors.art_15_amount }}

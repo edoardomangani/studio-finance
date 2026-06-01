@@ -6,8 +6,8 @@ use App\Actions\Studiofinance\OpenYear;
 use App\Concerns\FlashesToast;
 use App\Exceptions\YearAlreadyOpenException;
 use App\Http\Requests\OpenYearRequest;
-use App\Models\Year;
 use App\Services\YearService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -31,22 +31,23 @@ class YearController extends Controller
     {
         return Inertia::render('years/Index', [
             'years' => $this->years->list(),
+            // Anno proposto di default all'apertura del wizard (dialog).
+            'suggestedYear' => $this->years->suggestedYear(),
         ]);
     }
 
     /**
-     * Step 1-3 del wizard. `?year=YYYY` preseleziona l'anno (deep link da
-     * empty state dashboard / "Apri anno corrente"); altrimenti propone
-     * l'anno suggerito.
+     * Piano editabile (spese da template + scadenze + cross-year) per un
+     * anno, in JSON. Consumato dal wizard-dialog su `/anni`, che lo carica in
+     * modo asincrono all'apertura e a ogni cambio anno (`?year=YYYY`). Una
+     * visita Inertia chiuderebbe il dialog, quindi qui torniamo JSON puro.
      */
-    public function openForm(Request $request): Response
+    public function plan(Request $request): JsonResponse
     {
         $candidate = (int) $request->query('year', '0');
         $year = $candidate >= 1990 ? $candidate : $this->years->suggestedYear();
 
-        return Inertia::render('years/OpenWizard', [
-            'plan' => $this->years->plan($request->user(), $year),
-        ]);
+        return response()->json($this->years->plan($request->user(), $year));
     }
 
     public function store(OpenYearRequest $request, OpenYear $openYear): RedirectResponse
@@ -64,10 +65,8 @@ class YearController extends Controller
 
     public function show(int $year): Response
     {
-        $model = Year::query()->where('year', $year)->firstOrFail();
-
         return Inertia::render('years/Show', [
-            'year' => $this->years->forShow($model),
+            'year' => $this->years->forShow($this->years->findByYear($year)),
         ]);
     }
 

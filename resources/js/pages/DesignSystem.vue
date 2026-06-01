@@ -3799,11 +3799,9 @@ return;
                                 sotto. Slot
                                 <code class="font-mono">#trailing</code> per
                                 content a destra del title (es. WizardStepper).
-                                La close X vive su
-                                <code class="font-mono">DialogContent</code> —
-                                per nasconderla passa
-                                <code class="font-mono"
-                                    >:show-close-button="false"</code
+                                La close X vive QUI, allineata al titolo —
+                                per nasconderla (conferme, delete) passa
+                                <code class="font-mono">:closable="false"</code
                                 >.
                             </span>
                         </div>
@@ -3880,13 +3878,11 @@ return;
                                         >Mini (~460)</Button
                                     >
                                 </DialogTrigger>
-                                <DialogContent
-                                    size="mini"
-                                    :show-close-button="false"
-                                >
+                                <DialogContent size="mini">
                                     <DialogStandardHeader
                                         title="Eliminare il cliente?"
                                         description="Tutte le fatture associate verranno mantenute, ma il cliente non sarà più visibile in elenco."
+                                        :closable="false"
                                     />
                                     <DialogStandardFooter>
                                         <Button variant="destructive"
@@ -6101,10 +6097,7 @@ setLayoutProps(&#123; pageTitle: 'Clienti', subbar: true &#125;)
                         </Button>
                     </div>
                     <Dialog v-model:open="demoWizardOpen">
-                        <DialogContent
-                            size="fullscreen"
-                            :show-close-button="false"
-                        >
+                        <DialogContent size="fullscreen">
                             <DialogStandardHeader
                                 title="Nuova fattura"
                                 :description="`Step ${demoWizardStep} di 4 · ${['Cliente', 'Voci', 'Riepilogo', 'Conferma'][demoWizardStep - 1]}`"

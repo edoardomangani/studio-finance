@@ -40,6 +40,8 @@ class OpenYearRequest extends FormRequest
             'year' => ['required', 'integer', 'min:1990', 'max:'.($currentYear + 5)],
             'profitability_coefficient' => ['required', 'numeric', 'min:0', 'max:100'],
             'note' => ['nullable', 'string', 'max:1000'],
+            // Gate UX puro: il pre-open di N+1 è comportamento legittimo di
+            // sistema (RB8), quindi non viene enforced lato server.
             'cross_year_confirmed' => ['boolean'],
 
             'expenses' => ['present', 'array'],
@@ -49,7 +51,7 @@ class OpenYearRequest extends FormRequest
             ],
             'expenses.*.name' => ['required', 'string', 'max:255'],
             'expenses.*.calculation_type' => ['required', Rule::enum(ExpenseCalculationType::class)],
-            'expenses.*.rate' => ['nullable', 'numeric', 'min:0', 'max:999.99'],
+            'expenses.*.rate' => ['nullable', 'numeric', 'between:0,100'],
             'expenses.*.minimum' => ['nullable', 'numeric', 'min:0', 'max:9999999.99'],
             'expenses.*.maximum' => ['nullable', 'numeric', 'min:0', 'max:9999999.99'],
             'expenses.*.amount' => ['nullable', 'numeric', 'min:0', 'max:9999999.99'],
@@ -60,7 +62,10 @@ class OpenYearRequest extends FormRequest
             'deadlines.*.name' => ['required', 'string', 'max:255'],
             'deadlines.*.due_at' => ['required', 'date'],
             'deadlines.*.kind' => ['required', Rule::enum(DeadlineKind::class)],
-            'deadlines.*.expense_item_id' => ['nullable', 'integer'],
+            'deadlines.*.expense_item_id' => [
+                'nullable', 'integer',
+                Rule::exists((new ExpenseItem)->getTable(), 'id')->where('user_id', Auth::id()),
+            ],
             'deadlines.*.expense_year_offset' => ['required', Rule::enum(ExpenseYearOffset::class)],
         ];
     }
@@ -74,6 +79,9 @@ class OpenYearRequest extends FormRequest
             'year.required' => 'Seleziona un anno.',
             'year.integer' => 'Anno non valido.',
             'profitability_coefficient.required' => 'Il coefficiente di redditività è obbligatorio.',
+            'profitability_coefficient.min' => 'Il coefficiente deve essere tra 0 e 100.',
+            'profitability_coefficient.max' => 'Il coefficiente deve essere tra 0 e 100.',
+            'expenses.*.rate.between' => "L'aliquota deve essere tra 0 e 100.",
         ];
     }
 

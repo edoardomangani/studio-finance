@@ -57,10 +57,11 @@ watch(open, (isOpen) => {
                     Elimina account
                 </Button>
             </DialogTrigger>
-            <DialogContent size="mini" :show-close-button="false">
+            <DialogContent size="mini">
                 <DialogStandardHeader
                     title="Eliminare l'account?"
                     description="Una volta eliminato l'account, tutti i dati associati vengono rimossi in modo definitivo. Inserisci la password per confermare."
+                    :closable="false"
                 />
                 <DialogBody>
                     <form id="delete-user-form" @submit.prevent="submit">

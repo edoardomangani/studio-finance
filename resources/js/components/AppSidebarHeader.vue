@@ -44,9 +44,9 @@ const statusToneClass: Record<StatusTone, string> = {
     warning: 'pill pill--warning',
 };
 
-/* Mobile-only sidebar trigger: sotto md la Sidebar diventa Sheet senza
-   modo nativo di essere aperta. Su md+ esiste il toggle a cavallo del
-   bordo in AppSidebar.vue, quindi qui md:hidden. */
+/* Tablet/mobile sidebar trigger: sotto lg (1024px) la Sidebar diventa Sheet
+   senza modo nativo di essere aperta. Da lg+ esiste il toggle a cavallo del
+   bordo in AppSidebar.vue, quindi qui lg:hidden. */
 const { toggleSidebar } = useSidebar();
 </script>
 
@@ -56,14 +56,14 @@ const { toggleSidebar } = useSidebar();
         <div
             class="border-border-soft flex h-12 items-center gap-2 border-b px-3 md:gap-3 md:px-5"
         >
-            <!-- Mobile-only: hamburger per aprire la Sidebar in modalità Sheet
-                 (sotto 768px). Su md+ nascosto: il toggle vive a cavallo del
+            <!-- Tablet/mobile: hamburger per aprire la Sidebar in modalità Sheet
+                 (sotto 1024px). Da lg+ nascosto: il toggle vive a cavallo del
                  bordo della sidebar (vedi AppSidebar.vue). -->
             <Button
                 type="button"
                 variant="ghost"
                 size="icon-sm"
-                class="-ml-1 md:hidden"
+                class="-ml-1 lg:hidden"
                 aria-label="Apri menu di navigazione"
                 @click="toggleSidebar"
             >

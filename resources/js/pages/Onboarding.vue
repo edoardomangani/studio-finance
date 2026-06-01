@@ -8,6 +8,7 @@
  * Layout `null` (registrato in app.ts): niente sidebar né topbar.
  */
 import { Head, useForm } from '@inertiajs/vue3';
+import FormField from '@/components/forms/FormField.vue';
 import { Button } from '@/components/ui/button';
 import { FieldGroup } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
@@ -19,7 +20,7 @@ import {
     NumberFieldInput,
 } from '@/components/ui/number-field';
 import { Spinner } from '@/components/ui/spinner';
-import FormField from '@/components/forms/FormField.vue';
+import { clampNumber } from '@/lib/clampNumber';
 import { store as onboardingStore } from '@/routes/onboarding';
 
 defineProps<{
@@ -30,7 +31,13 @@ defineProps<{
     };
 }>();
 
-const form = useForm({
+// Coefficiente come `number | string` (input grezzo, vuoto = ''); anno come
+// number (stepper NumberField: intero bounded, non un importo).
+const form = useForm<{
+    name: string;
+    profitability_coefficient: number | string;
+    business_start_year: number;
+}>({
     name: '',
     profitability_coefficient: 78,
     business_start_year: new Date().getFullYear(),
@@ -83,23 +90,17 @@ function submit() {
                         :invalid="!!form.errors.profitability_coefficient"
                         hint="Per gli architetti iscritti a Inarcassa è 78%."
                     >
-                        <NumberField
+                        <Input
                             id="onb-coef"
                             v-model="form.profitability_coefficient"
-                            :min="0"
-                            :max="100"
-                            :step="1"
-                            :format-options="{
-                                minimumFractionDigits: 0,
-                                maximumFractionDigits: 2,
-                            }"
-                        >
-                            <NumberFieldContent>
-                                <NumberFieldDecrement />
-                                <NumberFieldInput class="tabular" />
-                                <NumberFieldIncrement />
-                            </NumberFieldContent>
-                        </NumberField>
+                            type="number"
+                            inputmode="decimal"
+                            step="0.01"
+                            min="0"
+                            max="100"
+                            class="tabular"
+                            @blur="form.profitability_coefficient = clampNumber(form.profitability_coefficient, 0, 100)"
+                        />
                         <template v-if="form.errors.profitability_coefficient" #error>
                             {{ form.errors.profitability_coefficient }}
                         </template>
@@ -117,10 +118,7 @@ function submit() {
                             :min="1990"
                             :max="new Date().getFullYear()"
                             :step="1"
-                            :format-options="{
-                                useGrouping: false,
-                                maximumFractionDigits: 0,
-                            }"
+                            :format-options="{ useGrouping: false, maximumFractionDigits: 0 }"
                         >
                             <NumberFieldContent>
                                 <NumberFieldDecrement />

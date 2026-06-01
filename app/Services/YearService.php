@@ -54,6 +54,15 @@ class YearService
     }
 
     /**
+     * Anno (modello) per numero, 404 se non esiste per l'utente. Tenancy via
+     * global scope [[App\Concerns\BelongsToUser]].
+     */
+    public function findByYear(int $year): Year
+    {
+        return Year::query()->where('year', $year)->firstOrFail();
+    }
+
+    /**
      * Anno da proporre di default nel wizard: l'anno corrente se non ancora
      * aperto, altrimenti il primo anno successivo libero (F6 step 1).
      */

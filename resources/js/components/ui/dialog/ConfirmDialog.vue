@@ -17,6 +17,7 @@
  *   />
  */
 import { Button } from '@/components/ui/button'
+import { Spinner } from '@/components/ui/spinner'
 import Dialog from './Dialog.vue'
 import DialogBody from './DialogBody.vue'
 import DialogContent from './DialogContent.vue'
@@ -36,11 +37,14 @@ withDefaults(
         cancelLabel?: string
         /** Stile destructive (rosso) sul bottone conferma. */
         destructive?: boolean
+        /** Conferma in corso: disabilita il bottone e mostra lo spinner. */
+        loading?: boolean
     }>(),
     {
         confirmLabel: 'Conferma',
         cancelLabel: 'Annulla',
         destructive: false,
+        loading: false,
     },
 )
 
@@ -52,8 +56,8 @@ defineEmits<{
 
 <template>
     <Dialog :open="open" @update:open="(v) => $emit('update:open', v)">
-        <DialogContent size="mini" :show-close-button="false">
-            <DialogStandardHeader :title="title" />
+        <DialogContent size="mini">
+            <DialogStandardHeader :title="title" :closable="false" />
             <DialogBody v-if="description">
                 <p class="text-13 leading-relaxed text-muted-foreground">
                     {{ description }}
@@ -62,8 +66,10 @@ defineEmits<{
             <DialogStandardFooter :cancel-label="cancelLabel">
                 <Button
                     :variant="destructive ? 'destructive' : 'default'"
+                    :disabled="loading"
                     @click="$emit('confirm')"
                 >
+                    <Spinner v-if="loading" />
                     {{ confirmLabel }}
                 </Button>
             </DialogStandardFooter>

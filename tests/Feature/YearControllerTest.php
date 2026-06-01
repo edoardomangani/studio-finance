@@ -49,17 +49,15 @@ it('mostra la lista anni', function () {
             ->where('years.0.year', 2025));
 });
 
-it('mostra il wizard con il piano per l anno richiesto', function () {
-    $user = onboardedUserWithTemplates();
+it('restituisce il piano JSON per l anno richiesto', function () {
+    onboardedUserWithTemplates();
 
-    $this->get(route('years.open', ['year' => 2026]))
+    $this->getJson(route('years.plan', ['year' => 2026]))
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('years/OpenWizard')
-            ->where('plan.year', 2026)
-            ->has('plan.expenses', 8)
-            ->has('plan.deadlines', 20)
-            ->where('plan.next_year_needs_preopen', true));
+        ->assertJsonPath('year', 2026)
+        ->assertJsonCount(8, 'expenses')
+        ->assertJsonCount(20, 'deadlines')
+        ->assertJsonPath('next_year_needs_preopen', true);
 });
 
 it('apre un anno e reindirizza alla vista anno', function () {

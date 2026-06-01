@@ -18,7 +18,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { formatEUR } from '@/lib/format';
+import { formatEUR, formatPercent } from '@/lib/format';
 import { index as yearsIndex } from '@/routes/years';
 import type { YearShow } from '@/types';
 
@@ -34,10 +34,6 @@ setLayoutProps({
     ],
     subbar: false,
 });
-
-function formatCoefficient(value: number): string {
-    return `${value.toLocaleString('it-IT', { maximumFractionDigits: 2 })}%`;
-}
 </script>
 
 <template>
@@ -57,7 +53,7 @@ function formatCoefficient(value: number): string {
             </div>
             <dl class="flex items-baseline gap-2 text-13 text-muted-foreground">
                 <dt>Coefficiente</dt>
-                <dd class="tabular text-foreground">{{ formatCoefficient(props.year.profitability_coefficient) }}</dd>
+                <dd class="tabular text-foreground">{{ formatPercent(props.year.profitability_coefficient) }}</dd>
             </dl>
         </header>
 
@@ -77,7 +73,7 @@ function formatCoefficient(value: number): string {
                         <TableCell class="font-medium text-foreground">{{ expense.name }}</TableCell>
                         <TableCell class="text-muted-foreground">{{ expense.calculation_type_label }}</TableCell>
                         <TableCell class="tabular text-right text-muted-foreground">
-                            <span v-if="expense.rate !== null">{{ expense.rate.toLocaleString('it-IT', { maximumFractionDigits: 2 }) }}%</span>
+                            <span v-if="expense.rate !== null">{{ formatPercent(expense.rate) }}</span>
                             <span v-else>—</span>
                         </TableCell>
                         <TableCell class="tabular text-right text-muted-foreground">

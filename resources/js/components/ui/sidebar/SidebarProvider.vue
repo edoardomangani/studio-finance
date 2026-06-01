@@ -19,7 +19,10 @@ const emits = defineEmits<{
   "update:open": [open: boolean]
 }>()
 
-const isMobile = useMediaQuery("(max-width: 768px)")
+// Tablet inclusi nel pattern "mobile" (Sidebar come Sheet + hamburger): la
+// sidebar inline + il toggle a cavallo del bordo vivono solo da lg (≥1024px,
+// laptop/desktop). Sotto 1024 si naviga con l'hamburger nell'header.
+const isMobile = useMediaQuery("(max-width: 1023.98px)")
 const openMobile = ref(false)
 
 const open = useVModel(props, "open", emits, {

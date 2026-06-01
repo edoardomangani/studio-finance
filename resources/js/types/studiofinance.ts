@@ -186,6 +186,22 @@ export type YearPlanExpense = {
     previous_year_credit: number | null;
 };
 
+/**
+ * Riga spesa editabile nel wizard apertura anno: come YearPlanExpense ma con
+ * i campi numerici grezzi (`number | string`, vuoto = '') e il flag di
+ * inclusione. Condivisa tra OpenYearDialog e WizardExpensesStep.
+ */
+export type YearWizardExpense = {
+    expense_item_id: number | null;
+    name: string;
+    calculation_type: ExpenseCalculationType;
+    rate: number | string;
+    minimum: number | string;
+    maximum: number | string;
+    amount: number | string;
+    included: boolean;
+};
+
 /** Scadenza nel piano di apertura anno (con data calcolata). */
 export type YearPlanDeadline = {
     recurring_deadline_id: number | null;

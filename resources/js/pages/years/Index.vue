@@ -9,23 +9,29 @@
  */
 import { Head, Link, router, setLayoutProps } from '@inertiajs/vue3';
 import { PhPlus } from '@phosphor-icons/vue';
+import { ref } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from '@/components/ui/empty';
 import {
     Table,
     TableBody,
     TableCell,
+    TableEmpty,
     TableHead,
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
-import { open as yearsOpen, show as yearShow } from '@/routes/years';
+import { formatPercent } from '@/lib/format';
+import OpenYearDialog from '@/pages/years/OpenYearDialog.vue';
+import { show as yearShow } from '@/routes/years';
 import type { YearListItem } from '@/types';
 
 const props = defineProps<{
     years: YearListItem[];
+    suggestedYear: number;
 }>();
+
+const wizardOpen = ref(false);
 
 setLayoutProps({
     pageTitle: 'Anni',
@@ -37,39 +43,22 @@ function openYear(year: YearListItem): void {
     router.visit(yearShow(year.year).url);
 }
 
-function formatCoefficient(value: number): string {
-    return `${value.toLocaleString('it-IT', { maximumFractionDigits: 2 })}%`;
-}
 </script>
 
 <template>
     <Head title="Anni" />
 
     <Teleport to="#page-topbar-actions" defer>
-        <Button as-child size="sm">
-            <Link :href="yearsOpen().url">
-                <PhPlus :size="14" weight="bold" />
-                Apri nuovo anno
-            </Link>
+        <Button type="button" size="sm" @click="wizardOpen = true">
+            <PhPlus :size="14" weight="bold" />
+            Apri nuovo anno
         </Button>
     </Teleport>
 
-    <Empty v-if="props.years.length === 0" class="mt-6 border">
-        <EmptyHeader>
-            <EmptyTitle>Nessun anno aperto</EmptyTitle>
-            <EmptyDescription>
-                Apri il primo anno per generare spese, scadenze e pagamenti pianificati.
-            </EmptyDescription>
-        </EmptyHeader>
-        <Button as-child size="sm">
-            <Link :href="yearsOpen().url">
-                <PhPlus :size="14" weight="bold" />
-                Apri nuovo anno
-            </Link>
-        </Button>
-    </Empty>
+    <OpenYearDialog v-model:open="wizardOpen" :suggested-year="props.suggestedYear" />
 
-    <Table v-else boxed>
+    <!-- Desktop (md+): tabella densa. -->
+    <Table boxed class="hidden md:table">
         <TableHeader>
             <TableRow>
                 <TableHead class="w-[120px]">Anno</TableHead>
@@ -80,8 +69,12 @@ function formatCoefficient(value: number): string {
             </TableRow>
         </TableHeader>
         <TableBody>
+            <TableEmpty v-if="props.years.length === 0" :colspan="5">
+                Nessun anno aperto. Aprine uno dal pulsante in alto.
+            </TableEmpty>
             <TableRow
                 v-for="year in props.years"
+                v-else
                 :key="year.id"
                 class="cursor-pointer transition-colors hover:bg-muted/40"
                 @click="openYear(year)"
@@ -95,7 +88,7 @@ function formatCoefficient(value: number): string {
                     </Link>
                 </TableCell>
                 <TableCell class="tabular text-right text-muted-foreground">
-                    {{ formatCoefficient(year.profitability_coefficient) }}
+                    {{ formatPercent(year.profitability_coefficient) }}
                 </TableCell>
                 <TableCell class="tabular text-right text-muted-foreground">
                     {{ year.expenses_count }}
@@ -110,4 +103,41 @@ function formatCoefficient(value: number): string {
             </TableRow>
         </TableBody>
     </Table>
+
+    <!-- Mobile (< md): card-stack, ogni card è un Link a piena area touch. -->
+    <div class="md:hidden">
+        <div
+            v-if="props.years.length === 0"
+            class="rounded-lg border border-dashed border-border p-6 text-center text-13 text-muted-foreground"
+        >
+            Nessun anno aperto. Aprine uno dal pulsante in alto.
+        </div>
+        <ul v-else class="flex flex-col gap-2">
+            <li v-for="year in props.years" :key="year.id">
+                <Link
+                    :href="yearShow(year.year).url"
+                    class="block rounded-lg border border-border bg-card p-3 transition-colors outline-none hover:bg-muted/40 focus-visible:ring-1 focus-visible:ring-accent-line"
+                >
+                    <div class="flex items-baseline justify-between">
+                        <span class="tabular text-base font-medium text-foreground">{{ year.year }}</span>
+                        <Badge v-if="year.pre_opened" variant="secondary">Pre-aperto</Badge>
+                    </div>
+                    <dl class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-13 text-muted-foreground">
+                        <div class="flex items-baseline gap-1.5">
+                            <dt>Coefficiente</dt>
+                            <dd class="tabular text-foreground">{{ formatPercent(year.profitability_coefficient) }}</dd>
+                        </div>
+                        <div class="flex items-baseline gap-1.5">
+                            <dt>Voci</dt>
+                            <dd class="tabular text-foreground">{{ year.expenses_count }}</dd>
+                        </div>
+                        <div class="flex items-baseline gap-1.5">
+                            <dt>Scadenze</dt>
+                            <dd class="tabular text-foreground">{{ year.deadlines_count }}</dd>
+                        </div>
+                    </dl>
+                </Link>
+            </li>
+        </ul>
+    </div>
 </template>

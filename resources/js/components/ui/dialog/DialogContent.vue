@@ -27,7 +27,7 @@ const dialogContentVariants = cva(
       size: {
         mini:       'max-w-[calc(100%-2rem)] sm:max-w-[460px] rounded-lg',
         default:    'max-w-[calc(100%-2rem)] sm:max-w-[580px] rounded-lg',
-        wide:       'max-w-[calc(100%-2rem)] sm:max-w-[760px] rounded-lg',
+        wide:       'max-w-[calc(100%-2rem)] sm:max-w-[760px] lg:max-w-[min(1100px,calc(100vw-3rem))] rounded-lg',
         fullscreen: 'w-[calc(100vw-3rem)] h-[calc(100vh-3rem)] max-w-none rounded-lg',
       },
     },
@@ -44,11 +44,17 @@ defineOptions({
 const props = withDefaults(
   defineProps<DialogContentProps & {
     class?: HTMLAttributes["class"]
+    /**
+     * X floating in alto a destra del content. Default false: il close
+     * canonico vive in DialogStandardHeader (allineato al titolo). Attivare
+     * solo per i dialog SENZA DialogStandardHeader che vogliono comunque una
+     * X (es. header centrato custom come TwoFactorSetupModal).
+     */
     showCloseButton?: boolean
     size?: DialogContentSize
   }>(),
   {
-    showCloseButton: true,
+    showCloseButton: false,
     size: 'default',
   },
 )
@@ -72,7 +78,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
       <DialogClose
         v-if="showCloseButton"
         data-slot="dialog-close"
-        class="text-muted-foreground hover:text-foreground absolute top-5 right-5 rounded-md p-1.25 opacity-80 transition-colors hover:opacity-100 outline-none disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5 hover:bg-foreground/3 cursor-pointer"
+        class="text-muted-foreground hover:text-foreground absolute top-5 right-5 rounded-md p-1.25 opacity-80 transition-colors hover:opacity-100 outline-none focus-visible:text-foreground focus-visible:opacity-100 focus-visible:ring-1 focus-visible:ring-accent-line disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-3.5 hover:bg-foreground/3 cursor-pointer"
       >
         <PhX />
         <span class="sr-only">Close</span>

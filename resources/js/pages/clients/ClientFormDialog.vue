@@ -78,7 +78,7 @@ const dialogTitle = computed(() =>
 const dialogDescription = computed(() =>
     isEditing.value
         ? 'Aggiorna i dati anagrafici. Le fatture esistenti restano invariate.'
-        : 'Anagrafica cliente. Almeno uno tra P.IVA e Codice Fiscale è obbligatorio.',
+        : 'Aggiungi un nuovo cliente. Almeno uno tra P.IVA e Codice Fiscale è obbligatorio.',
 );
 
 watch(open, (isOpen) => {

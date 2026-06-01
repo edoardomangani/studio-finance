@@ -44,6 +44,7 @@ import {
 } from '@/components/ui/number-field';
 import { Spinner } from '@/components/ui/spinner';
 import { useShortcut } from '@/composables/useShortcut';
+import { clampNumber } from '@/lib/clampNumber';
 import { send } from '@/routes/verification';
 import type { ProfessionalProfile } from '@/types';
 
@@ -61,7 +62,14 @@ const props = defineProps<{
 const page = usePage();
 const user = computed(() => page.props.auth.user);
 
-const professionalForm = useForm({
+// Coefficiente come `number | string` (input grezzo, vuoto = ''); anno come
+// number (stepper NumberField: intero bounded, non un importo).
+const professionalForm = useForm<{
+    name: string;
+    email: string;
+    profitability_coefficient: number | string;
+    business_start_year: number;
+}>({
     name: user.value.name,
     email: user.value.email,
     profitability_coefficient: props.professionalProfile
@@ -227,23 +235,17 @@ useShortcut(
                 required
                 hint="Per architetti iscritti a Inarcassa è 78%."
             >
-                <NumberField
+                <Input
                     id="prof-coef"
                     v-model="professionalForm.profitability_coefficient"
-                    :min="0"
-                    :max="100"
-                    :step="1"
-                    :format-options="{
-                        minimumFractionDigits: 0,
-                        maximumFractionDigits: 2,
-                    }"
-                >
-                    <NumberFieldContent>
-                        <NumberFieldDecrement />
-                        <NumberFieldInput class="tabular" />
-                        <NumberFieldIncrement />
-                    </NumberFieldContent>
-                </NumberField>
+                    type="number"
+                    inputmode="decimal"
+                    step="0.01"
+                    min="0"
+                    max="100"
+                    class="tabular"
+                    @blur="professionalForm.profitability_coefficient = clampNumber(professionalForm.profitability_coefficient, 0, 100)"
+                />
                 <template v-if="professionalForm.errors.profitability_coefficient" #error>{{ professionalForm.errors.profitability_coefficient }}</template>
             </FormField>
 
@@ -260,10 +262,7 @@ useShortcut(
                     :min="1990"
                     :max="new Date().getFullYear()"
                     :step="1"
-                    :format-options="{
-                        useGrouping: false,
-                        maximumFractionDigits: 0,
-                    }"
+                    :format-options="{ useGrouping: false, maximumFractionDigits: 0 }"
                 >
                     <NumberFieldContent>
                         <NumberFieldDecrement />

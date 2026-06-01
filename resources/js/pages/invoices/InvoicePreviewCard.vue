@@ -145,7 +145,9 @@ function toFloat(v: string): number {
 }
 
 const totalFloat = computed(() => {
-    if (!preview.value.parsed) return 0;
+    if (!preview.value.parsed) {
+        return 0;
+    }
 
     const p = preview.value;
 
@@ -388,7 +390,9 @@ const triggerAriaLabel = computed(
                                 type="number"
                                 step="0.01"
                                 min="0"
-                                class="tabular"
+                                max="9999999.99"
+                                inputmode="decimal"
+                                class="tabular text-right"
                             />
                         </FormField>
                         <FormField
@@ -402,7 +406,9 @@ const triggerAriaLabel = computed(
                                 type="number"
                                 step="0.01"
                                 min="0"
-                                :class="['tabular', stampDiscrepancy ? 'border-warning/60 bg-warning-foreground' : '']"
+                                max="9999999.99"
+                                inputmode="decimal"
+                                :class="['tabular text-right', stampDiscrepancy ? 'border-warning/60 bg-warning-foreground' : '']"
                             />
                             <template v-if="stampDiscrepancy" #hint>
                                 <span class="inline-flex items-center gap-1 text-warning">
@@ -422,7 +428,9 @@ const triggerAriaLabel = computed(
                                 type="number"
                                 step="0.01"
                                 min="0"
-                                :class="['tabular', inarcassaDiscrepancy ? 'border-warning/60 bg-warning-foreground' : '']"
+                                max="9999999.99"
+                                inputmode="decimal"
+                                :class="['tabular text-right', inarcassaDiscrepancy ? 'border-warning/60 bg-warning-foreground' : '']"
                             />
                             <template v-if="inarcassaDiscrepancy" #hint>
                                 <span class="inline-flex items-center gap-1 text-warning">
@@ -438,7 +446,9 @@ const triggerAriaLabel = computed(
                                 type="number"
                                 step="0.01"
                                 min="0"
-                                class="tabular"
+                                max="9999999.99"
+                                inputmode="decimal"
+                                class="tabular text-right"
                             />
                         </FormField>
                     </div>
@@ -546,7 +556,7 @@ const triggerAriaLabel = computed(
                 <!-- Sorgente file: footer caption discreta, in fondo a tutto.
                      Info debug di basso peso (text-2xs, muted/60), serve
                      solo per ricondurre la card al XML originale se serve. -->
-                <p class="flex items-center gap-1 text-2xs text-muted-foreground/60">
+                <p class="flex items-center gap-1 text-[10px] text-muted-foreground/60">
                     <PhFile :size="11" class="shrink-0" />
                     <span class="truncate font-mono">{{ preview.filename }}</span>
                 </p>
