@@ -53,6 +53,8 @@ export type RecurringDeadline = {
     due_year_offset_label: string;
     expense_year_offset: ExpenseYearOffset;
     expense_year_offset_label: string;
+    quota_type: QuotaType | null;
+    quota_type_label: string | null;
     active: boolean;
 };
 

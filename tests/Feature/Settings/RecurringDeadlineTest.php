@@ -3,6 +3,7 @@
 use App\Enums\DeadlineKind;
 use App\Enums\DueYearOffset;
 use App\Enums\ExpenseYearOffset;
+use App\Enums\QuotaType;
 use App\Models\ExpenseItem;
 use App\Models\ProfessionalProfile;
 use App\Models\RecurringDeadline;
@@ -97,6 +98,41 @@ it('crea un recurring deadline payment con expense item collegato', function ():
 
     expect($user->recurringDeadlines()->where('name', 'Saldo IS')->first()->expense_item_id)
         ->toBe($item->id);
+});
+
+it('persiste il quota_type su una scadenza di pagamento', function (): void {
+    $user = onboardedRD();
+    $item = ExpenseItem::factory()->for($user)->create();
+
+    $this->actingAs($user)->post('/settings/recurring-deadlines', [
+        'name' => '1° acconto IS',
+        'day' => 30,
+        'month' => 6,
+        'kind' => DeadlineKind::Payment->value,
+        'expense_item_id' => $item->id,
+        'due_year_offset' => DueYearOffset::Current->value,
+        'expense_year_offset' => ExpenseYearOffset::Current->value,
+        'quota_type' => QuotaType::TaxAdvance->value,
+        'active' => true,
+    ])->assertRedirect('/settings/recurring-deadlines');
+
+    expect($user->recurringDeadlines()->where('name', '1° acconto IS')->first()->quota_type)
+        ->toBe(QuotaType::TaxAdvance);
+});
+
+it('vieta il quota_type su fulfillment', function (): void {
+    $user = onboardedRD();
+
+    $this->actingAs($user)->post('/settings/recurring-deadlines', [
+        'name' => 'Dichiarazione',
+        'day' => 30,
+        'month' => 11,
+        'kind' => DeadlineKind::Fulfillment->value,
+        'due_year_offset' => DueYearOffset::Current->value,
+        'expense_year_offset' => ExpenseYearOffset::Current->value,
+        'quota_type' => QuotaType::FullAmount->value,
+        'active' => true,
+    ])->assertSessionHasErrors(['quota_type']);
 });
 
 it('richiede expense_item_id per payment', function (): void {

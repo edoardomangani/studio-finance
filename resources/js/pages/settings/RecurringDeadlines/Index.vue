@@ -68,6 +68,7 @@ import type {
     DueYearOffset,
     EnumOption,
     ExpenseYearOffset,
+    QuotaType,
     RecurringDeadline,
 } from '@/types';
 
@@ -76,6 +77,7 @@ defineProps<{
     kinds: EnumOption[];
     dueYearOffsets: EnumOption[];
     expenseYearOffsets: EnumOption[];
+    quotaTypes: EnumOption[];
     activeExpenseItems: { id: number; name: string }[];
 }>();
 
@@ -96,6 +98,7 @@ type FormPayload = {
     expense_item_id: number | null;
     due_year_offset: DueYearOffset;
     expense_year_offset: ExpenseYearOffset;
+    quota_type: QuotaType | null;
     active: boolean;
 };
 
@@ -107,6 +110,7 @@ const emptyForm = (): FormPayload => ({
     expense_item_id: null,
     due_year_offset: 'current',
     expense_year_offset: 'current',
+    quota_type: null,
     active: true,
 });
 
@@ -149,6 +153,7 @@ watch(
     (nextKind) => {
         if (nextKind === 'fulfillment') {
             form.expense_item_id = null;
+            form.quota_type = null;
         }
     },
 );
@@ -172,6 +177,7 @@ function openEdit(deadline: RecurringDeadline): void {
         expense_item_id: deadline.expense_item_id,
         due_year_offset: deadline.due_year_offset,
         expense_year_offset: deadline.expense_year_offset,
+        quota_type: deadline.quota_type,
         active: deadline.active,
     };
     form.defaults(next);
@@ -450,6 +456,33 @@ function formatDate(deadline: RecurringDeadline): string {
                                 </SelectContent>
                             </Select>
                             <template v-if="form.errors.expense_year_offset" #error>{{ form.errors.expense_year_offset }}</template>
+                        </FormField>
+
+                        <FormField
+                            v-if="isPayment"
+                            label="Tipo quota"
+                            for="d-quota"
+                            hint="Determina l'importo previsto suggerito alla registrazione del pagamento. Lascia vuoto per nessun suggerimento."
+                        >
+                            <Select
+                                :model-value="form.quota_type ?? 'none'"
+                                @update:model-value="(v) => (form.quota_type = v === 'none' ? null : (v as QuotaType))"
+                            >
+                                <SelectTrigger id="d-quota" class="w-full">
+                                    <SelectValue placeholder="Nessuno" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="none">Nessuno</SelectItem>
+                                    <SelectItem
+                                        v-for="opt in quotaTypes"
+                                        :key="opt.value"
+                                        :value="opt.value"
+                                    >
+                                        {{ opt.label }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <template v-if="form.errors.quota_type" #error>{{ form.errors.quota_type }}</template>
                         </FormField>
 
                         <Field orientation="horizontal">

@@ -5,6 +5,7 @@ namespace App\Concerns;
 use App\Enums\DeadlineKind;
 use App\Enums\DueYearOffset;
 use App\Enums\ExpenseYearOffset;
+use App\Enums\QuotaType;
 use App\Models\ExpenseItem;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Facades\Auth;
@@ -57,6 +58,12 @@ trait RecurringDeadlineValidationRules
                 'required',
                 Rule::enum(ExpenseYearOffset::class),
             ],
+            // tipo quota: solo per le scadenze di pagamento; determina come si
+            // calcola l'importo previsto (RB8). Può restare null (nessun
+            // suggerimento). Per gli adempimenti è vietato.
+            'quota_type' => $isPayment
+                ? ['nullable', Rule::enum(QuotaType::class)]
+                : ['nullable', 'prohibited'],
             'active' => ['required', 'boolean'],
         ];
     }
@@ -75,6 +82,8 @@ trait RecurringDeadlineValidationRules
             'expense_item_id.required' => 'Le scadenze di pagamento richiedono una voce di spesa.',
             'expense_item_id.prohibited' => 'Le scadenze di adempimento non possono avere una voce di spesa collegata.',
             'expense_item_id.exists' => 'Voce di spesa non valida.',
+            'quota_type.prohibited' => 'Gli adempimenti non hanno un tipo quota.',
+            'quota_type.enum' => 'Tipo quota non valido.',
             'due_year_offset.enum' => 'Anno della data scadenza non valido.',
             'expense_year_offset.enum' => 'Anno di riferimento non valido.',
         ];

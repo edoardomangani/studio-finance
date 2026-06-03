@@ -77,8 +77,8 @@ const mainSections: NavSection[] = [
         items: [
             { label: 'Dashboard', icon: PhHouse, href: dashboard() },
             { label: 'Anni', icon: PhCalendarBlank, href: yearsIndex() },
-            { label: 'Fatture', icon: PhReceipt, href: invoicesIndex() },
             { label: 'Scadenze', icon: PhListChecks, href: deadlinesIndex() },
+            { label: 'Fatture', icon: PhReceipt, href: invoicesIndex() },
             { label: 'Clienti', icon: PhUsers, href: clientsIndex() },
         ],
     },

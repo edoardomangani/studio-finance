@@ -31,6 +31,7 @@ class RecurringDeadlineController extends Controller
             'kinds' => $this->deadlines->kindOptions(),
             'dueYearOffsets' => $this->deadlines->dueYearOffsetOptions(),
             'expenseYearOffsets' => $this->deadlines->expenseYearOffsetOptions(),
+            'quotaTypes' => $this->deadlines->quotaTypeOptions(),
             'activeExpenseItems' => $this->deadlines->activeExpenseItems(),
         ]);
     }

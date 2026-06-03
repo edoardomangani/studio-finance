@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\DeadlineKind;
 use App\Enums\DueYearOffset;
 use App\Enums\ExpenseYearOffset;
+use App\Enums\QuotaType;
 use App\Models\ExpenseItem;
 use App\Models\RecurringDeadline;
 
@@ -32,6 +33,7 @@ class RecurringDeadlineService
                 'expense_item_id',
                 'due_year_offset',
                 'expense_year_offset',
+                'quota_type',
                 'active',
             ])
             ->with('expenseItem:id,name')
@@ -74,6 +76,17 @@ class RecurringDeadlineService
         return array_map(
             fn (ExpenseYearOffset $o) => ['value' => $o->value, 'label' => $o->label()],
             ExpenseYearOffset::cases(),
+        );
+    }
+
+    /**
+     * @return list<array{value: string, label: string}>
+     */
+    public function quotaTypeOptions(): array
+    {
+        return array_map(
+            fn (QuotaType $q) => ['value' => $q->value, 'label' => $q->label()],
+            QuotaType::cases(),
         );
     }
 
@@ -132,6 +145,8 @@ class RecurringDeadlineService
             'due_year_offset_label' => $d->due_year_offset->label(),
             'expense_year_offset' => $d->expense_year_offset->value,
             'expense_year_offset_label' => $d->expense_year_offset->label(),
+            'quota_type' => $d->quota_type?->value,
+            'quota_type_label' => $d->quota_type?->label(),
             'active' => $d->active,
         ];
     }
