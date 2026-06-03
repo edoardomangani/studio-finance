@@ -115,15 +115,12 @@ function submit(): void {
     }));
 
     if (isEditing.value && props.client) {
-        form.patch(
-            ClientController.update.url({ client: props.client.id }),
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    open.value = false;
-                },
+        form.patch(ClientController.update.url({ client: props.client.id }), {
+            preserveScroll: true,
+            onSuccess: () => {
+                open.value = false;
             },
-        );
+        });
     } else {
         form.post(ClientController.store.url(), {
             preserveScroll: props.inline,
@@ -149,14 +146,20 @@ function submit(): void {
             <DialogBody>
                 <form id="client-form" @submit.prevent="submit">
                     <FieldGroup>
-                        <FormField label="Denominazione" for="client-name" required>
+                        <FormField
+                            label="Denominazione"
+                            for="client-name"
+                            required
+                        >
                             <Input
                                 id="client-name"
                                 v-model="form.name"
                                 placeholder="Es. Acme Architettura srl"
                                 autofocus
                             />
-                            <template v-if="form.errors.name" #error>{{ form.errors.name }}</template>
+                            <template v-if="form.errors.name" #error>{{
+                                form.errors.name
+                            }}</template>
                         </FormField>
 
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -167,7 +170,11 @@ function submit(): void {
                                     placeholder="IT12345678901"
                                     autocomplete="off"
                                 />
-                                <template v-if="form.errors.vat_number" #error>{{ form.errors.vat_number }}</template>
+                                <template
+                                    v-if="form.errors.vat_number"
+                                    #error
+                                    >{{ form.errors.vat_number }}</template
+                                >
                             </FormField>
 
                             <FormField label="Codice Fiscale" for="client-cf">
@@ -177,7 +184,9 @@ function submit(): void {
                                     placeholder="RSSMRA80A01H501Z"
                                     autocomplete="off"
                                 />
-                                <template v-if="form.errors.tax_code" #error>{{ form.errors.tax_code }}</template>
+                                <template v-if="form.errors.tax_code" #error>{{
+                                    form.errors.tax_code
+                                }}</template>
                             </FormField>
                         </div>
 
@@ -186,8 +195,11 @@ function submit(): void {
                                 id="client-withholding"
                                 v-model="form.bank_withholding"
                             />
-                            <FieldLabel for="client-withholding" class="font-normal">
-                                Ritenuta bancaria 8%
+                            <FieldLabel
+                                for="client-withholding"
+                                class="font-normal"
+                            >
+                                Ritenuta bancaria
                             </FieldLabel>
                         </Field>
 
@@ -198,7 +210,9 @@ function submit(): void {
                                 rows="3"
                                 placeholder="Note libere sul cliente."
                             />
-                            <template v-if="form.errors.notes" #error>{{ form.errors.notes }}</template>
+                            <template v-if="form.errors.notes" #error>{{
+                                form.errors.notes
+                            }}</template>
                         </FormField>
                     </FieldGroup>
                 </form>

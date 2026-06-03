@@ -22,6 +22,7 @@ class AnnualExpense extends Model
         'expense_item_id',
         'name',
         'calculation_type',
+        'is_pension_contribution',
         'rate',
         'minimum',
         'maximum',
@@ -35,6 +36,7 @@ class AnnualExpense extends Model
     {
         return [
             'calculation_type' => ExpenseCalculationType::class,
+            'is_pension_contribution' => 'boolean',
             'rate' => 'decimal:2',
             'minimum' => 'decimal:2',
             'maximum' => 'decimal:2',

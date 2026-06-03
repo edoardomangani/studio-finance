@@ -68,7 +68,9 @@ export type ImportPreviewLocal = {
     };
     /** Uncheckato (= excluded true) → scartato dal batch import. */
     excluded: boolean;
-    discrepancies?: Partial<Record<'stamp_amount' | 'inarcassa_amount', ImportDiscrepancy>>;
+    discrepancies?: Partial<
+        Record<'stamp_amount' | 'inarcassa_amount', ImportDiscrepancy>
+    >;
 };
 
 const props = defineProps<{
@@ -89,33 +91,39 @@ const status = computed<'pronto' | 'da_confermare' | 'scartato'>(() => {
     }
 
     if (preview.value.client_mode === 'existing') {
-        return preview.value.existing_client_id !== null ? 'pronto' : 'da_confermare';
+        return preview.value.existing_client_id !== null
+            ? 'pronto'
+            : 'da_confermare';
     }
 
     const hasName = preview.value.new_client.name.trim() !== '';
-    const hasId = preview.value.new_client.vat_number.trim() !== ''
-        || preview.value.new_client.tax_code.trim() !== '';
+    const hasId =
+        preview.value.new_client.vat_number.trim() !== '' ||
+        preview.value.new_client.tax_code.trim() !== '';
 
     return hasName && hasId ? 'pronto' : 'da_confermare';
 });
 
-const statusBadge = computed(() => ({
-    pronto: {
-        label: 'Pronto',
-        variant: 'outline' as const,
-        class: 'border-positive/40 text-positive',
-    },
-    da_confermare: {
-        label: 'Da confermare',
-        variant: 'outline' as const,
-        class: 'border-foreground/30 text-foreground',
-    },
-    scartato: {
-        label: 'Scartato',
-        variant: 'secondary' as const,
-        class: '',
-    },
-})[status.value]);
+const statusBadge = computed(
+    () =>
+        ({
+            pronto: {
+                label: 'Pronto',
+                variant: 'outline' as const,
+                class: 'border-positive/40 text-positive',
+            },
+            da_confermare: {
+                label: 'Da confermare',
+                variant: 'outline' as const,
+                class: 'border-foreground/30 text-foreground',
+            },
+            scartato: {
+                label: 'Scartato',
+                variant: 'secondary' as const,
+                class: '',
+            },
+        })[status.value],
+);
 
 /** Classe bg + border per AccordionItem in base allo stato. */
 const itemClass = computed(() => ({
@@ -124,15 +132,19 @@ const itemClass = computed(() => ({
     'border-border bg-muted/30 opacity-70': status.value === 'scartato',
 }));
 
-
 const clientLabel = computed(() => {
     if (!preview.value.parsed) {
         return preview.value.filename;
     }
 
-    if (preview.value.client_mode === 'existing' && preview.value.existing_client_id !== null) {
-        return props.clients.find((c) => c.id === preview.value.existing_client_id)?.name
-            ?? '—';
+    if (
+        preview.value.client_mode === 'existing' &&
+        preview.value.existing_client_id !== null
+    ) {
+        return (
+            props.clients.find((c) => c.id === preview.value.existing_client_id)
+                ?.name ?? '—'
+        );
     }
 
     return preview.value.new_client.name || '— cliente nuovo';
@@ -151,12 +163,20 @@ const totalFloat = computed(() => {
 
     const p = preview.value;
 
-    return toFloat(p.amount) + toFloat(p.inarcassa_amount)
-        + toFloat(p.stamp_amount) + toFloat(p.art_15_amount);
+    return (
+        toFloat(p.amount) +
+        toFloat(p.inarcassa_amount) +
+        toFloat(p.stamp_amount) +
+        toFloat(p.art_15_amount)
+    );
 });
 
-const stampDiscrepancy = computed(() => preview.value.discrepancies?.stamp_amount);
-const inarcassaDiscrepancy = computed(() => preview.value.discrepancies?.inarcassa_amount);
+const stampDiscrepancy = computed(
+    () => preview.value.discrepancies?.stamp_amount,
+);
+const inarcassaDiscrepancy = computed(
+    () => preview.value.discrepancies?.inarcassa_amount,
+);
 const hasAnyDiscrepancy = computed(
     () => !!(stampDiscrepancy.value || inarcassaDiscrepancy.value),
 );
@@ -186,7 +206,10 @@ function onClientPickerSelect(client: ClientForPicker): void {
     preview.value = {
         ...preview.value,
         existing_client_id: client.id,
-        new_client: { ...preview.value.new_client, bank_withholding: client.bank_withholding },
+        new_client: {
+            ...preview.value.new_client,
+            bank_withholding: client.bank_withholding,
+        },
     };
 }
 
@@ -208,7 +231,9 @@ const triggerAriaLabel = computed(
              estendono il bg di hover/focus fino ai bordi della card
              (clip via `overflow-hidden` su AccordionItem) — così click
              e feedback visivo coprono "tutto tranne il checkbox". -->
-        <div class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/30">
+        <div
+            class="flex items-center gap-3 px-4 py-3 transition-colors hover:bg-muted/30"
+        >
             <!-- Checkbox: includi nel batch (uncheck = scartato). Disabled
                  su parse-fail: file rotto non si può "includere".
                  `@click.stop` impedisce bubble al trigger sibling. -->
@@ -224,10 +249,10 @@ const triggerAriaLabel = computed(
                 <AccordionTrigger
                     :aria-label="triggerAriaLabel"
                     :class="[
-                        'grid flex-1 min-w-0 cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1',
-                        '-my-3 -ml-3 -mr-4 py-3 pl-3 pr-4',
-                        'text-left outline-none transition-colors',
-                        'focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring',
+                        'grid min-w-0 flex-1 cursor-pointer grid-cols-[auto_1fr_auto] items-center gap-x-3 gap-y-1',
+                        '-my-3 -mr-4 -ml-3 py-3 pr-4 pl-3',
+                        'text-left transition-colors outline-none',
+                        'focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
                         '[&[data-state=open]_[data-caret]]:rotate-90',
                         'md:flex md:items-center md:gap-3',
                     ]"
@@ -238,7 +263,7 @@ const triggerAriaLabel = computed(
                     <PhCaretRight
                         :size="14"
                         data-caret
-                        class="row-span-2 self-center shrink-0 text-muted-foreground transition-transform duration-200 md:row-span-1 md:self-auto"
+                        class="row-span-2 shrink-0 self-center text-muted-foreground transition-transform duration-200 md:row-span-1 md:self-auto"
                     />
 
                     <!-- ID cluster: lingua naturale "Fattura #N del DD/MM/YYYY".
@@ -248,12 +273,25 @@ const triggerAriaLabel = computed(
                          Parse-fail: filename solo (no prefisso). -->
                     <div class="flex min-w-0 items-baseline gap-1.5">
                         <template v-if="preview.parsed">
-                            <span class="shrink-0 text-13 text-muted-foreground">Fattura</span>
-                            <span class="tabular shrink-0 text-13 font-medium text-foreground">#{{ preview.number || '—' }}</span>
-                            <span class="shrink-0 text-13 text-muted-foreground">del</span>
-                            <span class="tabular shrink-0 text-13 text-foreground">{{ formatDateIT(preview.issued_at) }}</span>
+                            <span class="shrink-0 text-13 text-muted-foreground"
+                                >Fattura</span
+                            >
+                            <span
+                                class="tabular shrink-0 text-13 font-medium text-foreground"
+                                >#{{ preview.number || '—' }}</span
+                            >
+                            <span class="shrink-0 text-13 text-muted-foreground"
+                                >del</span
+                            >
+                            <span
+                                class="tabular shrink-0 text-13 text-foreground"
+                                >{{ formatDateIT(preview.issued_at) }}</span
+                            >
                         </template>
-                        <span v-else class="min-w-0 truncate text-13 font-medium text-foreground">
+                        <span
+                            v-else
+                            class="min-w-0 truncate text-13 font-medium text-foreground"
+                        >
                             {{ preview.filename }}
                         </span>
                     </div>
@@ -265,7 +303,7 @@ const triggerAriaLabel = computed(
                          ID order-0 e cliente order-2). -->
                     <span
                         v-if="preview.parsed"
-                        class="hidden h-4 w-px shrink-0 bg-border md:block md:order-1"
+                        class="hidden h-4 w-px shrink-0 bg-border md:order-1 md:block"
                         aria-hidden="true"
                     />
 
@@ -273,10 +311,20 @@ const triggerAriaLabel = computed(
                          desktop. Status indicator sempre a destra. -->
                     <Badge
                         :variant="statusBadge.variant"
-                        :class="['text-2xs row-start-1 col-start-3 justify-self-end shrink-0 md:row-auto md:col-auto md:order-last md:justify-self-auto', statusBadge.class]"
+                        :class="[
+                            'col-start-3 row-start-1 shrink-0 justify-self-end text-2xs md:order-last md:col-auto md:row-auto md:justify-self-auto',
+                            statusBadge.class,
+                        ]"
                     >
-                        <PhCheckCircle v-if="status === 'pronto'" :size="11" weight="fill" />
-                        <PhWarning v-else-if="status === 'da_confermare'" :size="11" />
+                        <PhCheckCircle
+                            v-if="status === 'pronto'"
+                            :size="11"
+                            weight="fill"
+                        />
+                        <PhWarning
+                            v-else-if="status === 'da_confermare'"
+                            :size="11"
+                        />
                         <PhWarningCircle v-else :size="11" />
                         {{ statusBadge.label }}
                     </Badge>
@@ -288,7 +336,7 @@ const triggerAriaLabel = computed(
                          al numero. -->
                     <span
                         v-if="preview.parsed"
-                        class="row-start-2 col-start-2 min-w-0 truncate text-13 text-foreground md:row-auto md:col-auto md:order-2 md:flex-1"
+                        class="col-start-2 row-start-2 min-w-0 truncate text-13 text-foreground md:order-2 md:col-auto md:row-auto md:flex-1"
                     >
                         {{ clientLabel }}
                     </span>
@@ -298,7 +346,7 @@ const triggerAriaLabel = computed(
                          "questo cliente per questa cifra". -->
                     <span
                         v-if="preview.parsed"
-                        class="row-start-2 col-start-3 justify-self-end tabular shrink-0 text-13 font-medium text-foreground md:row-auto md:col-auto md:order-3 md:justify-self-auto"
+                        class="tabular col-start-3 row-start-2 shrink-0 justify-self-end text-13 font-medium text-foreground md:order-3 md:col-auto md:row-auto md:justify-self-auto"
                     >
                         {{ formatEUR(totalFloat) }}
                     </span>
@@ -318,12 +366,15 @@ const triggerAriaLabel = computed(
                  azione di recovery. -->
             <div v-if="!preview.parsed" class="space-y-3">
                 <p class="text-13 text-foreground">
-                    <strong>Errore di parsing:</strong> {{ preview.error || 'XML non valido.' }}
+                    <strong>Errore di parsing:</strong>
+                    {{ preview.error || 'XML non valido.' }}
                 </p>
                 <p class="text-xs text-muted-foreground">
-                    Il file <span class="tabular">{{ preview.filename }}</span> non è una
-                    fattura elettronica XML valida o ha una struttura non riconosciuta.
-                    Verifica che non sia un file <code class="font-mono text-xs">.p7m</code>
+                    Il file
+                    <span class="tabular">{{ preview.filename }}</span> non è
+                    una fattura elettronica XML valida o ha una struttura non
+                    riconosciuta. Verifica che non sia un file
+                    <code class="font-mono text-xs">.p7m</code>
                     firmato (non supportato).
                 </p>
                 <div class="flex justify-end">
@@ -349,13 +400,19 @@ const triggerAriaLabel = computed(
                     v-if="hasAnyDiscrepancy"
                     class="flex items-start gap-2.5 rounded-md border border-warning/40 bg-warning-foreground px-3 py-2.5"
                 >
-                    <PhWarning :size="16" weight="fill" class="mt-px shrink-0 text-warning" />
+                    <PhWarning
+                        :size="16"
+                        weight="fill"
+                        class="mt-px shrink-0 text-warning"
+                    />
                     <div class="space-y-0.5 text-xs">
-                        <p class="font-medium text-foreground">Controlla bollo e cassa</p>
+                        <p class="font-medium text-foreground">
+                            Controlla bollo e cassa
+                        </p>
                         <p class="text-muted-foreground">
                             Gli importi del XML divergono dal calcolo standard
-                            (Inarcassa 4%, bollo €2 sopra €77,47). Puoi importare
-                            comunque: l'XML è il documento legale.
+                            (Inarcassa 4%, bollo €2 sopra €77,47). Puoi
+                            importare comunque: l'XML è il documento legale.
                         </p>
                     </div>
                 </div>
@@ -366,14 +423,20 @@ const triggerAriaLabel = computed(
                      campi importi sono visualmente coesi grazie al FieldGroup. -->
                 <FieldGroup>
                     <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                        <FormField label="Numero" :for="`prev-${preview.id}-number`">
+                        <FormField
+                            label="Numero"
+                            :for="`prev-${preview.id}-number`"
+                        >
                             <Input
                                 :id="`prev-${preview.id}-number`"
                                 v-model="preview.number"
                                 autocomplete="off"
                             />
                         </FormField>
-                        <FormField label="Data emissione" :for="`prev-${preview.id}-date`">
+                        <FormField
+                            label="Data emissione"
+                            :for="`prev-${preview.id}-date`"
+                        >
                             <Input
                                 :id="`prev-${preview.id}-date`"
                                 v-model="preview.issued_at"
@@ -383,7 +446,10 @@ const triggerAriaLabel = computed(
                     </div>
 
                     <div class="grid grid-cols-2 gap-3 md:grid-cols-4">
-                        <FormField label="Imponibile" :for="`prev-${preview.id}-amount`">
+                        <FormField
+                            label="Imponibile"
+                            :for="`prev-${preview.id}-amount`"
+                        >
                             <Input
                                 :id="`prev-${preview.id}-amount`"
                                 v-model="preview.amount"
@@ -398,7 +464,11 @@ const triggerAriaLabel = computed(
                         <FormField
                             label="Bollo"
                             :for="`prev-${preview.id}-stamp`"
-                            :hint="stampDiscrepancy ? `Standard ${formatEUR(stampDiscrepancy.expected)}` : undefined"
+                            :hint="
+                                stampDiscrepancy
+                                    ? `Standard ${formatEUR(stampDiscrepancy.expected)}`
+                                    : undefined
+                            "
                         >
                             <Input
                                 :id="`prev-${preview.id}-stamp`"
@@ -408,19 +478,31 @@ const triggerAriaLabel = computed(
                                 min="0"
                                 max="9999999.99"
                                 inputmode="decimal"
-                                :class="['tabular text-right', stampDiscrepancy ? 'border-warning/60 bg-warning-foreground' : '']"
+                                :class="[
+                                    'tabular text-right',
+                                    stampDiscrepancy
+                                        ? 'border-warning/60 bg-warning-foreground'
+                                        : '',
+                                ]"
                             />
                             <template v-if="stampDiscrepancy" #hint>
-                                <span class="inline-flex items-center gap-1 text-warning">
+                                <span
+                                    class="inline-flex items-center gap-1 text-warning"
+                                >
                                     <PhWarning :size="11" weight="fill" />
-                                    Standard {{ formatEUR(stampDiscrepancy.expected) }}
+                                    Standard
+                                    {{ formatEUR(stampDiscrepancy.expected) }}
                                 </span>
                             </template>
                         </FormField>
                         <FormField
                             label="Cassa 4%"
                             :for="`prev-${preview.id}-cassa`"
-                            :hint="inarcassaDiscrepancy ? `Standard ${formatEUR(inarcassaDiscrepancy.expected)}` : undefined"
+                            :hint="
+                                inarcassaDiscrepancy
+                                    ? `Standard ${formatEUR(inarcassaDiscrepancy.expected)}`
+                                    : undefined
+                            "
                         >
                             <Input
                                 :id="`prev-${preview.id}-cassa`"
@@ -430,16 +512,29 @@ const triggerAriaLabel = computed(
                                 min="0"
                                 max="9999999.99"
                                 inputmode="decimal"
-                                :class="['tabular text-right', inarcassaDiscrepancy ? 'border-warning/60 bg-warning-foreground' : '']"
+                                :class="[
+                                    'tabular text-right',
+                                    inarcassaDiscrepancy
+                                        ? 'border-warning/60 bg-warning-foreground'
+                                        : '',
+                                ]"
                             />
                             <template v-if="inarcassaDiscrepancy" #hint>
-                                <span class="inline-flex items-center gap-1 text-warning">
+                                <span
+                                    class="inline-flex items-center gap-1 text-warning"
+                                >
                                     <PhWarning :size="11" weight="fill" />
-                                    Standard {{ formatEUR(inarcassaDiscrepancy.expected) }}
+                                    Standard
+                                    {{
+                                        formatEUR(inarcassaDiscrepancy.expected)
+                                    }}
                                 </span>
                             </template>
                         </FormField>
-                        <FormField label="Art.15" :for="`prev-${preview.id}-art15`">
+                        <FormField
+                            label="Art.15"
+                            :for="`prev-${preview.id}-art15`"
+                        >
                             <Input
                                 :id="`prev-${preview.id}-art15`"
                                 v-model="preview.art_15_amount"
@@ -458,8 +553,11 @@ const triggerAriaLabel = computed(
                             :id="`prev-${preview.id}-with`"
                             v-model="preview.bank_withholding"
                         />
-                        <FieldLabel :for="`prev-${preview.id}-with`" class="font-normal">
-                            Soggetta a ritenuta bancaria 8%
+                        <FieldLabel
+                            :for="`prev-${preview.id}-with`"
+                            class="font-normal"
+                        >
+                            Soggetta a ritenuta bancaria
                         </FieldLabel>
                     </Field>
                 </FieldGroup>
@@ -503,7 +601,10 @@ const triggerAriaLabel = computed(
                     </RadioGroup>
 
                     <div v-if="preview.client_mode === 'existing'" class="mt-4">
-                        <FormField label="Cliente" :for="`prev-${preview.id}-client`">
+                        <FormField
+                            label="Cliente"
+                            :for="`prev-${preview.id}-client`"
+                        >
                             <ClientPicker
                                 :id="`prev-${preview.id}-client`"
                                 v-model="preview.existing_client_id"
@@ -515,21 +616,31 @@ const triggerAriaLabel = computed(
 
                     <div v-else class="mt-4">
                         <FieldGroup>
-                            <FormField label="Denominazione" :for="`prev-${preview.id}-new-name`" required>
+                            <FormField
+                                label="Denominazione"
+                                :for="`prev-${preview.id}-new-name`"
+                                required
+                            >
                                 <Input
                                     :id="`prev-${preview.id}-new-name`"
                                     v-model="preview.new_client.name"
                                 />
                             </FormField>
                             <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
-                                <FormField label="P.IVA" :for="`prev-${preview.id}-new-vat`">
+                                <FormField
+                                    label="P.IVA"
+                                    :for="`prev-${preview.id}-new-vat`"
+                                >
                                     <Input
                                         :id="`prev-${preview.id}-new-vat`"
                                         v-model="preview.new_client.vat_number"
                                         autocomplete="off"
                                     />
                                 </FormField>
-                                <FormField label="Codice Fiscale" :for="`prev-${preview.id}-new-tax`">
+                                <FormField
+                                    label="Codice Fiscale"
+                                    :for="`prev-${preview.id}-new-tax`"
+                                >
                                     <Input
                                         :id="`prev-${preview.id}-new-tax`"
                                         v-model="preview.new_client.tax_code"
@@ -540,10 +651,15 @@ const triggerAriaLabel = computed(
                             <Field orientation="horizontal">
                                 <Switch
                                     :id="`prev-${preview.id}-new-with`"
-                                    v-model="preview.new_client.bank_withholding"
+                                    v-model="
+                                        preview.new_client.bank_withholding
+                                    "
                                 />
-                                <FieldLabel :for="`prev-${preview.id}-new-with`" class="font-normal">
-                                    Cliente soggetto a ritenuta 8% di default
+                                <FieldLabel
+                                    :for="`prev-${preview.id}-new-with`"
+                                    class="font-normal"
+                                >
+                                    Cliente soggetto a ritenuta di default
                                 </FieldLabel>
                             </Field>
                             <p class="text-xs text-muted-foreground">
@@ -556,9 +672,13 @@ const triggerAriaLabel = computed(
                 <!-- Sorgente file: footer caption discreta, in fondo a tutto.
                      Info debug di basso peso (text-2xs, muted/60), serve
                      solo per ricondurre la card al XML originale se serve. -->
-                <p class="flex items-center gap-1 text-[10px] text-muted-foreground/60">
+                <p
+                    class="flex items-center gap-1 text-[10px] text-muted-foreground/60"
+                >
                     <PhFile :size="11" class="shrink-0" />
-                    <span class="truncate font-mono">{{ preview.filename }}</span>
+                    <span class="truncate font-mono">{{
+                        preview.filename
+                    }}</span>
                 </p>
 
                 <!-- Niente footer "Rimuovi": l'unica azione di esclusione

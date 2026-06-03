@@ -92,18 +92,15 @@ class Invoice extends Model
     }
 
     /**
-     * Ritenuta bancaria 8% sul totale, calcolata al volo se il flag è attivo.
-     * 0 se disattivata. Derivato, mai persistito.
-     *
-     * L'aliquota legale vive in [[InvoiceCalculator::BANK_WITHHOLDING_RATE]]
-     * (single source of truth): evita drift se cambia. Sync col composable
-     * frontend `useInvoiceTotals.ts` documentato in InvoiceCalculator.
+     * Ritenuta bancaria calcolata al volo se il flag è attivo, 0 altrimenti.
+     * Derivata, mai persistita. Formula unica in [[InvoiceCalculator::withholding]]
+     * (scorporo IVA + aliquota per data); mirror frontend in `useInvoiceTotals.ts`.
      */
     protected function withholdingAmount(): Attribute
     {
         return Attribute::get(fn (): string => number_format(
-            $this->bank_withholding
-                ? (float) $this->total * InvoiceCalculator::BANK_WITHHOLDING_RATE
+            $this->bank_withholding && $this->issued_at !== null
+                ? InvoiceCalculator::withholding((float) $this->total, $this->issued_at)
                 : 0.0,
             2,
             '.',

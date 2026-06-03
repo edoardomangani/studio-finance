@@ -69,11 +69,12 @@ it('calcola total come imponibile + cassa + bollo + art.15', function (): void {
     expect($invoice->total)->toBe('1052.00');
 });
 
-it('calcola withholding_amount come 8% del totale solo se bank_withholding è attivo', function (): void {
+it('calcola withholding_amount scorporando l\'IVA, con aliquota per data', function (): void {
     $user = onboardedInvoiceUser();
     $this->actingAs($user);
 
     $base = [
+        'issued_at' => '2026-03-15',
         'amount' => 1000.00,
         'inarcassa_amount' => 40.00,
         'stamp_amount' => 2.00,
@@ -87,8 +88,8 @@ it('calcola withholding_amount come 8% del totale solo se bank_withholding è at
         [...$base, 'bank_withholding' => false],
     );
 
-    // total = 1042 → withholding = 1042 × 8% = 83.36
-    expect($withRitenuta->withholding_amount)->toBe('83.36')
+    // total = 1042 → 1042 / 1.22 × 11% (dal 1/3/2024) = 93.95
+    expect($withRitenuta->withholding_amount)->toBe('93.95')
         ->and($senza->withholding_amount)->toBe('0.00');
 });
 
@@ -276,6 +277,7 @@ it('show: rende la pagina con dati cliente + totale derivato', function (): void
 
     $client = Client::factory()->for($user)->create();
     $invoice = Invoice::factory()->for($client)->create([
+        'issued_at' => '2026-03-15',
         'amount' => 1000.00,
         'inarcassa_amount' => 40.00,
         'stamp_amount' => 2.00,
@@ -290,7 +292,7 @@ it('show: rende la pagina con dati cliente + totale derivato', function (): void
             // JSON normalizza 1042.0 → 1042 (no fractional). Confronto loose
             // via callback per accettare entrambe le rappresentazioni.
             ->where('invoice.total', fn ($v) => (float) $v === 1042.0)
-            ->where('invoice.withholding_amount', fn ($v) => (float) $v === 83.36)
+            ->where('invoice.withholding_amount', fn ($v) => (float) $v === 93.95)
             ->where('invoice.client.name', $client->name),
         );
 });

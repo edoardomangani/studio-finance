@@ -73,7 +73,7 @@ L'apertura è sempre un'azione manuale. Da `/anni` (vista pluriennale) pulsante 
 
 1. Dalla vista `/scadenze` (cronologica), l'utente vede le scadenze `aperte`.
 2. Click su una scadenza di tipo `Pagamento` apre un side-sheet con i dati della scadenza e del pagamento pianificato collegato.
-3. Pulsante "Registra pagamento": form precompilato con descrizione (= nome scadenza), spesa annuale (read-only), data effettiva (default = oggi), importo (vuoto). L'utente compila importo da F24 / avviso.
+3. Pulsante "Registra pagamento": form precompilato con descrizione (= nome scadenza), spesa annuale (read-only), data effettiva (default = oggi), importo (precompilato con l'importo previsto suggerito se calcolabile — vedi RB8, `tipo_quota` — altrimenti vuoto). È solo un suggerimento: l'utente conferma o corregge da F24 / avviso.
 4. Submit: il pagamento passa da `pianificato` → `pagato`, la scadenza passa da `aperta` → `completata`.
 5. Variante "non dovuto": pulsante "Marca come non dovuto" sulla scadenza apre dialog di conferma; al submit la scadenza diventa `non dovuta` e il pagamento collegato diventa `non dovuto`.
 
@@ -141,9 +141,10 @@ Da `/settings/profile` (estendere la pagina Fortify esistente o creare nuova rot
 - `importo_definitivo` = `coalesce(importo_effettivo, importo_previsto)`.
 - `importo_pagato` = somma pagamenti `pagato` collegati.
 - `importo_da_pagare` = `importo_definitivo − importo_pagato`.
-- `importo_da_pagare_ad_oggi`:
+- `importo_ad_oggi` (maturato ad oggi, al lordo dei pagamenti):
   - Voci fisse: `(importo_definitivo / 12) × mese_corrente` se anno corrente, altrimenti `importo_definitivo`.
   - Voci percentuali: `importo_definitivo` (la base è già "ad oggi" per costruzione).
+- `importo_da_pagare_ad_oggi` = `importo_ad_oggi − importo_pagato`.
 - **Imposta sostitutiva** ha campo extra `credito_anno_precedente` (decimale, modificabile).
   - Default precompilato dal sistema calcolando `MAX(0, totale_pagato_IS_anno_precedente − imposta_netta_anno_precedente)`.
   - Se l'utente sovrascrive, mostrare alert inline: "Valore calcolato: {X}. Stai usando {Y}."
@@ -154,7 +155,7 @@ Da `/settings/profile` (estendere la pagina Fortify esistente o creare nuova rot
 
 ### RB7. Scadenze tipo (template)
 - Catalogo per utente. Set iniziale via seeder.
-- Per scadenze di tipo `Pagamento`: collegamento a una voce di spesa template + flag `anno_riferimento_spesa` (`corrente` / `successivo`).
+- Per scadenze di tipo `Pagamento`: collegamento a una voce di spesa template + flag `anno_riferimento_spesa` (`corrente` / `successivo`) + `tipo_quota` (`acconto_imposta` / `saldo_imposta` / `minimo_contributivo` / `conguaglio_contributivo` / `quota_intera`), che determina come si calcola l'importo previsto della scadenza (vedi RB8). Editabile dall'utente.
 - Per scadenze di tipo `Adempimento`: nessun collegamento.
 - Disattivare una scadenza tipo = soft delete: niente più generazione automatica per nuovi anni.
 
@@ -163,6 +164,13 @@ Da `/settings/profile` (estendere la pagina Fortify esistente o creare nuova rot
 - Una scadenza di tipo `Pagamento` ha esattamente un pagamento collegato (1:1).
 - Stati: `aperta` (default), `completata`, `non dovuta`. Reversibili tutti con conferma.
 - Cross-year: per scadenze con `anno_riferimento_spesa = successivo`, il pagamento punta alla spesa annuale dell'anno N+1; se l'anno N+1 non esiste, viene creato un Anno "pre-aperto" con la sola spesa necessaria.
+- **Importo previsto della scadenza**: vista derivata (mai a DB), `Scadenza::importoPrevisto()`, calcolata in base al `tipo_quota`. È un **suggerimento**: al pagamento l'utente conferma/modifica la cifra reale (da F24/avviso).
+  - `acconto_imposta`: imposta sostitutiva netta dell'anno precedente / 2 (le due rate di acconto).
+  - `saldo_imposta`: `importo_definitivo` dell'anno − acconti già versati.
+  - `minimo_contributivo`: il minimale della voce contributiva (rata).
+  - `conguaglio_contributivo`: `importo_definitivo` − minimi già versati.
+  - `quota_intera`: `importo_definitivo` della spesa collegata.
+  - Se i dati necessari non esistono (es. anno precedente assente al primo anno), l'importo previsto è `null` (suggerimento assente).
 
 ### RB9. Pagamenti
 - Stati: `pianificato`, `pagato`, `non dovuto`.
@@ -310,6 +318,7 @@ Indice `(user_id, anno_id)`.
 | tipo | enum | `pagamento`, `adempimento` |
 | voce_spesa_id | FK voci_spesa | nullable, solo per `pagamento` |
 | anno_riferimento_spesa | enum | `corrente`, `successivo` |
+| tipo_quota | enum | nullable, solo per `pagamento`: `acconto_imposta` / `saldo_imposta` / `minimo_contributivo` / `conguaglio_contributivo` / `quota_intera` |
 | attiva | boolean | default true |
 
 #### `scadenze` (istanze)
@@ -321,6 +330,7 @@ Indice `(user_id, anno_id)`.
 | data_prevista | date | required |
 | tipo | enum | `pagamento`, `adempimento` |
 | spesa_annuale_id | FK spese_annuali | nullable, solo per `pagamento` |
+| tipo_quota | enum | nullable, solo per `pagamento` (copia/libero): `acconto_imposta` / `saldo_imposta` / `minimo_contributivo` / `conguaglio_contributivo` / `quota_intera` |
 | stato | enum | `aperta`, `completata`, `non_dovuta` |
 | note | text | nullable |
 
@@ -354,13 +364,15 @@ Indice `(user_id, data_effettiva)` per la query "contributi pagati nell'anno".
 
 Implementate come metodi sui modelli o servizi:
 - `Fattura::ritenutaBancariaCalcolata()` — totale × 0.08 se flag attivo.
-- `SpesaAnnuale::importoPrevisto()`, `importoDefinitivo()`, `importoPagato()`, `importoDaPagare()`, `importoDaPagareAdOggi()`.
+- `SpesaAnnuale::importoPrevisto()`, `importoDefinitivo()`, `importoPagato()`, `importoAdOggi()`, `importoDaPagare()`, `importoDaPagareAdOggi()`.
+- `Scadenza::importoPrevisto()` — derivato dal `tipo_quota` (vedi RB8); `null` se i dati necessari non esistono.
 - `Anno::redditoIrpef()` — Σ imponibile × coefficiente − contributi pagati nell'anno (data_effettiva).
 - `Anno::redditoNettoEffettivo()` — Σ fatturato − Σ spese definitive.
 - `Anno::contributiPagatiNellAnno()` — somma pagamenti con data_effettiva nell'anno collegati a spese contributi previdenziali.
 - `Anno::impostaSostitutivaNetta()` — lorda − ritenute − credito anno precedente.
 - `Anno::creditoFineAnno()` — `MAX(0, pagamenti_IS − netta)`.
 - `Mese::quotaSpesaAnnuale(SpesaAnnuale)` — per la vista mensile.
+- `Mese::imponibile()`, `bolli()`, `volumeAffariIva()`, `totaleFatture()`, `totaleSpese()` (= Σ quote mensili accantonate, RB11), `netto()` (= totaleFatture − totaleSpese), `rapportoNettoLordo()` (= netto / totaleFatture, lordo = quello che entra in tasca).
 
 ---
 
@@ -565,8 +577,11 @@ La feature è troppo grande per una singola sessione. Divisione in fasi sequenzi
 
 ### Fase 4: Calcoli derivati e viste principali
 
+**Approccio in due tempi (testabili indipendentemente)**: prima il **motore di calcolo** + un endpoint vista anno che ritorna **solo JSON** (feature-test sulla forma e sui valori, niente frontend); poi le viste Vue che consumano quel JSON. Il calcolo della spesa è uniforme (`MAX(MIN(base, massimale), minimale) × aliquota`); la complessità fiscale (deduzione contributi, ritenute, credito IS) vive nelle **basi d'anno** con modalità *previsione* / *definitivo*, indipendente dalla singola spesa.
+
 **Scope**:
-- Servizi di calcolo per tutti i derivati (RB5, RB11, viste annuali e mensili).
+- Servizi di calcolo per tutti i derivati (RB5, RB11, viste annuali e mensili) con modalità previsione/definitivo sulle basi d'anno.
+- Endpoint vista anno (JSON-first) con: elenco mesi (imponibile, bolli, volume affari IVA, totale fatture, totale spese accantonate, netto, rapporto netto/lordo), elenco fatture, elenco spese annuali (previsto/effettivo/manuale + ad oggi/da pagare/pagato/da pagare ad oggi), elenco scadenze-pagamenti con importo previsto.
 - Vista `/` Dashboard mese in corso (KPI, scadenze imminenti, ultime fatture, ultimi pagamenti, scorciatoia anno) + empty state se anno non aperto.
 - Vista `/anni/{YYYY}` con tutti gli aggregati: fatturato, ripartizione clienti, vista mensile 12 righe, spese annuali tabella, contributi pagati, reddito IRPEF, reddito netto effettivo.
 - Vista `/anni` tabella pluriennale con KPI principali.
@@ -579,7 +594,8 @@ La feature è troppo grande per una singola sessione. Divisione in fasi sequenzi
 - `app/Services/CalcoliAnno.php` (orchestratore: redditoIrpef, redditoNettoEffettivo, contributiPagati, IS netta, credito fine anno).
 - `app/Services/QuoteMensili.php` (proiezione mensile per spesa).
 - `app/Models/Anno.php` (metodi accessor delegano ai services).
-- `app/Models/SpesaAnnuale.php` (importoPrevisto, importoDefinitivo, importoPagato, importoDaPagare, importoDaPagareAdOggi, formulaTesto).
+- `app/Models/SpesaAnnuale.php` (importoPrevisto, importoDefinitivo, importoPagato, importoAdOggi, importoDaPagare, importoDaPagareAdOggi, formulaTesto).
+- `app/Models/Scadenza.php` (importoPrevisto derivato dal `tipo_quota`).
 - `app/Http/Controllers/DashboardController.php` (aggiornare l'esistente con KPI Studiofinance).
 - `resources/js/pages/Dashboard.vue` (riscrivere)
 - `resources/js/pages/anni/Show.vue` (vista anno)

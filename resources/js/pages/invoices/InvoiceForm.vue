@@ -132,9 +132,12 @@ watch(
 
 function submit(): void {
     if (isEditing.value && props.invoice) {
-        form.patch(InvoiceController.update.url({ invoice: props.invoice.id }), {
-            preserveScroll: true,
-        });
+        form.patch(
+            InvoiceController.update.url({ invoice: props.invoice.id }),
+            {
+                preserveScroll: true,
+            },
+        );
 
         return;
     }
@@ -162,7 +165,11 @@ defineExpose({ processing: computed(() => form.processing) });
                     </template>
                 </FormField>
 
-                <FormField label="Data emissione" for="invoice-issued-at" required>
+                <FormField
+                    label="Data emissione"
+                    for="invoice-issued-at"
+                    required
+                >
                     <DateField
                         id="invoice-issued-at"
                         v-model="form.issued_at"
@@ -195,7 +202,7 @@ defineExpose({ processing: computed(() => form.processing) });
                 v-if="selectedClient?.bank_withholding"
                 class="-mt-2 text-xs text-muted-foreground"
             >
-                Cliente soggetto a ritenuta bancaria 8% di default.
+                Cliente soggetto a ritenuta bancaria di default.
             </p>
         </FormSection>
 
@@ -277,17 +284,14 @@ defineExpose({ processing: computed(() => form.processing) });
                     v-model="form.bank_withholding"
                 />
                 <FieldLabel for="invoice-withholding" class="font-normal">
-                    Soggetta a ritenuta bancaria 8%
+                    Soggetta a ritenuta bancaria
                 </FieldLabel>
             </Field>
 
             <!-- Summary bar: prominente, separata visivamente dagli input.
                  Niente card box ridondante: bordo top sottile + label
                  kicker + numeri tabular grandi. -->
-            <div
-                class="mt-4 border-t border-border pt-4"
-                aria-live="polite"
-            >
+            <div class="mt-4 border-t border-border pt-4" aria-live="polite">
                 <dl class="space-y-1.5">
                     <div class="flex items-baseline justify-between">
                         <dt class="kicker text-muted-foreground">
@@ -299,20 +303,26 @@ defineExpose({ processing: computed(() => form.processing) });
                     </div>
 
                     <template v-if="form.bank_withholding">
-                        <div class="flex items-baseline justify-between text-13">
+                        <div
+                            class="flex items-baseline justify-between text-13"
+                        >
                             <dt class="text-muted-foreground">
-                                Ritenuta bancaria 8%
+                                Ritenuta bancaria
                             </dt>
                             <dd class="tabular text-muted-foreground">
                                 − {{ formatEUR(withholdingAmount) }}
                             </dd>
                         </div>
 
-                        <div class="flex items-baseline justify-between border-t border-border-soft pt-1.5">
+                        <div
+                            class="flex items-baseline justify-between border-t border-border-soft pt-1.5"
+                        >
                             <dt class="kicker text-foreground">
                                 Netto a incassare
                             </dt>
-                            <dd class="tabular text-13 font-medium text-foreground">
+                            <dd
+                                class="tabular text-13 font-medium text-foreground"
+                            >
                                 {{ formatEUR(netAmount) }}
                             </dd>
                         </div>

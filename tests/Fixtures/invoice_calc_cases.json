@@ -80,12 +80,13 @@
         }
     },
     {
-        "name": "ritenuta bancaria 8% attiva: netto = totale - 8%",
+        "name": "ritenuta 11% (dal 1/3/2024): scorporo IVA 22% sul totale",
         "input": {
             "amount": 1000.00,
             "stamp_amount": 2.00,
             "inarcassa_amount": 40.08,
             "art_15_amount": 0.00,
+            "issued_at": "2026-01-15",
             "bank_withholding": true
         },
         "expected": {
@@ -95,8 +96,8 @@
             "art_15_amount": 0.00,
             "bank_withholding": true,
             "total": 1042.08,
-            "withholding_amount": 83.37,
-            "net_amount": 958.71
+            "withholding_amount": 93.96,
+            "net_amount": 948.12
         }
     },
     {
@@ -240,12 +241,13 @@
         }
     },
     {
-        "name": "ritenuta + override bollo: cascade corretto",
+        "name": "ritenuta 8% (fino al 29/2/2024) + override bollo",
         "input": {
             "amount": 2000.00,
             "stamp_amount": 10.00,
             "inarcassa_amount": 80.40,
             "art_15_amount": 0.00,
+            "issued_at": "2024-02-15",
             "bank_withholding": true
         },
         "expected": {
@@ -255,8 +257,8 @@
             "art_15_amount": 0.00,
             "bank_withholding": true,
             "total": 2090.40,
-            "withholding_amount": 167.23,
-            "net_amount": 1923.17
+            "withholding_amount": 137.08,
+            "net_amount": 1953.32
         }
     }
 ]

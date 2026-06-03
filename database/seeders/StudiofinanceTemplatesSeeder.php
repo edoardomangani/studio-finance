@@ -62,6 +62,7 @@ class StudiofinanceTemplatesSeeder extends Seeder
             'inarcassa_soggettivo' => [
                 'name' => 'Inarcassa Soggettivo',
                 'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome,
+                'is_pension_contribution' => true,
                 'default_rate' => 14.50,
                 'default_minimum' => 2435.00,
                 'default_maximum' => 137195.00,
@@ -70,6 +71,7 @@ class StudiofinanceTemplatesSeeder extends Seeder
             'inarcassa_integrativo' => [
                 'name' => 'Inarcassa Integrativo',
                 'calculation_type' => ExpenseCalculationType::PercentageOfIvaRevenue,
+                'is_pension_contribution' => true,
                 'default_rate' => 4.00,
                 'default_minimum' => 815.00,
                 'position' => 30,
@@ -77,6 +79,7 @@ class StudiofinanceTemplatesSeeder extends Seeder
             'inarcassa_maternita' => [
                 'name' => 'Inarcassa Maternità',
                 'calculation_type' => ExpenseCalculationType::FixedAnnual,
+                'is_pension_contribution' => true,
                 'default_amount' => 72.00,
                 'position' => 40,
             ],

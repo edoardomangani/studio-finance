@@ -89,13 +89,17 @@ const netAmount = computed(
             <div class="min-w-0 space-y-2">
                 <h1 class="tabular text-2xl font-medium text-foreground">
                     Fattura # {{ invoice.number }}
-                    <span class="ml-1 text-sm font-normal text-muted-foreground">
+                    <span
+                        class="ml-1 text-sm font-normal text-muted-foreground"
+                    >
                         del {{ formatDateIT(invoice.issued_at) }}
                     </span>
                 </h1>
                 <!-- Cliente + P.IVA/CF su una riga + badge ritenuta default.
                      Link su denominazione porta a /clients/{id} (storico + edit). -->
-                <div class="flex flex-wrap items-center gap-x-3 gap-y-2 text-13">
+                <div
+                    class="flex flex-wrap items-center gap-x-3 gap-y-2 text-13"
+                >
                     <Link
                         :href="clientShow(invoice.client.id).url"
                         class="font-medium text-foreground underline-offset-2 hover:underline"
@@ -103,10 +107,13 @@ const netAmount = computed(
                         {{ invoice.client.name }}
                     </Link>
                     <span
-                        v-if="invoice.client.vat_number || invoice.client.tax_code"
+                        v-if="
+                            invoice.client.vat_number || invoice.client.tax_code
+                        "
                         aria-hidden="true"
                         class="text-muted-foreground/40"
-                    >·</span>
+                        >·</span
+                    >
                     <span
                         v-if="invoice.client.vat_number"
                         class="tabular text-xs text-muted-foreground"
@@ -124,7 +131,7 @@ const netAmount = computed(
                         variant="white"
                         class="text-2xs"
                     >
-                        Ritenuta 8% di default
+                        Ritenuta di default
                     </Badge>
                 </div>
             </div>
@@ -156,20 +163,25 @@ const netAmount = computed(
                         </dd>
                     </div>
                     <div class="flex items-baseline justify-between">
-                        <dt class="text-muted-foreground">Cassa Inarcassa 4%</dt>
+                        <dt class="text-muted-foreground">
+                            Cassa Inarcassa 4%
+                        </dt>
                         <dd class="tabular text-foreground">
                             {{ formatEUR(invoice.inarcassa_amount) }}
                         </dd>
                     </div>
                     <div class="flex items-baseline justify-between">
                         <dt class="text-muted-foreground">
-                            Art.15 <span class="text-2xs">(spese anticipate)</span>
+                            Art.15
+                            <span class="text-2xs">(spese anticipate)</span>
                         </dt>
                         <dd class="tabular text-foreground">
                             {{ formatEUR(invoice.art_15_amount) }}
                         </dd>
                     </div>
-                    <div class="flex items-baseline justify-between border-t border-border pt-2">
+                    <div
+                        class="flex items-baseline justify-between border-t border-border pt-2"
+                    >
                         <dt class="font-medium text-foreground">Totale</dt>
                         <dd class="tabular font-medium text-foreground">
                             {{ formatEUR(invoice.total) }}
@@ -177,13 +189,19 @@ const netAmount = computed(
                     </div>
                     <template v-if="invoice.bank_withholding">
                         <div class="flex items-baseline justify-between">
-                            <dt class="text-muted-foreground">Ritenuta bancaria 8%</dt>
+                            <dt class="text-muted-foreground">
+                                Ritenuta bancaria
+                            </dt>
                             <dd class="tabular text-muted-foreground">
                                 − {{ formatEUR(invoice.withholding_amount) }}
                             </dd>
                         </div>
-                        <div class="flex items-baseline justify-between border-t border-border-soft pt-2">
-                            <dt class="font-medium text-foreground">Netto a incassare</dt>
+                        <div
+                            class="flex items-baseline justify-between border-t border-border-soft pt-2"
+                        >
+                            <dt class="font-medium text-foreground">
+                                Netto a incassare
+                            </dt>
                             <dd class="tabular font-medium text-foreground">
                                 {{ formatEUR(netAmount) }}
                             </dd>

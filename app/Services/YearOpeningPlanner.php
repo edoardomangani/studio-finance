@@ -109,6 +109,7 @@ class YearOpeningPlanner
             'expense_item_id' => $item->id,
             'name' => $item->name,
             'calculation_type' => $item->calculation_type->value,
+            'is_pension_contribution' => $item->is_pension_contribution,
             'rate' => $item->default_rate !== null ? (float) $item->default_rate : null,
             'minimum' => $item->default_minimum !== null ? (float) $item->default_minimum : null,
             'maximum' => $item->default_maximum !== null ? (float) $item->default_maximum : null,

@@ -103,6 +103,7 @@ class OpenYear
         $attributes = [
             'name' => $row['name'],
             'calculation_type' => $row['calculation_type'],
+            'is_pension_contribution' => $row['is_pension_contribution'] ?? false,
             'rate' => $row['rate'] ?? null,
             'minimum' => $row['minimum'] ?? null,
             'maximum' => $row['maximum'] ?? null,

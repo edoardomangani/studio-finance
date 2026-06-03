@@ -19,6 +19,7 @@ class ExpenseItem extends Model
         'user_id',
         'name',
         'calculation_type',
+        'is_pension_contribution',
         'default_rate',
         'default_minimum',
         'default_maximum',
@@ -31,6 +32,7 @@ class ExpenseItem extends Model
     {
         return [
             'calculation_type' => ExpenseCalculationType::class,
+            'is_pension_contribution' => 'boolean',
             'default_rate' => 'decimal:2',
             'default_minimum' => 'decimal:2',
             'default_maximum' => 'decimal:2',

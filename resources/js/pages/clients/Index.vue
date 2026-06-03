@@ -27,7 +27,11 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
 import {
     Pagination,
     PaginationContent,
@@ -90,9 +94,10 @@ const newClientOpen = ref(false);
 const editOpen = ref(false);
 const editTarget = ref<Client | null>(null);
 
-const { archiveOpen, archiveTarget, askArchive, confirmArchive } = useArchiveAction<Client>(
-    (client) => ClientController.destroy.url({ client: client.id }),
-);
+const { archiveOpen, archiveTarget, askArchive, confirmArchive } =
+    useArchiveAction<Client>((client) =>
+        ClientController.destroy.url({ client: client.id }),
+    );
 
 function askEdit(client: Client): void {
     editTarget.value = client;
@@ -141,13 +146,17 @@ function goToPage(page: number): void {
                 <TableHead class="w-[40%]">Denominazione</TableHead>
                 <TableHead>P.IVA</TableHead>
                 <TableHead>Codice Fiscale</TableHead>
-                <TableHead class="w-[120px] text-right">Ritenuta 8%</TableHead>
+                <TableHead class="w-[120px] text-right">Ritenuta</TableHead>
                 <TableHead class="w-[48px]" />
             </TableRow>
         </TableHeader>
         <TableBody>
             <TableEmpty v-if="clients.data.length === 0" :colspan="5">
-                {{ search ? 'Nessun cliente trovato.' : 'Nessun cliente. Creane uno dal pulsante in alto.' }}
+                {{
+                    search
+                        ? 'Nessun cliente trovato.'
+                        : 'Nessun cliente. Creane uno dal pulsante in alto.'
+                }}
             </TableEmpty>
             <TableRow
                 v-for="client in clients.data"
@@ -232,11 +241,7 @@ function goToPage(page: number): void {
                     >
                         {{ item.value }}
                     </PaginationItem>
-                    <PaginationEllipsis
-                        v-else
-                        :key="`e-${idx}`"
-                        :index="idx"
-                    />
+                    <PaginationEllipsis v-else :key="`e-${idx}`" :index="idx" />
                 </template>
                 <PaginationNext />
             </PaginationContent>
@@ -249,9 +254,11 @@ function goToPage(page: number): void {
     <ConfirmDialog
         v-model:open="archiveOpen"
         title="Archiviare il cliente?"
-        :description="archiveTarget
-            ? `«${archiveTarget.name}» verrà nascosto dall'elenco. Le fatture esistenti restano invariate.`
-            : undefined"
+        :description="
+            archiveTarget
+                ? `«${archiveTarget.name}» verrà nascosto dall'elenco. Le fatture esistenti restano invariate.`
+                : undefined
+        "
         confirm-label="Archivia"
         destructive
         @confirm="confirmArchive"

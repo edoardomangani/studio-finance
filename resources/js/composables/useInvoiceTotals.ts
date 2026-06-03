@@ -12,7 +12,7 @@
  *
  * Espone:
  * - `total`           Imponibile + cassa + bollo + art.15 (computed reattivo)
- * - `withholdingAmount` Ritenuta bancaria 8% sul totale, 0 se flag off (computed)
+ * - `withholdingAmount` Ritenuta bancaria (scorporo IVA 22% + aliquota per data), 0 se off
  * - `netAmount`       Totale meno ritenuta (computed)
  * - `markInarcassaDirty()` / `markStampDirty()` invocati dai field on `input`
  *   per fermare l'auto-update dal momento in cui l'utente tocca esplicitamente
@@ -23,21 +23,24 @@
  *   della base contributiva (decisione di progetto, allineata alla
  *   prassi più conservativa per architetti Inarcassa).
  * - Bollo = €2 se imponibile > €77,47, altrimenti 0 (ma sempre editabile)
- * - Ritenuta = totale × 8% se flag attivo
+ * - Ritenuta = (totale / 1,22) × aliquota per data: 8% fino al 29/2/2024, 11% dal 1/3/2024
  *
- * **Sync col backend**: `BANK_WITHHOLDING_RATE` qui deve restare allineato
- * a `App\Services\InvoiceCalculator::BANK_WITHHOLDING_RATE` (fonte di
- * verità unica; `Invoice::withholdingAmount()` accessor delega lì). Se
- * cambia l'aliquota legale aggiornare entrambi.
+ * **Sync col backend**: le costanti ritenuta qui devono restare allineate a
+ * `App\Services\InvoiceCalculator` (`withholding()` è la formula unica;
+ * `Invoice::withholdingAmount()` accessor delega lì). Aggiornare entrambi.
  */
 import { computed, ref, watch } from 'vue';
 
-const BANK_WITHHOLDING_RATE = 0.08;
+const WITHHOLDING_RATE_LEGACY = 0.08; // bonifici fino al 29/2/2024
+const WITHHOLDING_RATE = 0.11; // bonifici dal 1/3/2024
+const WITHHOLDING_RATE_CHANGE = '2024-03-01';
+const ORDINARY_VAT_DIVISOR = 1.22; // scorporo IVA ordinaria 22%
 const INARCASSA_RATE = 0.04;
 const STAMP_THRESHOLD = 77.47;
 const STAMP_VALUE = 2.0;
 
 export type InvoiceTotalsForm = {
+    issued_at: string;
     amount: number | string;
     inarcassa_amount: number | string;
     stamp_amount: number | string;
@@ -72,14 +75,24 @@ export function useInvoiceTotals(form: InvoiceTotalsForm) {
         return Math.round((a + inarcassa + stamp + art15) * 100) / 100;
     });
 
-    const withholdingAmount = computed(() =>
-        form.bank_withholding
-            ? Math.round(total.value * BANK_WITHHOLDING_RATE * 100) / 100
-            : 0,
-    );
+    const withholdingAmount = computed(() => {
+        if (!form.bank_withholding) {
+            return 0;
+        }
 
-    const netAmount = computed(() =>
-        Math.round((total.value - withholdingAmount.value) * 100) / 100,
+        // Aliquota per data del bonifico (issued_at); base scorporata dell'IVA 22%.
+        const rate =
+            form.issued_at && form.issued_at < WITHHOLDING_RATE_CHANGE
+                ? WITHHOLDING_RATE_LEGACY
+                : WITHHOLDING_RATE;
+
+        return (
+            Math.round((total.value / ORDINARY_VAT_DIVISOR) * rate * 100) / 100
+        );
+    });
+
+    const netAmount = computed(
+        () => Math.round((total.value - withholdingAmount.value) * 100) / 100,
     );
 
     function markInarcassaDirty(): void {

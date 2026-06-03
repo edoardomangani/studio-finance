@@ -2,6 +2,9 @@
 
 namespace App\Services;
 
+use DateTimeImmutable;
+use DateTimeInterface;
+
 /**
  * InvoiceCalculator — fonte di verità autoritativa per i calcoli fattura.
  *
@@ -15,15 +18,15 @@ namespace App\Services;
  * simmetrica in `useInvoiceTotals.ts` + `tests/Fixtures/invoice_calc_cases.json`.
  * Il test parity `InvoiceCalculatorTest` blocca le divergenze backend-vs-fixture.
  *
- * **Single source of truth costanti**: `BANK_WITHHOLDING_RATE` è referenziata
- * anche dal model accessor [[App\Models\Invoice::withholdingAmount]] per il
- * rendering JSON. Modificare l'aliquota qui propaga ovunque.
+ * **Single source of truth**: la ritenuta è in `withholding()`, referenziata dal
+ * model accessor [[App\Models\Invoice::withholdingAmount]] per il rendering JSON.
+ * Modificare la formula qui propaga ovunque.
  *
  * **Regole RB3** (forfettario architetti Inarcassa):
  * - Bollo €2.00 se imponibile > €77,47, altrimenti 0.
  * - Cassa Inarcassa = (imponibile + bollo) × 4%.
  * - Totale = imponibile + bollo + cassa + art.15.
- * - Ritenuta bancaria = totale × 8% se flag attivo.
+ * - Ritenuta bancaria = (totale / 1,22) × aliquota per data: 8% fino al 29/2/2024, 11% dal 1/3/2024.
  * - Netto = totale − ritenuta.
  *
  * Override utente: il metodo `canonicalize()` confronta i valori inviati
@@ -34,7 +37,15 @@ namespace App\Services;
  */
 class InvoiceCalculator
 {
-    public const BANK_WITHHOLDING_RATE = 0.08;
+    /** Ritenuta bancaria: 8% per bonifici accreditati fino al 29/2/2024, 11% dal 1/3/2024. */
+    public const WITHHOLDING_RATE_LEGACY = 0.08;
+
+    public const WITHHOLDING_RATE = 0.11;
+
+    public const WITHHOLDING_RATE_CHANGE = '2024-03-01';
+
+    /** La ritenuta è sull'imponibile scorporato dell'IVA ordinaria 22%: totale / 1,22. */
+    public const ORDINARY_VAT_DIVISOR = 1.22;
 
     public const INARCASSA_RATE = 0.04;
 
@@ -66,7 +77,22 @@ class InvoiceCalculator
     }
 
     /**
-     * Totale + ritenuta + netto, partendo dai 4 importi e dal flag.
+     * Ritenuta bancaria su una fattura (punto unico): imponibile scorporato
+     * dell'IVA ordinaria (totale / 1,22) × aliquota per data — 8% fino al
+     * 29/2/2024, 11% dal 1/3/2024. La base IVA è nozionale, a prescindere
+     * dalla fattura (forfettario incluso). 2 decimali.
+     */
+    public static function withholding(float $total, DateTimeInterface $issuedAt): float
+    {
+        $rate = $issuedAt < new DateTimeImmutable(self::WITHHOLDING_RATE_CHANGE)
+            ? self::WITHHOLDING_RATE_LEGACY
+            : self::WITHHOLDING_RATE;
+
+        return round($total / self::ORDINARY_VAT_DIVISOR * $rate, 2);
+    }
+
+    /**
+     * Totale + ritenuta + netto, partendo dai 4 importi, dal flag e dalla data.
      * Non applica nessun override/heuristic: pura aritmetica.
      *
      * @return array{total: float, withholding_amount: float, net_amount: float}
@@ -77,11 +103,12 @@ class InvoiceCalculator
         float $inarcassa,
         float $art15,
         bool $bankWithholding,
+        DateTimeInterface $issuedAt,
     ): array {
         $total = $this->round2($amount + $stamp + $inarcassa + $art15);
 
         $withholdingAmount = $bankWithholding
-            ? $this->round2($total * self::BANK_WITHHOLDING_RATE)
+            ? self::withholding($total, $issuedAt)
             : 0.0;
 
         $netAmount = $this->round2($total - $withholdingAmount);
@@ -132,7 +159,8 @@ class InvoiceCalculator
         $stamp = $this->canonicalizeStamp($amount, $this->toFloat($input['stamp_amount'] ?? null));
         $inarcassa = $this->canonicalizeInarcassa($amount, $stamp, $this->toFloat($input['inarcassa_amount'] ?? null));
 
-        $totals = $this->totals($amount, $stamp, $inarcassa, $art15, $bankWithholding);
+        $issuedAt = new DateTimeImmutable((string) ($input['issued_at'] ?? 'now'));
+        $totals = $this->totals($amount, $stamp, $inarcassa, $art15, $bankWithholding, $issuedAt);
 
         return [
             'amount' => $this->round2($amount),

@@ -51,6 +51,7 @@ class OpenYearRequest extends FormRequest
             ],
             'expenses.*.name' => ['required', 'string', 'max:255'],
             'expenses.*.calculation_type' => ['required', Rule::enum(ExpenseCalculationType::class)],
+            'expenses.*.is_pension_contribution' => ['boolean'],
             'expenses.*.rate' => ['nullable', 'numeric', 'between:0,100'],
             'expenses.*.minimum' => ['nullable', 'numeric', 'min:0', 'max:9999999.99'],
             'expenses.*.maximum' => ['nullable', 'numeric', 'min:0', 'max:9999999.99'],

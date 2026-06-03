@@ -88,6 +88,7 @@ class YearController extends Controller
                 'expense_item_id' => $row['expense_item_id'] ?? null,
                 'name' => $row['name'],
                 'calculation_type' => $row['calculation_type'],
+                'is_pension_contribution' => $row['is_pension_contribution'] ?? false,
                 'rate' => $row['rate'] ?? null,
                 'minimum' => $row['minimum'] ?? null,
                 'maximum' => $row['maximum'] ?? null,

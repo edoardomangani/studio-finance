@@ -46,7 +46,12 @@ function setYear(value: string): void {
 const ALL_CLIENTS = 'all';
 
 function setClient(value: unknown): void {
-    if (value === ALL_CLIENTS || value === '' || value === undefined || value === null) {
+    if (
+        value === ALL_CLIENTS ||
+        value === '' ||
+        value === undefined ||
+        value === null
+    ) {
         modelValue.value = { ...modelValue.value, client_id: null };
         return;
     }
@@ -73,13 +78,18 @@ function setWithholding(value: string): void {
         <div>
             <h3 class="kicker mb-2">Anno emissione</h3>
             <RadioGroup
-                :model-value="modelValue.year === null ? '' : String(modelValue.year)"
+                :model-value="
+                    modelValue.year === null ? '' : String(modelValue.year)
+                "
                 class="gap-1"
                 @update:model-value="(v) => setYear(String(v ?? ''))"
             >
                 <div class="flex items-center gap-2">
                     <RadioGroupItem id="flt-year-all" value="" />
-                    <Label for="flt-year-all" class="cursor-pointer text-13 font-normal">
+                    <Label
+                        for="flt-year-all"
+                        class="cursor-pointer text-13 font-normal"
+                    >
                         Tutti
                     </Label>
                 </div>
@@ -91,7 +101,7 @@ function setWithholding(value: string): void {
                     <RadioGroupItem :id="`flt-year-${y}`" :value="String(y)" />
                     <Label
                         :for="`flt-year-${y}`"
-                        class="cursor-pointer text-13 font-normal tabular"
+                        class="tabular cursor-pointer text-13 font-normal"
                     >
                         {{ y }}
                     </Label>
@@ -103,14 +113,20 @@ function setWithholding(value: string): void {
         <div>
             <h3 class="kicker mb-2">Cliente</h3>
             <Select
-                :model-value="modelValue.client_id === null ? ALL_CLIENTS : String(modelValue.client_id)"
+                :model-value="
+                    modelValue.client_id === null
+                        ? ALL_CLIENTS
+                        : String(modelValue.client_id)
+                "
                 @update:model-value="setClient"
             >
                 <SelectTrigger class="w-full">
                     <SelectValue placeholder="Tutti i clienti" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem :value="ALL_CLIENTS">Tutti i clienti</SelectItem>
+                    <SelectItem :value="ALL_CLIENTS"
+                        >Tutti i clienti</SelectItem
+                    >
                     <SelectItem
                         v-for="c in clients"
                         :key="c.id"
@@ -124,29 +140,42 @@ function setWithholding(value: string): void {
 
         <!-- Ritenuta tri-state -->
         <div>
-            <h3 class="kicker mb-2">Ritenuta 8%</h3>
+            <h3 class="kicker mb-2">Ritenuta</h3>
             <RadioGroup
-                :model-value="modelValue.withholding === null
-                    ? 'all'
-                    : modelValue.withholding ? 'yes' : 'no'"
+                :model-value="
+                    modelValue.withholding === null
+                        ? 'all'
+                        : modelValue.withholding
+                          ? 'yes'
+                          : 'no'
+                "
                 class="gap-1"
                 @update:model-value="(v) => setWithholding(String(v ?? 'all'))"
             >
                 <div class="flex items-center gap-2">
                     <RadioGroupItem id="flt-with-all" value="all" />
-                    <Label for="flt-with-all" class="cursor-pointer text-13 font-normal">
+                    <Label
+                        for="flt-with-all"
+                        class="cursor-pointer text-13 font-normal"
+                    >
                         Tutte
                     </Label>
                 </div>
                 <div class="flex items-center gap-2">
                     <RadioGroupItem id="flt-with-yes" value="yes" />
-                    <Label for="flt-with-yes" class="cursor-pointer text-13 font-normal">
-                        Con ritenuta 8%
+                    <Label
+                        for="flt-with-yes"
+                        class="cursor-pointer text-13 font-normal"
+                    >
+                        Con ritenuta
                     </Label>
                 </div>
                 <div class="flex items-center gap-2">
                     <RadioGroupItem id="flt-with-no" value="no" />
-                    <Label for="flt-with-no" class="cursor-pointer text-13 font-normal">
+                    <Label
+                        for="flt-with-no"
+                        class="cursor-pointer text-13 font-normal"
+                    >
                         Senza ritenuta
                     </Label>
                 </div>

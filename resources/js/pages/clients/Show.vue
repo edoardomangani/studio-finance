@@ -27,7 +27,10 @@ import {
 } from '@/components/ui/table';
 import { formatDateIT, formatEUR } from '@/lib/format';
 import { index as clientsIndex } from '@/routes/clients';
-import { create as invoicesCreate, show as invoiceShow } from '@/routes/invoices';
+import {
+    create as invoicesCreate,
+    show as invoiceShow,
+} from '@/routes/invoices';
 import type { Client, InvoiceListItem } from '@/types';
 
 const props = defineProps<{
@@ -70,8 +73,8 @@ const totalBilled = computed(() =>
 
 /* Deep link "?client=X" gestito da InvoiceController@create. Wayfinder
    non genera helper per query string custom, quindi concateno a mano. */
-const createInvoiceUrl = computed(() =>
-    `${invoicesCreate().url}?client=${props.client.id}`,
+const createInvoiceUrl = computed(
+    () => `${invoicesCreate().url}?client=${props.client.id}`,
 );
 </script>
 
@@ -105,28 +108,34 @@ const createInvoiceUrl = computed(() =>
                 </div>
                 <div>
                     <dt class="text-xs text-muted-foreground">P.IVA</dt>
-                    <dd class="mt-0.5 tabular text-13 text-foreground">
+                    <dd class="tabular mt-0.5 text-13 text-foreground">
                         {{ client.vat_number ?? '—' }}
                     </dd>
                 </div>
                 <div>
-                    <dt class="text-xs text-muted-foreground">Codice Fiscale</dt>
-                    <dd class="mt-0.5 tabular text-13 text-foreground">
+                    <dt class="text-xs text-muted-foreground">
+                        Codice Fiscale
+                    </dt>
+                    <dd class="tabular mt-0.5 text-13 text-foreground">
                         {{ client.tax_code ?? '—' }}
                     </dd>
                 </div>
                 <div>
-                    <dt class="text-xs text-muted-foreground">Ritenuta 8%</dt>
+                    <dt class="text-xs text-muted-foreground">Ritenuta</dt>
                     <dd class="mt-0.5">
                         <Badge v-if="client.bank_withholding" variant="outline">
                             Sì
                         </Badge>
-                        <span v-else class="text-13 text-muted-foreground">No</span>
+                        <span v-else class="text-13 text-muted-foreground"
+                            >No</span
+                        >
                     </dd>
                 </div>
                 <div v-if="client.notes" class="md:col-span-3">
                     <dt class="text-xs text-muted-foreground">Note</dt>
-                    <dd class="mt-0.5 text-13 leading-relaxed text-foreground whitespace-pre-line">
+                    <dd
+                        class="mt-0.5 text-13 leading-relaxed whitespace-pre-line text-foreground"
+                    >
                         {{ client.notes }}
                     </dd>
                 </div>
@@ -139,7 +148,9 @@ const createInvoiceUrl = computed(() =>
                     v-if="invoices.length > 0"
                     class="tabular text-xs text-muted-foreground"
                 >
-                    {{ invoices.length }} {{ invoices.length === 1 ? 'fattura' : 'fatture' }} · {{ formatEUR(totalBilled) }}
+                    {{ invoices.length }}
+                    {{ invoices.length === 1 ? 'fattura' : 'fatture' }} ·
+                    {{ formatEUR(totalBilled) }}
                 </span>
                 <Button as-child size="sm" variant="outline">
                     <Link :href="createInvoiceUrl">
@@ -155,7 +166,9 @@ const createInvoiceUrl = computed(() =>
                         <TableHead class="w-[110px]">Data</TableHead>
                         <TableHead class="w-[130px]">Numero</TableHead>
                         <TableHead class="text-right">Totale</TableHead>
-                        <TableHead class="w-[100px] text-right">Ritenuta</TableHead>
+                        <TableHead class="w-[100px] text-right"
+                            >Ritenuta</TableHead
+                        >
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -169,15 +182,23 @@ const createInvoiceUrl = computed(() =>
                             {{ formatDateIT(invoice.issued_at) }}
                         </TableCell>
                         <TableCell class="tabular font-medium text-foreground">
-                            <span class="block max-w-[120px] truncate" :title="invoice.number">
+                            <span
+                                class="block max-w-[120px] truncate"
+                                :title="invoice.number"
+                            >
                                 {{ invoice.number }}
                             </span>
                         </TableCell>
-                        <TableCell class="tabular text-right font-medium text-foreground">
+                        <TableCell
+                            class="tabular text-right font-medium text-foreground"
+                        >
                             {{ formatEUR(invoice.total) }}
                         </TableCell>
                         <TableCell class="text-right">
-                            <Badge v-if="invoice.bank_withholding" variant="outline">
+                            <Badge
+                                v-if="invoice.bank_withholding"
+                                variant="outline"
+                            >
                                 Sì
                             </Badge>
                             <span v-else class="text-muted-foreground">—</span>
