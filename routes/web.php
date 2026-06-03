@@ -5,6 +5,7 @@ use App\Http\Controllers\DeadlineController;
 use App\Http\Controllers\ImportXmlController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\YearController;
 use Illuminate\Support\Facades\Route;
 
@@ -90,6 +91,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->middleware('throttle:60,1');
         Route::post('deadlines/{deadline}/mark-not-due', [DeadlineController::class, 'markNotDue'])
             ->name('deadlines.mark-not-due')
+            ->middleware('throttle:60,1');
+
+        // Pagamenti — vista pluriennale (RB9) + registrazione manuale extra-
+        // scadenza (F8). URL in inglese, label sidebar in italiano. Lo store
+        // crea cassa reale: stesso throttle umano delle altre creazioni (60,1).
+        Route::get('payments', [PaymentController::class, 'index'])
+            ->name('payments.index')
+            ->middleware('throttle:60,1');
+        Route::post('payments', [PaymentController::class, 'store'])
+            ->name('payments.store')
             ->middleware('throttle:60,1');
 
         // Design system page: showroom dei componenti, accessibile solo in dev.

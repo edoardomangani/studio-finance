@@ -18,6 +18,7 @@ import {
     PhCalendarBlank,
     PhCaretLeft,
     PhCaretRight,
+    PhCoins,
     PhGearSix,
     PhHouse,
     PhListChecks,
@@ -47,6 +48,7 @@ import { dashboard, designSystem } from '@/routes';
 import { index as clientsIndex } from '@/routes/clients';
 import { index as deadlinesIndex } from '@/routes/deadlines';
 import { index as invoicesIndex } from '@/routes/invoices';
+import { index as paymentsIndex } from '@/routes/payments';
 import { index as expenseItemsIndex } from '@/routes/settings/expense-items';
 import { index as recurringDeadlinesIndex } from '@/routes/settings/recurring-deadlines';
 import { index as yearsIndex } from '@/routes/years';
@@ -78,6 +80,7 @@ const mainSections: NavSection[] = [
             { label: 'Dashboard', icon: PhHouse, href: dashboard() },
             { label: 'Anni', icon: PhCalendarBlank, href: yearsIndex() },
             { label: 'Scadenze', icon: PhListChecks, href: deadlinesIndex() },
+            { label: 'Pagamenti', icon: PhCoins, href: paymentsIndex() },
             { label: 'Fatture', icon: PhReceipt, href: invoicesIndex() },
             { label: 'Clienti', icon: PhUsers, href: clientsIndex() },
         ],

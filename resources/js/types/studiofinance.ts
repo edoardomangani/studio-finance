@@ -283,6 +283,41 @@ export type PaginatedList<T> = {
     links: { url: string | null; label: string; active: boolean }[];
 };
 
+/** Riga della lista pagamenti (vista pluriennale, RB9). */
+export type PaymentListItem = {
+    id: number;
+    description: string | null;
+    annual_expense_id: number;
+    annual_expense_name: string | null;
+    expense_year: number | null;
+    /** Null finché lo stato è pianificato (RB9). */
+    amount: number | null;
+    paid_at: string | null;
+    status: PaymentStatus;
+    status_label: string;
+    /** deadline_id null = pagamento manuale extra-scadenza (F8). */
+    is_manual: boolean;
+};
+
+/** Spesa annuale compatta per l'autocomplete del pagamento manuale. */
+export type AnnualExpenseForPicker = {
+    id: number;
+    name: string;
+    year: number;
+};
+
+/**
+ * Filtri del pannello pagamenti (faceted multi-select: array vuoto = nessun
+ * filtro). I due "anni rilevanti" di RB9 + lo stato.
+ */
+export type PaymentFilterState = {
+    status: PaymentStatus[];
+    /** Anni di riferimento (spesa). */
+    expenseYear: number[];
+    /** Anni della data di cassa (paid_at). */
+    paidYear: number[];
+};
+
 /** Pagamento collegato a una scadenza (riga lista scadenze). */
 export type DeadlinePayment = {
     id: number;
