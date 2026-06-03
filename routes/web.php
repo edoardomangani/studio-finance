@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\DeadlineController;
 use App\Http\Controllers\ImportXmlController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OnboardingController;
@@ -68,6 +69,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('years/{year}', [YearController::class, 'show'])
             ->whereNumber('year')
             ->name('years.show')
+            ->middleware('throttle:60,1');
+
+        // Scadenze — vista cronologica pluriennale (lista, importo previsto per
+        // riga). Lo show (side-sheet) e la registrazione pagamento arrivano nei
+        // passi successivi della fase. URL in inglese, label sidebar in italiano.
+        Route::get('deadlines', [DeadlineController::class, 'index'])
+            ->name('deadlines.index')
             ->middleware('throttle:60,1');
 
         // Design system page: showroom dei componenti, accessibile solo in dev.

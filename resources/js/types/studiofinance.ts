@@ -15,6 +15,14 @@ export type ExpenseCalculationType =
     | 'sum_of_bolli';
 
 export type DeadlineKind = 'payment' | 'fulfillment';
+export type DeadlineStatus = 'open' | 'completed' | 'not_due';
+export type PaymentStatus = 'planned' | 'paid' | 'not_due';
+export type QuotaType =
+    | 'tax_advance'
+    | 'tax_balance'
+    | 'contribution_minimum'
+    | 'contribution_adjustment'
+    | 'full_amount';
 
 export type DueYearOffset = 'current' | 'next';
 export type ExpenseYearOffset = 'current' | 'next';
@@ -271,5 +279,39 @@ export type PaginatedList<T> = {
     prev_page_url: string | null;
     path: string;
     links: { url: string | null; label: string; active: boolean }[];
+};
+
+/** Pagamento collegato a una scadenza (riga lista scadenze). */
+export type DeadlinePayment = {
+    id: number;
+    status: PaymentStatus;
+    status_label: string;
+    amount: number | null;
+    paid_at: string | null;
+};
+
+/** Riga della lista scadenze (vista cronologica pluriennale). */
+export type DeadlineListItem = {
+    id: number;
+    name: string;
+    due_at: string;
+    kind: DeadlineKind;
+    kind_label: string;
+    quota_type: QuotaType | null;
+    quota_type_label: string | null;
+    status: DeadlineStatus;
+    status_label: string;
+    year: number;
+    annual_expense_id: number | null;
+    annual_expense_name: string | null;
+    /** Importo previsto (suggerimento, RB8); null se non calcolabile o adempimento. */
+    expected_amount: number | null;
+    payment: DeadlinePayment | null;
+};
+
+export type DeadlineFilterState = {
+    status: DeadlineStatus | null;
+    kind: DeadlineKind | null;
+    year: number | null;
 };
 
