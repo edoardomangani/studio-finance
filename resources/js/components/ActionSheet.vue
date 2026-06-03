@@ -33,7 +33,7 @@ const isMobile = useMediaQuery('(max-width: 767px)');
         :should-scale-background="false"
     >
         <DrawerContent
-            class="max-h-[92vh] data-[vaul-drawer-direction=right]:w-full data-[vaul-drawer-direction=right]:sm:max-w-md"
+            class="data-[vaul-drawer-direction=right]:w-full data-[vaul-drawer-direction=right]:sm:max-w-md"
         >
             <!-- Header iOS: X a sx, titolo centrato, primario a dx. -->
             <header class="grid grid-cols-[1fr_auto_1fr] items-center gap-2 border-b border-border px-2 h-12 shrink-0">
