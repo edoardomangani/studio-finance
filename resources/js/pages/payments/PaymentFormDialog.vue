@@ -78,7 +78,7 @@ function submit(): void {
     <ResponsiveDialog
         v-model:open="open"
         title="Nuovo pagamento"
-        description="Registra un pagamento manuale, non legato a una scadenza. Verrà imputato alla spesa scelta."
+        description="Cassa imputata a una spesa, senza una scadenza da tracciare. Per gli obblighi previsti usa le scadenze."
         submit-form="payment-form"
         submit-label="Registra pagamento"
         :submitting="form.processing"

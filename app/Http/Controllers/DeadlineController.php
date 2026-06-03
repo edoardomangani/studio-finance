@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Studiofinance\CreateDeadline;
 use App\Actions\Studiofinance\MarkDeadlineNotDue;
 use App\Actions\Studiofinance\RegisterPayment;
 use App\Actions\Studiofinance\ReopenDeadline;
@@ -10,6 +11,8 @@ use App\Concerns\NormalizesFacetFilters;
 use App\Enums\DeadlineKind;
 use App\Enums\DeadlineStatus;
 use App\Http\Requests\RegisterPaymentRequest;
+use App\Http\Requests\StoreDeadlineRequest;
+use App\Http\Requests\UpdateDeadlineRequest;
 use App\Models\Deadline;
 use App\Services\DeadlineService;
 use Illuminate\Http\RedirectResponse;
@@ -64,7 +67,53 @@ class DeadlineController extends Controller
             'availableDueYears' => $this->deadlines->availableDueYears(),
             'expenseItems' => $this->deadlines->expenseItems(),
             'kindOptions' => $this->deadlines->kindOptions(),
+            'annualExpenses' => $this->deadlines->annualExpensesForPicker(),
+            'yearOptions' => $this->deadlines->yearOptions(),
         ]);
+    }
+
+    /**
+     * Crea una scadenza ad-hoc (non da template): obbligo non previsto dalle
+     * scadenze tipo. La transazione (scadenza + pagamento pianificato) vive in
+     * [[CreateDeadline]].
+     */
+    public function store(StoreDeadlineRequest $request, CreateDeadline $createDeadline): RedirectResponse
+    {
+        $createDeadline($request->validated());
+
+        $this->flashSuccess('Scadenza creata.');
+
+        return back();
+    }
+
+    /**
+     * Aggiorna una scadenza: nome/data sempre, spesa solo se ad-hoc di
+     * pagamento non ancora pagata (gating nel service). `kind` resta immutabile.
+     */
+    public function update(UpdateDeadlineRequest $request, Deadline $deadline): RedirectResponse
+    {
+        $this->deadlines->update($deadline, $request->validated());
+
+        $this->flashSuccess('Scadenza aggiornata.');
+
+        return back();
+    }
+
+    /**
+     * Archivia una scadenza ad-hoc. Solo ad-hoc (le standard si gestiscono con
+     * "non dovuta", che mantiene la traccia) e solo se il pagamento collegato
+     * non è già stato registrato (non si nasconde un fatto di cassa).
+     */
+    public function destroy(Deadline $deadline): RedirectResponse
+    {
+        abort_unless($deadline->isAdHoc(), 422);
+        abort_if($deadline->isPaid(), 422);
+
+        $this->deadlines->archive($deadline);
+
+        $this->flashSuccess('Scadenza archiviata.');
+
+        return back();
     }
 
     /**

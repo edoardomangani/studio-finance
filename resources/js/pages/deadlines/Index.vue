@@ -9,19 +9,31 @@
  *
  * Click su una riga → side-sheet (registrazione pagamento + reversibilità).
  */
-import { Head, router, setLayoutProps } from '@inertiajs/vue3';
+import { Head, setLayoutProps } from '@inertiajs/vue3';
 import {
+    PhArchive,
     PhCheckCircle,
     PhCircleDashed,
+    PhDotsThreeVertical,
     PhFunnel,
     PhListBullets,
     PhMagnifyingGlass,
+    PhPencil,
+    PhPlus,
 } from '@phosphor-icons/vue';
-import { computed, onUnmounted, ref, watch } from 'vue';
+import { ref } from 'vue';
 import type { Component } from 'vue';
+import DeadlineController from '@/actions/App/Http/Controllers/DeadlineController';
 import FilterPanel from '@/components/FilterPanel.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { ConfirmDialog } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
 import {
     Pagination,
@@ -41,17 +53,20 @@ import {
     TableRow,
 } from '@/components/ui/table';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { useArchiveAction } from '@/composables/useArchiveAction';
+import { useDeadlineFilters } from '@/composables/useDeadlineFilters';
 import { formatDateIT, formatEUR } from '@/lib/format';
 import DeadlineFilters from '@/pages/deadlines/DeadlineFilters.vue';
+import DeadlineFormDialog from '@/pages/deadlines/DeadlineFormDialog.vue';
 import DeadlineSheet from '@/pages/deadlines/DeadlineSheet.vue';
 import { DEADLINE_STATUS_META } from '@/pages/deadlines/statusMeta';
-import { index as deadlinesIndex } from '@/routes/deadlines';
 import type {
-    DeadlineFilterState,
+    AnnualExpenseForPicker,
     DeadlineListItem,
     DeadlineStateFilter,
     EnumOption,
     PaginatedList,
+    YearOption,
 } from '@/types';
 
 const props = defineProps<{
@@ -68,6 +83,8 @@ const props = defineProps<{
     availableDueYears: number[];
     expenseItems: { id: number; name: string }[];
     kindOptions: EnumOption[];
+    annualExpenses: AnnualExpenseForPicker[];
+    yearOptions: YearOption[];
 }>();
 
 // Toggle stato: segmentatore primario. 'closed' raccoglie completate + non
@@ -84,6 +101,30 @@ setLayoutProps({
     subbar: true,
 });
 
+// Dialog crea/modifica scadenza ad-hoc: formDeadline null = creazione.
+const formOpen = ref(false);
+const formDeadline = ref<DeadlineListItem | null>(null);
+
+function openCreate(): void {
+    formDeadline.value = null;
+    formOpen.value = true;
+}
+
+function openEdit(deadline: DeadlineListItem): void {
+    formDeadline.value = deadline;
+    formOpen.value = true;
+}
+
+// Archiviazione (solo ad-hoc non pagate): kebab → ConfirmDialog → DELETE.
+const { archiveOpen, archiveTarget, askArchive, confirmArchive } = useArchiveAction<DeadlineListItem>(
+    (deadline) => DeadlineController.destroy.url({ deadline: deadline.id }),
+);
+
+// Archiviabile: solo ad-hoc e solo se il pagamento collegato non è registrato.
+function isArchivable(deadline: DeadlineListItem): boolean {
+    return deadline.is_custom && deadline.payment?.status !== 'paid';
+}
+
 // Side-sheet: aperto al click su una riga, alimentato dai dati di riga.
 const sheetOpen = ref(false);
 const selectedDeadline = ref<DeadlineListItem | null>(null);
@@ -93,131 +134,31 @@ function openDeadline(deadline: DeadlineListItem): void {
     sheetOpen.value = true;
 }
 
-// Toggle stato (segmentatore primario, accanto al bottone Filtri): 'all'
-// quando nessun filtro stato è attivo.
-const statusTab = computed(() => props.filters.state ?? 'all');
-
-function setStatus(value: unknown): void {
-    const next = value === 'open' || value === 'closed' ? value : null;
-    applyFilters({ state: next });
-}
-
-
-// Search reattiva con debounce 250ms.
-const searchTerm = ref(props.filters.search);
-let searchTimeout: ReturnType<typeof setTimeout> | null = null;
-
-watch(searchTerm, (value) => {
-    if (searchTimeout) {
-        clearTimeout(searchTimeout);
-    }
-
-    searchTimeout = setTimeout(() => applyFilters({ search: value }), 250);
-});
-
-onUnmounted(() => {
-    if (searchTimeout) {
-        clearTimeout(searchTimeout);
-    }
-});
-
-const filtersOpen = ref(false);
-
-const filterState = ref<DeadlineFilterState>({
-    kind: props.filters.kind as DeadlineFilterState['kind'],
-    year: props.filters.year,
-    dueYear: props.filters.due_year,
-    expenseItemId: props.filters.expense_item_id,
-});
-
-watch(
-    () => [props.filters.kind, props.filters.year, props.filters.due_year, props.filters.expense_item_id] as const,
-    ([kind, year, dueYear, expenseItemId]) => {
-        filterState.value = {
-            kind: kind as DeadlineFilterState['kind'],
-            year,
-            dueYear,
-            expenseItemId,
-        };
-    },
-);
-
-// Lo stato vive nel toggle segmentato, non nel pannello: il badge "Filtri"
-// conta le faccette con almeno una selezione.
-const activeFilterCount = computed(() =>
-    [
-        props.filters.kind,
-        props.filters.year,
-        props.filters.due_year,
-        props.filters.expense_item_id,
-    ].filter((v) => v.length > 0).length,
-);
-
-const hasActiveFilters = computed(() => activeFilterCount.value > 0 || !!props.filters.search);
-
-// Applica i filtri del pannello (desktop live via requestLiveApply, mobile
-// via "Applica"). Lo stato resta nel toggle.
-function applyPanelFilters(): void {
-    applyFilters({
-        kind: filterState.value.kind,
-        year: filterState.value.year,
-        due_year: filterState.value.dueYear,
-        expense_item_id: filterState.value.expenseItemId,
-    });
-}
-
-function clearAllFilters(): void {
-    // Pulisce i filtri del pannello; lo stato resta nel toggle.
-    filterState.value = { kind: [], year: [], dueYear: [], expenseItemId: [] };
-    applyFilters({ kind: [], year: [], due_year: [], expense_item_id: [] });
-}
-
-// Array vuoto → undefined (omette il parametro dalla query).
-function nonEmpty<T>(a: T[]): T[] | undefined {
-    return a.length > 0 ? a : undefined;
-}
-
-function applyFilters(next: {
-    search?: string;
-    state?: DeadlineStateFilter | null;
-    kind?: string[];
-    year?: number[];
-    due_year?: number[];
-    expense_item_id?: number[];
-}): void {
-    router.get(
-        deadlinesIndex().url,
-        {
-            search: (next.search ?? props.filters.search) || undefined,
-            state: (next.state !== undefined ? next.state : props.filters.state) ?? undefined,
-            kind: nonEmpty(next.kind ?? props.filters.kind),
-            year: nonEmpty(next.year ?? props.filters.year),
-            due_year: nonEmpty(next.due_year ?? props.filters.due_year),
-            expense_item_id: nonEmpty(next.expense_item_id ?? props.filters.expense_item_id),
-        },
-        { preserveState: true, preserveScroll: true, replace: true },
-    );
-}
-
-function goToPage(page: number): void {
-    router.get(
-        deadlinesIndex().url,
-        {
-            search: props.filters.search || undefined,
-            state: props.filters.state ?? undefined,
-            kind: nonEmpty(props.filters.kind),
-            year: nonEmpty(props.filters.year),
-            due_year: nonEmpty(props.filters.due_year),
-            expense_item_id: nonEmpty(props.filters.expense_item_id),
-            page,
-        },
-        { preserveState: true, preserveScroll: true },
-    );
-}
+// Chrome filtri (search + toggle stato + pannello faccette + paginazione)
+// estratta in composable: la pagina resta vista + dialog/sheet/archive.
+const {
+    searchTerm,
+    statusTab,
+    setStatus,
+    filtersOpen,
+    filterState,
+    activeFilterCount,
+    hasActiveFilters,
+    applyPanelFilters,
+    clearAllFilters,
+    goToPage,
+} = useDeadlineFilters(() => props.filters);
 </script>
 
 <template>
     <Head title="Scadenze" />
+
+    <Teleport to="#page-topbar-actions" defer>
+        <Button size="sm" @click="openCreate">
+            <PhPlus :size="14" weight="bold" />
+            Nuova scadenza
+        </Button>
+    </Teleport>
 
     <Teleport to="#page-topbar-search" defer>
         <InputGroup>
@@ -283,12 +224,13 @@ function goToPage(page: number): void {
                 <TableHead class="w-[70px] text-right">Anno</TableHead>
                 <TableHead class="w-[120px] text-right">Previsto</TableHead>
                 <TableHead class="w-[120px]">Stato</TableHead>
+                <TableHead class="w-[48px]" />
             </TableRow>
         </TableHeader>
         <TableBody>
-            <TableEmpty v-if="deadlines.data.length === 0" :colspan="7">
+            <TableEmpty v-if="deadlines.data.length === 0" :colspan="8">
                 <span v-if="hasActiveFilters">Nessuna scadenza trovata con questi filtri.</span>
-                <span v-else>Nessuna scadenza. Apri un anno per generarle.</span>
+                <span v-else>Nessuna scadenza. Apri un anno per generarle o creane una dal pulsante in alto.</span>
             </TableEmpty>
             <TableRow
                 v-for="deadline in deadlines.data"
@@ -325,6 +267,34 @@ function goToPage(page: number): void {
                         <component :is="DEADLINE_STATUS_META[deadline.status].icon" :size="12" />
                         {{ deadline.status_label }}
                     </Badge>
+                </TableCell>
+                <TableCell class="text-right" @click.stop>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger as-child>
+                            <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon-sm"
+                                aria-label="Azioni scadenza"
+                            >
+                                <PhDotsThreeVertical :size="14" weight="bold" />
+                            </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                            <DropdownMenuItem @select="openEdit(deadline)">
+                                <PhPencil :size="14" />
+                                Modifica
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                                v-if="isArchivable(deadline)"
+                                variant="destructive"
+                                @select="askArchive(deadline)"
+                            >
+                                <PhArchive :size="14" />
+                                Archivia
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
                 </TableCell>
             </TableRow>
         </TableBody>
@@ -383,4 +353,23 @@ function goToPage(page: number): void {
     </FilterPanel>
 
     <DeadlineSheet v-model:open="sheetOpen" :deadline="selectedDeadline" />
+
+    <DeadlineFormDialog
+        v-model:open="formOpen"
+        :deadline="formDeadline"
+        :annual-expenses="annualExpenses"
+        :year-options="yearOptions"
+        :kind-options="kindOptions"
+    />
+
+    <ConfirmDialog
+        v-model:open="archiveOpen"
+        title="Archiviare la scadenza?"
+        :description="archiveTarget
+            ? `«${archiveTarget.name}» verrà nascosta dall'elenco. Puoi crearne un'altra in qualsiasi momento.`
+            : undefined"
+        confirm-label="Archivia"
+        destructive
+        @confirm="confirmArchive"
+    />
 </template>

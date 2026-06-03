@@ -1,17 +1,16 @@
 <script setup lang="ts">
 /**
- * PaymentFilters — campi filtro della lista pagamenti (dentro [[FilterPanel]]).
+ * PaymentFilters — campi filtro del registro pagamenti (dentro [[FilterPanel]]).
  *
  * Faccette multi-select via [[CheckboxFacet]] (nessuna spunta = nessun filtro):
- * stato, anno di riferimento (spesa), anno della data di cassa. v-model
- * sull'intero oggetto filtri. Specchia [[deadlines/DeadlineFilters]].
+ * anno di riferimento (spesa) e anno della data di cassa. Niente filtro stato:
+ * il registro mostra solo i pagamenti effettuati. v-model sull'intero oggetto.
  */
 import { computed } from 'vue';
 import CheckboxFacet from '@/components/CheckboxFacet.vue';
-import type { EnumOption, PaymentFilterState, PaymentStatus } from '@/types';
+import type { PaymentFilterState } from '@/types';
 
 const props = defineProps<{
-    statusOptions: EnumOption[];
     availableExpenseYears: number[];
     availablePaidYears: number[];
 }>();
@@ -30,13 +29,6 @@ function setFacet<K extends keyof PaymentFilterState>(key: K, values: PaymentFil
 
 <template>
     <div class="space-y-6">
-        <CheckboxFacet
-            title="Stato"
-            id-prefix="flt-status"
-            :options="statusOptions"
-            :model-value="modelValue.status"
-            @update:model-value="(v) => setFacet('status', v as PaymentStatus[])"
-        />
         <CheckboxFacet
             title="Anno di riferimento"
             id-prefix="flt-exp-year"

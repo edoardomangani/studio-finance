@@ -1,14 +1,14 @@
 <script setup lang="ts">
 /**
- * Payments — Index page.
+ * Payments — registro di cassa.
  *
- * Vista pluriennale dei pagamenti (50/pagina, RB9). Subbar: search live sulla
- * descrizione + bottone "Filtri" (stato, anno spesa, anno pagamento) in aside
- * desktop o Sheet mobile. Il pagamento manuale extra-scadenza (F8) si crea dal
- * CTA in alto a destra.
+ * Vista pluriennale dei soli pagamenti effettuati (`paid`, 50/pagina, RB9): i
+ * fatti di cassa. I pianificati si gestiscono dalle Scadenze (sorgente di
+ * verità del ciclo di vita), non qui. Subbar: search live sulla descrizione +
+ * bottone "Filtri" (anno spesa, anno pagamento). Il pagamento manuale extra-
+ * scadenza (F8) si crea dal CTA in alto a destra.
  *
- * Specchia [[deadlines/Index.vue]] per chrome (search + FilterPanel + tabella
- * densa), senza il toggle di stato (lo stato vive nel pannello, tre facet).
+ * Specchia [[deadlines/Index.vue]] per chrome (search + FilterPanel + tabella).
  */
 import { Head, router, setLayoutProps } from '@inertiajs/vue3';
 import { PhFunnel, PhMagnifyingGlass, PhPlus } from '@phosphor-icons/vue';
@@ -37,28 +37,23 @@ import {
 import { formatDateIT, formatEUR } from '@/lib/format';
 import PaymentFilters from '@/pages/payments/PaymentFilters.vue';
 import PaymentFormDialog from '@/pages/payments/PaymentFormDialog.vue';
-import { PAYMENT_STATUS_META } from '@/pages/payments/statusMeta';
 import { index as paymentsIndex } from '@/routes/payments';
 import type {
     AnnualExpenseForPicker,
-    EnumOption,
     PaginatedList,
     PaymentFilterState,
     PaymentListItem,
-    PaymentStatus,
 } from '@/types';
 
 const props = defineProps<{
     payments: PaginatedList<PaymentListItem>;
     filters: {
         search: string;
-        status: PaymentStatus[];
         expense_year: number[];
         paid_year: number[];
     };
     availableExpenseYears: number[];
     availablePaidYears: number[];
-    statusOptions: EnumOption[];
     annualExpenses: AnnualExpenseForPicker[];
 }>();
 
@@ -92,37 +87,33 @@ onUnmounted(() => {
 const filtersOpen = ref(false);
 
 const filterState = ref<PaymentFilterState>({
-    status: props.filters.status,
     expenseYear: props.filters.expense_year,
     paidYear: props.filters.paid_year,
 });
 
 watch(
-    () => [props.filters.status, props.filters.expense_year, props.filters.paid_year] as const,
-    ([status, expenseYear, paidYear]) => {
-        filterState.value = { status, expenseYear, paidYear };
+    () => [props.filters.expense_year, props.filters.paid_year] as const,
+    ([expenseYear, paidYear]) => {
+        filterState.value = { expenseYear, paidYear };
     },
 );
 
 const activeFilterCount = computed(() =>
-    [props.filters.status, props.filters.expense_year, props.filters.paid_year].filter(
-        (v) => v.length > 0,
-    ).length,
+    [props.filters.expense_year, props.filters.paid_year].filter((v) => v.length > 0).length,
 );
 
 const hasActiveFilters = computed(() => activeFilterCount.value > 0 || !!props.filters.search);
 
 function applyPanelFilters(): void {
     applyFilters({
-        status: filterState.value.status,
         expense_year: filterState.value.expenseYear,
         paid_year: filterState.value.paidYear,
     });
 }
 
 function clearAllFilters(): void {
-    filterState.value = { status: [], expenseYear: [], paidYear: [] };
-    applyFilters({ status: [], expense_year: [], paid_year: [] });
+    filterState.value = { expenseYear: [], paidYear: [] };
+    applyFilters({ expense_year: [], paid_year: [] });
 }
 
 // Array vuoto → undefined (omette il parametro dalla query).
@@ -132,7 +123,6 @@ function nonEmpty<T>(a: T[]): T[] | undefined {
 
 function applyFilters(next: {
     search?: string;
-    status?: PaymentStatus[];
     expense_year?: number[];
     paid_year?: number[];
 }): void {
@@ -140,7 +130,6 @@ function applyFilters(next: {
         paymentsIndex().url,
         {
             search: (next.search ?? props.filters.search) || undefined,
-            status: nonEmpty(next.status ?? props.filters.status),
             expense_year: nonEmpty(next.expense_year ?? props.filters.expense_year),
             paid_year: nonEmpty(next.paid_year ?? props.filters.paid_year),
         },
@@ -153,7 +142,6 @@ function goToPage(page: number): void {
         paymentsIndex().url,
         {
             search: props.filters.search || undefined,
-            status: nonEmpty(props.filters.status),
             expense_year: nonEmpty(props.filters.expense_year),
             paid_year: nonEmpty(props.filters.paid_year),
             page,
@@ -216,18 +204,16 @@ function goToPage(page: number): void {
                 <TableHead class="w-[110px]">Origine</TableHead>
                 <TableHead class="w-[70px] text-right">Anno</TableHead>
                 <TableHead class="w-[120px] text-right">Importo</TableHead>
-                <TableHead class="w-[120px]">Stato</TableHead>
             </TableRow>
         </TableHeader>
         <TableBody>
-            <TableEmpty v-if="payments.data.length === 0" :colspan="7">
+            <TableEmpty v-if="payments.data.length === 0" :colspan="6">
                 <span v-if="hasActiveFilters">Nessun pagamento trovato con questi filtri.</span>
-                <span v-else>Nessun pagamento. Registrane uno dal pulsante in alto o dalle scadenze.</span>
+                <span v-else>Nessun pagamento registrato. Registrane uno dal pulsante in alto o dalle scadenze.</span>
             </TableEmpty>
             <TableRow v-for="payment in payments.data" v-else :key="payment.id">
                 <TableCell class="tabular text-muted-foreground">
-                    <span v-if="payment.paid_at">{{ formatDateIT(payment.paid_at) }}</span>
-                    <span v-else>—</span>
+                    {{ formatDateIT(payment.paid_at) }}
                 </TableCell>
                 <TableCell class="text-foreground">
                     <span v-if="payment.description" class="block truncate" :title="payment.description">
@@ -247,15 +233,8 @@ function goToPage(page: number): void {
                 <TableCell class="tabular text-right text-muted-foreground">
                     {{ payment.expense_year ?? '—' }}
                 </TableCell>
-                <TableCell class="tabular text-right text-foreground">
-                    <span v-if="payment.amount !== null">{{ formatEUR(payment.amount) }}</span>
-                    <span v-else class="text-muted-foreground">—</span>
-                </TableCell>
-                <TableCell>
-                    <Badge :variant="PAYMENT_STATUS_META[payment.status].variant" class="gap-1">
-                        <component :is="PAYMENT_STATUS_META[payment.status].icon" :size="12" />
-                        {{ payment.status_label }}
-                    </Badge>
+                <TableCell class="tabular text-right font-medium text-foreground">
+                    {{ formatEUR(payment.amount) }}
                 </TableCell>
             </TableRow>
         </TableBody>
@@ -304,7 +283,6 @@ function goToPage(page: number): void {
         <template #default="{ requestLiveApply }">
             <PaymentFilters
                 v-model="filterState"
-                :status-options="statusOptions"
                 :available-expense-years="availableExpenseYears"
                 :available-paid-years="availablePaidYears"
                 @update:model-value="requestLiveApply"

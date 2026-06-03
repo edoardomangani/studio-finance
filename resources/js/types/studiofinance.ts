@@ -283,35 +283,37 @@ export type PaginatedList<T> = {
     links: { url: string | null; label: string; active: boolean }[];
 };
 
-/** Riga della lista pagamenti (vista pluriennale, RB9). */
+/** Riga del registro pagamenti (solo `paid`: fatti di cassa, RB9). */
 export type PaymentListItem = {
     id: number;
     description: string | null;
     annual_expense_id: number;
     annual_expense_name: string | null;
     expense_year: number | null;
-    /** Null finché lo stato è pianificato (RB9). */
-    amount: number | null;
+    amount: number;
     paid_at: string | null;
-    status: PaymentStatus;
-    status_label: string;
     /** deadline_id null = pagamento manuale extra-scadenza (F8). */
     is_manual: boolean;
 };
 
-/** Spesa annuale compatta per l'autocomplete del pagamento manuale. */
+/** Spesa annuale compatta per l'autocomplete (pagamento manuale, scadenza ad-hoc). */
 export type AnnualExpenseForPicker = {
     id: number;
     name: string;
     year: number;
 };
 
+/** Anno come opzione {id, year} per le select (scadenza ad-hoc di adempimento). */
+export type YearOption = {
+    id: number;
+    year: number;
+};
+
 /**
- * Filtri del pannello pagamenti (faceted multi-select: array vuoto = nessun
- * filtro). I due "anni rilevanti" di RB9 + lo stato.
+ * Filtri del pannello registro pagamenti (faceted multi-select: array vuoto =
+ * nessun filtro). I due "anni rilevanti" di RB9.
  */
 export type PaymentFilterState = {
-    status: PaymentStatus[];
     /** Anni di riferimento (spesa). */
     expenseYear: number[];
     /** Anni della data di cassa (paid_at). */
@@ -339,6 +341,8 @@ export type DeadlineListItem = {
     status: DeadlineStatus;
     status_label: string;
     year: number;
+    /** recurring_deadline_id null = scadenza ad-hoc: editabile + archiviabile. */
+    is_custom: boolean;
     annual_expense_id: number | null;
     annual_expense_name: string | null;
     /** Importo previsto (suggerimento, RB8); null se non calcolabile o adempimento. */

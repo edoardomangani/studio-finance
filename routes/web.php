@@ -81,6 +81,18 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('deadlines', [DeadlineController::class, 'index'])
             ->name('deadlines.index')
             ->middleware('throttle:60,1');
+        // Creazione scadenza ad-hoc (non da template): obbligo imprevisto.
+        Route::post('deadlines', [DeadlineController::class, 'store'])
+            ->name('deadlines.store')
+            ->middleware('throttle:60,1');
+        // Modifica (nome/data sempre, spesa solo se ad-hoc non pagata) e
+        // archiviazione (solo ad-hoc, solo se non pagata).
+        Route::patch('deadlines/{deadline}', [DeadlineController::class, 'update'])
+            ->name('deadlines.update')
+            ->middleware('throttle:60,1');
+        Route::delete('deadlines/{deadline}', [DeadlineController::class, 'destroy'])
+            ->name('deadlines.destroy')
+            ->middleware('throttle:60,1');
         // Registrazione pagamento dal side-sheet: planned→paid, open→completed.
         Route::post('deadlines/{deadline}/payment', [DeadlineController::class, 'registerPayment'])
             ->name('deadlines.payment')

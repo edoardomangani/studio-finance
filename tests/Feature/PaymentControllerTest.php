@@ -42,23 +42,38 @@ it('mostra i pagamenti pagati nella lista filtrata per stato', function () {
     userWithOpenYearForPayments();
     registerFirstPayment(250, '2026-03-15');
 
-    $this->get(route('payments.index', ['status' => 'paid']))
+    $this->get(route('payments.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('payments/Index')
             ->has('payments.data', 1)
-            ->where('payments.data.0.status', 'paid')
             ->where('payments.data.0.amount', 250)
             ->where('payments.data.0.paid_at', '2026-03-15')
             ->where('payments.data.0.is_manual', false)
             ->etc());
 });
 
+it('il registro mostra solo i pagamenti effettuati, non i pianificati', function () {
+    userWithOpenYearForPayments();
+    // Il wizard ha generato molti pagamenti pianificati; nessuno deve comparire.
+    expect(Payment::query()->where('status', PaymentStatus::Planned)->count())->toBeGreaterThan(0);
+
+    $this->get(route('payments.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->has('payments.data', 0)->etc());
+
+    // Registrato uno → compare solo quello.
+    registerFirstPayment(100, '2026-03-15');
+    $this->get(route('payments.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->has('payments.data', 1)->etc());
+});
+
 it('filtra per anno della data di cassa (paid_year)', function () {
     userWithOpenYearForPayments();
     registerFirstPayment(100, '2026-06-30');
 
-    $this->get(route('payments.index', ['paid_year' => 2026, 'status' => 'paid']))
+    $this->get(route('payments.index', ['paid_year' => 2026]))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('payments.data', fn ($rows) => collect($rows)->isNotEmpty()
@@ -71,13 +86,12 @@ it('filtra per anno della data di cassa (paid_year)', function () {
         ->assertInertia(fn (Assert $page) => $page->has('payments.data', 0)->etc());
 });
 
-it('espone le opzioni di filtro e le spese per l autocomplete', function () {
+it('espone gli anni di filtro e le spese per l autocomplete', function () {
     userWithOpenYearForPayments();
 
     $this->get(route('payments.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->has('statusOptions', 3)
             ->has('availableExpenseYears')
             ->where('annualExpenses', fn ($rows) => collect($rows)->isNotEmpty())
             ->etc());
@@ -144,7 +158,7 @@ it('non mostra i pagamenti di un altro utente', function () {
     Payment::factory()->for($other)->for(AnnualExpense::factory()->for($other))->paid(999)->create();
 
     $this->actingAs($user);
-    $this->get(route('payments.index', ['status' => 'paid']))
+    $this->get(route('payments.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('payments.data', fn ($rows) => collect($rows)->every(fn ($r) => (float) $r['amount'] !== 999.0))

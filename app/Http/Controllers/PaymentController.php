@@ -30,26 +30,22 @@ class PaymentController extends Controller
     {
         $search = trim((string) $request->query('search', ''));
         // Faccette multi-select (array). Accetta anche lo scalare per comodità.
-        $status = $this->stringArray($request->query('status'));
         $expenseYear = $this->intArray($request->query('expense_year'));
         $paidYear = $this->intArray($request->query('paid_year'));
 
         return Inertia::render('payments/Index', [
             'payments' => $this->payments->paginate([
                 'search' => $search,
-                'status' => $status,
                 'expense_year' => $expenseYear,
                 'paid_year' => $paidYear,
             ]),
             'filters' => [
                 'search' => $search,
-                'status' => $status,
                 'expense_year' => $expenseYear,
                 'paid_year' => $paidYear,
             ],
             'availableExpenseYears' => $this->payments->availableExpenseYears(),
             'availablePaidYears' => $this->payments->availablePaidYears(),
-            'statusOptions' => $this->payments->statusOptions(),
             'annualExpenses' => $this->payments->annualExpensesForPicker(),
         ]);
     }

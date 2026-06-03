@@ -57,6 +57,9 @@ type NavLink = {
     label: string;
     icon: Component;
     href: string | ReturnType<typeof dashboard>;
+    /** Pathname per il match "attivo" quando l'href porta una query (es.
+     *  Scadenze apre `?state=open` ma resta attivo su tutto /deadlines). */
+    activeMatch?: string | ReturnType<typeof dashboard>;
 };
 
 type NavSection = { label: string; items: NavLink[] };
@@ -79,9 +82,14 @@ const mainSections: NavSection[] = [
         items: [
             { label: 'Dashboard', icon: PhHouse, href: dashboard() },
             { label: 'Anni', icon: PhCalendarBlank, href: yearsIndex() },
-            { label: 'Scadenze', icon: PhListChecks, href: deadlinesIndex() },
-            { label: 'Pagamenti', icon: PhCoins, href: paymentsIndex() },
+            {
+                label: 'Scadenze',
+                icon: PhListChecks,
+                href: deadlinesIndex({ query: { state: 'open' } }),
+                activeMatch: deadlinesIndex(),
+            },
             { label: 'Fatture', icon: PhReceipt, href: invoicesIndex() },
+            { label: 'Pagamenti', icon: PhCoins, href: paymentsIndex() },
             { label: 'Clienti', icon: PhUsers, href: clientsIndex() },
         ],
     },
@@ -166,14 +174,14 @@ const sections = computed(() =>
                                 :href="item.href"
                                 class="group/nav relative flex items-center gap-2 px-4 py-1.75 text-13 transition-colors"
                                 :class="
-                                    isCurrentOrParentUrl(item.href)
+                                    isCurrentOrParentUrl(item.activeMatch ?? item.href)
                                         ? 'font-medium text-foreground'
                                         : 'text-foreground/75 hover:text-foreground'
                                 "
                             >
                                 <!-- Active: barra accent piena, sempre visibile -->
                                 <span
-                                    v-if="isCurrentOrParentUrl(item.href)"
+                                    v-if="isCurrentOrParentUrl(item.activeMatch ?? item.href)"
                                     class="absolute top-1/2 left-0 h-5 w-[2px] -translate-y-1/2 rounded-r-[2px] bg-accent-vivid"
                                     aria-hidden="true"
                                 />
@@ -185,7 +193,7 @@ const sections = computed(() =>
                                 />
                                 <!-- Icona: active=fill sempre. Idle=regular↔fill crossfade su hover. -->
                                 <component
-                                    v-if="isCurrentOrParentUrl(item.href)"
+                                    v-if="isCurrentOrParentUrl(item.activeMatch ?? item.href)"
                                     :is="item.icon"
                                     weight="fill"
                                     class="size-4 shrink-0"

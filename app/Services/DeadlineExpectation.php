@@ -48,8 +48,13 @@ class DeadlineExpectation
             return $this->stampDutyBalance($deadline, $expense, $context);
         }
 
+        // Niente quota_type → scadenza ad-hoc: nessun calcolo derivato (il
+        // quota_type, e il suo split tra fratelle, vive solo sulle standard).
+        // Il previsto è quello fissato a mano dall'utente, se presente.
         if ($deadline->quota_type === null) {
-            return null;
+            return $deadline->manual_expected_amount !== null
+                ? (float) $deadline->manual_expected_amount
+                : null;
         }
 
         return match ($deadline->quota_type) {

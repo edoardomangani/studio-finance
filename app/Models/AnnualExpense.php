@@ -65,4 +65,26 @@ class AnnualExpense extends Model
     {
         return $this->hasMany(Deadline::class);
     }
+
+    /**
+     * Spese annuali (tutti gli anni) per gli autocomplete: pagamento manuale
+     * (F8) e scadenza ad-hoc di pagamento. Solo attive (no archiviate, via
+     * SoftDeletes); tenancy dal global scope [[App\Concerns\BelongsToUser]].
+     *
+     * @return array<int, array{id: int, name: string, year: int}>
+     */
+    public static function pickerOptions(): array
+    {
+        return self::query()
+            ->with('year:id,year')
+            ->orderByDesc('year_id')
+            ->orderBy('name')
+            ->get(['id', 'year_id', 'name'])
+            ->map(fn (self $e): array => [
+                'id' => $e->id,
+                'name' => $e->name,
+                'year' => $e->year->year,
+            ])
+            ->all();
+    }
 }
