@@ -36,10 +36,11 @@ class DeadlineController extends Controller
         $state = in_array($request->query('state'), ['open', 'closed'], true)
             ? (string) $request->query('state')
             : null;
-        $kind = $this->stringOrNull($request->query('kind'));
-        $year = $this->intOrNull($request->query('year'));
-        $dueYear = $this->intOrNull($request->query('due_year'));
-        $expenseItemId = $this->intOrNull($request->query('expense_item_id'));
+        // Faccette multi-select (array). Accetta anche lo scalare per comodità.
+        $kind = $this->stringArray($request->query('kind'));
+        $year = $this->intArray($request->query('year'));
+        $dueYear = $this->intArray($request->query('due_year'));
+        $expenseItemId = $this->intArray($request->query('expense_item_id'));
 
         return Inertia::render('deadlines/Index', [
             'deadlines' => $this->deadlines->paginate([
@@ -109,17 +110,34 @@ class DeadlineController extends Controller
         return back();
     }
 
-    private function intOrNull(mixed $raw): ?int
+    /**
+     * Normalizza un parametro faccetta a lista di int. Accetta sia l'array
+     * (`?year[]=2026&year[]=2027`) sia lo scalare (`?year=2026`).
+     *
+     * @return list<int>
+     */
+    private function intArray(mixed $raw): array
     {
-        $value = is_string($raw) ? trim($raw) : $raw;
-
-        return is_numeric($value) ? (int) $value : null;
+        return collect(is_array($raw) ? $raw : [$raw])
+            ->filter(fn ($v): bool => is_numeric($v))
+            ->map(fn ($v): int => (int) $v)
+            ->unique()
+            ->values()
+            ->all();
     }
 
-    private function stringOrNull(mixed $raw): ?string
+    /**
+     * Come [[intArray]] ma per valori stringa (es. enum kind).
+     *
+     * @return list<string>
+     */
+    private function stringArray(mixed $raw): array
     {
-        $value = is_string($raw) ? trim($raw) : '';
-
-        return $value === '' ? null : $value;
+        return collect(is_array($raw) ? $raw : [$raw])
+            ->map(fn ($v): string => is_string($v) ? trim($v) : '')
+            ->filter(fn (string $v): bool => $v !== '')
+            ->unique()
+            ->values()
+            ->all();
     }
 }

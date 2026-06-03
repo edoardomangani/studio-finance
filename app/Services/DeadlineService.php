@@ -29,20 +29,22 @@ class DeadlineService
      * Pagina di scadenze (cronologica, più recenti per data prima) con i filtri
      * applicati e l'importo previsto per riga.
      *
-     * @param  array{search?: string, state?: ?string, kind?: ?string, year?: ?int, due_year?: ?int, expense_item_id?: ?int}  $filters
+     * Faccette multi-select (array): nessuna selezione = nessun filtro.
+     *
+     * @param  array{search?: string, state?: ?string, kind?: list<string>, year?: list<int>, due_year?: list<int>, expense_item_id?: list<int>}  $filters
      * @return LengthAwarePaginator<int, array<string, mixed>>
      */
     public function paginate(array $filters = []): LengthAwarePaginator
     {
         $search = isset($filters['search']) ? trim((string) $filters['search']) : '';
         // Stato come gruppo: open = da fare; closed = già gestite (completate +
-        // non dovute, "cose fatte"). Toggle primario in UI.
+        // non dovute, "cose fatte"). Toggle primario in UI (resta singolo).
         $state = $filters['state'] ?? null;
-        $kind = isset($filters['kind']) ? DeadlineKind::tryFrom((string) $filters['kind']) : null;
+        $kinds = $filters['kind'] ?? [];
         // year = anno di riferimento (spesa), due_year = anno della scadenza (due_at).
-        $year = $filters['year'] ?? null;
-        $dueYear = $filters['due_year'] ?? null;
-        $expenseItemId = $filters['expense_item_id'] ?? null;
+        $years = $filters['year'] ?? [];
+        $dueYears = $filters['due_year'] ?? [];
+        $expenseItemIds = $filters['expense_item_id'] ?? [];
 
         $paginator = Deadline::query()
             ->with(['payment', 'annualExpense.year', 'year'])
@@ -52,10 +54,14 @@ class DeadlineService
             })
             ->when($state === 'open', fn ($q) => $q->where('status', DeadlineStatus::Open))
             ->when($state === 'closed', fn ($q) => $q->whereIn('status', [DeadlineStatus::Completed, DeadlineStatus::NotDue]))
-            ->when($kind !== null, fn ($q) => $q->where('kind', $kind))
-            ->when($year !== null, fn ($q) => $q->whereHas('year', fn ($yq) => $yq->where('year', $year)))
-            ->when($dueYear !== null, fn ($q) => $q->whereYear('due_at', $dueYear))
-            ->when($expenseItemId !== null, fn ($q) => $q->whereHas('annualExpense', fn ($eq) => $eq->where('expense_item_id', $expenseItemId)))
+            ->when($kinds !== [], fn ($q) => $q->whereIn('kind', $kinds))
+            ->when($years !== [], fn ($q) => $q->whereHas('year', fn ($yq) => $yq->whereIn('year', $years)))
+            ->when($dueYears !== [], fn ($q) => $q->where(function ($q) use ($dueYears): void {
+                foreach ($dueYears as $y) {
+                    $q->orWhereYear('due_at', $y);
+                }
+            }))
+            ->when($expenseItemIds !== [], fn ($q) => $q->whereHas('annualExpense', fn ($eq) => $eq->whereIn('expense_item_id', $expenseItemIds)))
             ->orderByDesc('due_at')
             ->orderByDesc('id')
             ->paginate(self::PER_PAGE)

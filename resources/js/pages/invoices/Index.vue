@@ -58,7 +58,7 @@ const props = defineProps<{
     invoices: PaginatedList<InvoiceListItem>;
     filters: {
         search: string;
-        year: number | null;
+        year: number[];
         client_id: number | null;
         withholding: boolean | null;
     };
@@ -119,7 +119,7 @@ watch(
 const activeFilterCount = computed(() => {
     let n = 0;
 
-    if (props.filters.year !== null) {
+    if (props.filters.year.length > 0) {
         n++;
     }
 
@@ -149,13 +149,18 @@ function applyPanelFilters(): void {
 }
 
 function clearAllFilters(): void {
-    filterState.value = { year: null, client_id: null, withholding: null };
-    applyFilters({ year: null, client_id: null, withholding: null });
+    filterState.value = { year: [], client_id: null, withholding: null };
+    applyFilters({ year: [], client_id: null, withholding: null });
+}
+
+// Array vuoto → undefined (omette il parametro dalla query).
+function nonEmpty<T>(a: T[]): T[] | undefined {
+    return a.length > 0 ? a : undefined;
 }
 
 function applyFilters(next: {
     search?: string;
-    year?: number | null;
+    year?: number[];
     client_id?: number | null;
     withholding?: boolean | null;
 }): void {
@@ -163,7 +168,7 @@ function applyFilters(next: {
         invoicesIndex().url,
         {
             search: (next.search ?? props.filters.search) || undefined,
-            year: (next.year !== undefined ? next.year : props.filters.year) ?? undefined,
+            year: nonEmpty(next.year ?? props.filters.year),
             client_id: (next.client_id !== undefined ? next.client_id : props.filters.client_id) ?? undefined,
             withholding: next.withholding !== undefined
                 ? (next.withholding === null ? undefined : (next.withholding ? 1 : 0))
@@ -178,7 +183,7 @@ function goToPage(page: number): void {
         invoicesIndex().url,
         {
             search: props.filters.search || undefined,
-            year: props.filters.year ?? undefined,
+            year: nonEmpty(props.filters.year),
             client_id: props.filters.client_id ?? undefined,
             withholding: props.filters.withholding === null
                 ? undefined

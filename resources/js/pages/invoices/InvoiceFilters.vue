@@ -1,17 +1,14 @@
 <script setup lang="ts">
 /**
- * InvoiceFilters — contenuto puro dei filtri della Index fatture.
+ * InvoiceFilters — campi filtro della Index fatture (dentro [[FilterPanel]]).
  *
- * Componente "dumb" senza opinioni sul container: viene renderizzato sia
- * dentro l'aside inline desktop (#page-right-sidebar) sia dentro lo Sheet
- * mobile. La logica di apertura/chiusura del pannello vive nel parent.
- *
- * v-model si lega all'intero oggetto filtri (anno + cliente + ritenuta);
- * il parent triggera la navigazione Inertia quando opportuno (es. su
- * "Applica" o on-change live).
+ * Anno: faccetta multi-select ([[CheckboxFacet]], nessuna spunta = nessun
+ * filtro). Cliente: Select singolo (lista lunga/dinamica, i checkbox non
+ * scalano). Ritenuta: tri-state reso con due checkbox (Con / Senza); nessuna
+ * o entrambe = tutte. v-model sull'intero oggetto filtri.
  */
-import { Label } from '@/components/ui/label';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { computed } from 'vue';
+import CheckboxFacet from '@/components/CheckboxFacet.vue';
 import {
     Select,
     SelectContent,
@@ -22,50 +19,50 @@ import {
 import type { ClientForPicker } from '@/types';
 
 export type InvoiceFilterState = {
-    year: number | null;
+    year: number[];
     client_id: number | null;
     withholding: boolean | null;
 };
 
-defineProps<{
+const props = defineProps<{
     availableYears: number[];
     clients: ClientForPicker[];
 }>();
 
 const modelValue = defineModel<InvoiceFilterState>({ required: true });
 
-function setYear(value: string): void {
-    modelValue.value = {
-        ...modelValue.value,
-        year: value === '' ? null : Number(value),
-    };
-}
+const yearOptions = computed(() => props.availableYears.map((y) => ({ value: y, label: String(y) })));
 
-/* reka-ui Select non ammette value="" (sentinel interno per "no selection").
-   Usiamo "all" come sentinel esplicito → null nel modelValue. */
 const ALL_CLIENTS = 'all';
 
-function setClient(value: unknown): void {
-    if (
-        value === ALL_CLIENTS ||
-        value === '' ||
-        value === undefined ||
-        value === null
-    ) {
-        modelValue.value = { ...modelValue.value, client_id: null };
-        return;
-    }
-
-    modelValue.value = { ...modelValue.value, client_id: Number(value) };
+function setYear(values: number[]): void {
+    modelValue.value = { ...modelValue.value, year: values };
 }
 
-function setWithholding(value: string): void {
+function setClient(value: unknown): void {
+    const next = value === ALL_CLIENTS || value === '' || value == null ? null : Number(value);
+    modelValue.value = { ...modelValue.value, client_id: next };
+}
+
+// Ritenuta tri-state ↔ 2 checkbox. true→['with'], false→['without'], null→[].
+const withholdingSelected = computed<string[]>(() => {
+    if (modelValue.value.withholding === true) {
+        return ['with'];
+    }
+
+    if (modelValue.value.withholding === false) {
+        return ['without'];
+    }
+
+    return [];
+});
+
+function setWithholding(values: string[]): void {
+    // Solo "with" → true, solo "without" → false, nessuna o entrambe → tutte.
     let next: boolean | null = null;
 
-    if (value === 'yes') {
-        next = true;
-    } else if (value === 'no') {
-        next = false;
+    if (values.length === 1) {
+        next = values[0] === 'with';
     }
 
     modelValue.value = { ...modelValue.value, withholding: next };
@@ -74,112 +71,41 @@ function setWithholding(value: string): void {
 
 <template>
     <div class="space-y-6">
-        <!-- Anno -->
-        <div>
-            <h3 class="kicker mb-2">Anno emissione</h3>
-            <RadioGroup
-                :model-value="
-                    modelValue.year === null ? '' : String(modelValue.year)
-                "
-                class="gap-1"
-                @update:model-value="(v) => setYear(String(v ?? ''))"
-            >
-                <div class="flex items-center gap-2">
-                    <RadioGroupItem id="flt-year-all" value="" />
-                    <Label
-                        for="flt-year-all"
-                        class="cursor-pointer text-13 font-normal"
-                    >
-                        Tutti
-                    </Label>
-                </div>
-                <div
-                    v-for="y in availableYears"
-                    :key="y"
-                    class="flex items-center gap-2"
-                >
-                    <RadioGroupItem :id="`flt-year-${y}`" :value="String(y)" />
-                    <Label
-                        :for="`flt-year-${y}`"
-                        class="tabular cursor-pointer text-13 font-normal"
-                    >
-                        {{ y }}
-                    </Label>
-                </div>
-            </RadioGroup>
-        </div>
+        <CheckboxFacet
+            title="Anno emissione"
+            id-prefix="flt-year"
+            :options="yearOptions"
+            :model-value="modelValue.year"
+            @update:model-value="(v) => setYear(v as number[])"
+        />
 
-        <!-- Cliente -->
         <div>
             <h3 class="kicker mb-2">Cliente</h3>
             <Select
-                :model-value="
-                    modelValue.client_id === null
-                        ? ALL_CLIENTS
-                        : String(modelValue.client_id)
-                "
+                :model-value="modelValue.client_id === null ? ALL_CLIENTS : String(modelValue.client_id)"
                 @update:model-value="setClient"
             >
                 <SelectTrigger class="w-full">
                     <SelectValue placeholder="Tutti i clienti" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem :value="ALL_CLIENTS"
-                        >Tutti i clienti</SelectItem
-                    >
-                    <SelectItem
-                        v-for="c in clients"
-                        :key="c.id"
-                        :value="String(c.id)"
-                    >
+                    <SelectItem :value="ALL_CLIENTS">Tutti i clienti</SelectItem>
+                    <SelectItem v-for="c in clients" :key="c.id" :value="String(c.id)">
                         {{ c.name }}
                     </SelectItem>
                 </SelectContent>
             </Select>
         </div>
 
-        <!-- Ritenuta tri-state -->
-        <div>
-            <h3 class="kicker mb-2">Ritenuta</h3>
-            <RadioGroup
-                :model-value="
-                    modelValue.withholding === null
-                        ? 'all'
-                        : modelValue.withholding
-                          ? 'yes'
-                          : 'no'
-                "
-                class="gap-1"
-                @update:model-value="(v) => setWithholding(String(v ?? 'all'))"
-            >
-                <div class="flex items-center gap-2">
-                    <RadioGroupItem id="flt-with-all" value="all" />
-                    <Label
-                        for="flt-with-all"
-                        class="cursor-pointer text-13 font-normal"
-                    >
-                        Tutte
-                    </Label>
-                </div>
-                <div class="flex items-center gap-2">
-                    <RadioGroupItem id="flt-with-yes" value="yes" />
-                    <Label
-                        for="flt-with-yes"
-                        class="cursor-pointer text-13 font-normal"
-                    >
-                        Con ritenuta
-                    </Label>
-                </div>
-                <div class="flex items-center gap-2">
-                    <RadioGroupItem id="flt-with-no" value="no" />
-                    <Label
-                        for="flt-with-no"
-                        class="cursor-pointer text-13 font-normal"
-                    >
-                        Senza ritenuta
-                    </Label>
-                </div>
-            </RadioGroup>
-        </div>
+        <CheckboxFacet
+            title="Ritenuta"
+            id-prefix="flt-withholding"
+            :options="[
+                { value: 'with', label: 'Con ritenuta' },
+                { value: 'without', label: 'Senza ritenuta' },
+            ]"
+            :model-value="withholdingSelected"
+            @update:model-value="(v) => setWithholding(v as string[])"
+        />
     </div>
 </template>

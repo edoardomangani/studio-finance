@@ -48,8 +48,12 @@ class InvoiceService
                 });
             })
             ->when(
-                isset($filters['year']) && $filters['year'] !== null,
-                fn ($q) => $q->whereYear('issued_at', $filters['year']),
+                ! empty($filters['year']),
+                fn ($q) => $q->where(function ($q) use ($filters): void {
+                    foreach ((array) $filters['year'] as $year) {
+                        $q->orWhereYear('issued_at', $year);
+                    }
+                }),
             )
             ->when(
                 isset($filters['client_id']) && $filters['client_id'] !== null,

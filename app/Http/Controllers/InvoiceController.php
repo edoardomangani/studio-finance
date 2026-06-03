@@ -33,7 +33,9 @@ class InvoiceController extends Controller
     public function index(Request $request): Response
     {
         $search = trim((string) $request->query('search', ''));
-        $year = $this->intOrNull($request->query('year'));
+        // Anno è una faccetta multi-select (array); cliente resta singolo,
+        // ritenuta resta tri-state (la UI usa 2 checkbox mappati a true/false/null).
+        $year = $this->intArray($request->query('year'));
         $clientId = $this->intOrNull($request->query('client_id'));
         $withholding = $this->triStateOrNull($request->query('withholding'));
 
@@ -64,6 +66,18 @@ class InvoiceController extends Controller
         }
 
         return is_numeric($raw) ? (int) $raw : null;
+    }
+
+    /** Faccetta multi-select → lista di int. Accetta array o scalare.
+     *  @return list<int> */
+    private function intArray(mixed $raw): array
+    {
+        return collect(is_array($raw) ? $raw : [$raw])
+            ->filter(fn ($v): bool => is_numeric($v))
+            ->map(fn ($v): int => (int) $v)
+            ->unique()
+            ->values()
+            ->all();
     }
 
     /** Helper tri-state: "1"/"true" → true, "0"/"false" → false, altro → null.

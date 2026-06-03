@@ -251,7 +251,7 @@ it('index: rende la pagina con paginazione + filtri + lista anni', function (): 
             ->has('invoices.data', 4)
             ->has('availableYears', 2)
             ->has('clientsForFilter')
-            ->where('filters.year', null)
+            ->where('filters.year', [])
             ->where('filters.client_id', null),
         );
 });
@@ -267,7 +267,7 @@ it('index: filtra per anno', function (): void {
     $this->get('/invoices?year=2025')
         ->assertInertia(fn ($p) => $p
             ->has('invoices.data', 3)
-            ->where('filters.year', 2025),
+            ->where('filters.year', [2025]), // faccetta multi-select (scalare normalizzato ad array)
         );
 });
 

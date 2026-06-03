@@ -71,7 +71,7 @@ function applyMobile(): void {
                 class="hidden w-[260px] shrink-0 overflow-y-auto border-l border-border md:block"
             >
                 <div class="p-5">
-                    <div class="mb-4 flex items-center justify-between">
+                    <div class="mb-4 flex items-center justify-between h-8">
                         <span class="text-13 font-medium text-foreground">{{ title }}</span>
                         <Button
                             v-if="activeCount > 0"

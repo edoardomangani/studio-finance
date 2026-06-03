@@ -59,10 +59,10 @@ const props = defineProps<{
     filters: {
         search: string;
         state: DeadlineStateFilter | null;
-        kind: string | null;
-        year: number | null;
-        due_year: number | null;
-        expense_item_id: number | null;
+        kind: string[];
+        year: number[];
+        due_year: number[];
+        expense_item_id: number[];
     };
     availableYears: number[];
     availableDueYears: number[];
@@ -124,7 +124,7 @@ onUnmounted(() => {
 const filtersOpen = ref(false);
 
 const filterState = ref<DeadlineFilterState>({
-    kind: (props.filters.kind as DeadlineFilterState['kind']) ?? null,
+    kind: props.filters.kind as DeadlineFilterState['kind'],
     year: props.filters.year,
     dueYear: props.filters.due_year,
     expenseItemId: props.filters.expense_item_id,
@@ -134,7 +134,7 @@ watch(
     () => [props.filters.kind, props.filters.year, props.filters.due_year, props.filters.expense_item_id] as const,
     ([kind, year, dueYear, expenseItemId]) => {
         filterState.value = {
-            kind: (kind as DeadlineFilterState['kind']) ?? null,
+            kind: kind as DeadlineFilterState['kind'],
             year,
             dueYear,
             expenseItemId,
@@ -143,14 +143,14 @@ watch(
 );
 
 // Lo stato vive nel toggle segmentato, non nel pannello: il badge "Filtri"
-// conta tipo, anni e voce.
+// conta le faccette con almeno una selezione.
 const activeFilterCount = computed(() =>
     [
         props.filters.kind,
         props.filters.year,
         props.filters.due_year,
         props.filters.expense_item_id,
-    ].filter((v) => v !== null).length,
+    ].filter((v) => v.length > 0).length,
 );
 
 const hasActiveFilters = computed(() => activeFilterCount.value > 0 || !!props.filters.search);
@@ -168,27 +168,32 @@ function applyPanelFilters(): void {
 
 function clearAllFilters(): void {
     // Pulisce i filtri del pannello; lo stato resta nel toggle.
-    filterState.value = { kind: null, year: null, dueYear: null, expenseItemId: null };
-    applyFilters({ kind: null, year: null, due_year: null, expense_item_id: null });
+    filterState.value = { kind: [], year: [], dueYear: [], expenseItemId: [] };
+    applyFilters({ kind: [], year: [], due_year: [], expense_item_id: [] });
+}
+
+// Array vuoto → undefined (omette il parametro dalla query).
+function nonEmpty<T>(a: T[]): T[] | undefined {
+    return a.length > 0 ? a : undefined;
 }
 
 function applyFilters(next: {
     search?: string;
     state?: DeadlineStateFilter | null;
-    kind?: string | null;
-    year?: number | null;
-    due_year?: number | null;
-    expense_item_id?: number | null;
+    kind?: string[];
+    year?: number[];
+    due_year?: number[];
+    expense_item_id?: number[];
 }): void {
     router.get(
         deadlinesIndex().url,
         {
             search: (next.search ?? props.filters.search) || undefined,
             state: (next.state !== undefined ? next.state : props.filters.state) ?? undefined,
-            kind: (next.kind !== undefined ? next.kind : props.filters.kind) ?? undefined,
-            year: (next.year !== undefined ? next.year : props.filters.year) ?? undefined,
-            due_year: (next.due_year !== undefined ? next.due_year : props.filters.due_year) ?? undefined,
-            expense_item_id: (next.expense_item_id !== undefined ? next.expense_item_id : props.filters.expense_item_id) ?? undefined,
+            kind: nonEmpty(next.kind ?? props.filters.kind),
+            year: nonEmpty(next.year ?? props.filters.year),
+            due_year: nonEmpty(next.due_year ?? props.filters.due_year),
+            expense_item_id: nonEmpty(next.expense_item_id ?? props.filters.expense_item_id),
         },
         { preserveState: true, preserveScroll: true, replace: true },
     );
@@ -200,10 +205,10 @@ function goToPage(page: number): void {
         {
             search: props.filters.search || undefined,
             state: props.filters.state ?? undefined,
-            kind: props.filters.kind ?? undefined,
-            year: props.filters.year ?? undefined,
-            due_year: props.filters.due_year ?? undefined,
-            expense_item_id: props.filters.expense_item_id ?? undefined,
+            kind: nonEmpty(props.filters.kind),
+            year: nonEmpty(props.filters.year),
+            due_year: nonEmpty(props.filters.due_year),
+            expense_item_id: nonEmpty(props.filters.expense_item_id),
             page,
         },
         { preserveState: true, preserveScroll: true },
