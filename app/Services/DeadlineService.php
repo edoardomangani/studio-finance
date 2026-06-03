@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Enums\DeadlineKind;
 use App\Enums\DeadlineStatus;
 use App\Models\Deadline;
+use App\Models\ExpenseItem;
 use App\Models\Year;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
@@ -28,7 +29,7 @@ class DeadlineService
      * Pagina di scadenze (cronologica, più recenti per data prima) con i filtri
      * applicati e l'importo previsto per riga.
      *
-     * @param  array{search?: string, state?: ?string, kind?: ?string, year?: ?int}  $filters
+     * @param  array{search?: string, state?: ?string, kind?: ?string, year?: ?int, due_year?: ?int, expense_item_id?: ?int}  $filters
      * @return LengthAwarePaginator<int, array<string, mixed>>
      */
     public function paginate(array $filters = []): LengthAwarePaginator
@@ -38,7 +39,10 @@ class DeadlineService
         // non dovute, "cose fatte"). Toggle primario in UI.
         $state = $filters['state'] ?? null;
         $kind = isset($filters['kind']) ? DeadlineKind::tryFrom((string) $filters['kind']) : null;
+        // year = anno di riferimento (spesa), due_year = anno della scadenza (due_at).
         $year = $filters['year'] ?? null;
+        $dueYear = $filters['due_year'] ?? null;
+        $expenseItemId = $filters['expense_item_id'] ?? null;
 
         $paginator = Deadline::query()
             ->with(['payment', 'annualExpense.year', 'year'])
@@ -50,6 +54,8 @@ class DeadlineService
             ->when($state === 'closed', fn ($q) => $q->whereIn('status', [DeadlineStatus::Completed, DeadlineStatus::NotDue]))
             ->when($kind !== null, fn ($q) => $q->where('kind', $kind))
             ->when($year !== null, fn ($q) => $q->whereHas('year', fn ($yq) => $yq->where('year', $year)))
+            ->when($dueYear !== null, fn ($q) => $q->whereYear('due_at', $dueYear))
+            ->when($expenseItemId !== null, fn ($q) => $q->whereHas('annualExpense', fn ($eq) => $eq->where('expense_item_id', $expenseItemId)))
             ->orderByDesc('due_at')
             ->orderByDesc('id')
             ->paginate(self::PER_PAGE)
@@ -68,6 +74,39 @@ class DeadlineService
     public function availableYears(): array
     {
         return Year::query()->orderByDesc('year')->pluck('year')->all();
+    }
+
+    /**
+     * Anni in cui cadono le scadenze (da due_at), per il filtro "anno scadenza".
+     * Estrazione in PHP per portabilità DB (volumi piccoli).
+     *
+     * @return array<int, int>
+     */
+    public function availableDueYears(): array
+    {
+        return Deadline::query()
+            ->pluck('due_at')
+            ->map(fn ($date): int => (int) $date->format('Y'))
+            ->unique()
+            ->sortDesc()
+            ->values()
+            ->all();
+    }
+
+    /**
+     * Voci di spesa referenziate dalle scadenze dell'utente, per il filtro.
+     * withTrashed: una scadenza può puntare a una voce poi archiviata.
+     *
+     * @return array<int, array{id: int, name: string}>
+     */
+    public function expenseItems(): array
+    {
+        return ExpenseItem::withTrashed()
+            ->orderBy('position')
+            ->orderBy('id')
+            ->get(['id', 'name'])
+            ->map(fn (ExpenseItem $i): array => ['id' => $i->id, 'name' => $i->name])
+            ->all();
     }
 
     /**

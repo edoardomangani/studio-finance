@@ -65,6 +65,29 @@ it('filtra per tipo adempimento', function () {
             ->etc());
 });
 
+it('filtra per voce di spesa', function () {
+    $user = userWithOpenYear();
+    $bolli = $user->expenseItems()->where('name', 'Bolli')->firstOrFail();
+
+    $this->get(route('deadlines.index', ['expense_item_id' => $bolli->id]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('deadlines.data', 4) // 4 rate trimestrali bolli
+            ->where('deadlines.data', fn ($rows) => collect($rows)->every(fn ($r) => $r['annual_expense_name'] === 'Bolli'))
+            ->etc());
+});
+
+it('filtra per anno scadenza (due_at), distinto dall anno di riferimento', function () {
+    userWithOpenYear(); // anno 2026; i saldi/bolli Q4/commercialista cadono nel 2027
+
+    $this->get(route('deadlines.index', ['due_year' => 2027]))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('deadlines.data', fn ($rows) => collect($rows)->isNotEmpty()
+                && collect($rows)->every(fn ($r) => str_starts_with($r['due_at'], '2027')))
+            ->etc());
+});
+
 it('espone gli anni e le opzioni di filtro', function () {
     userWithOpenYear();
 

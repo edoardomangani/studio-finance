@@ -30,12 +30,13 @@ import {
 } from '@/components/ui/sheet';
 import { Spinner } from '@/components/ui/spinner';
 import { formatDateIT, formatEUR } from '@/lib/format';
+import { DEADLINE_STATUS_META } from '@/pages/deadlines/statusMeta';
 import {
     markNotDue as markNotDueRoute,
     payment as registerPaymentRoute,
     reopen as reopenRoute,
 } from '@/routes/deadlines';
-import type { DeadlineListItem, DeadlineStatus } from '@/types';
+import type { DeadlineListItem } from '@/types';
 
 const props = defineProps<{
     deadline: DeadlineListItem | null;
@@ -44,12 +45,6 @@ const props = defineProps<{
 const open = defineModel<boolean>('open', { default: false });
 
 const isMobile = useMediaQuery('(max-width: 767px)');
-
-const STATUS_VARIANT: Record<DeadlineStatus, 'default' | 'secondary' | 'outline'> = {
-    open: 'default',
-    completed: 'secondary',
-    not_due: 'outline',
-};
 
 const isPayableOpen = computed(
     () => props.deadline?.kind === 'payment' && props.deadline?.status === 'open',
@@ -213,7 +208,10 @@ function submit(): void {
                     </template>
                     <dt class="text-muted-foreground">Stato</dt>
                     <dd class="text-right">
-                        <Badge :variant="STATUS_VARIANT[deadline.status]">{{ deadline.status_label }}</Badge>
+                        <Badge :variant="DEADLINE_STATUS_META[deadline.status].variant" class="gap-1">
+                            <component :is="DEADLINE_STATUS_META[deadline.status].icon" :size="12" />
+                            {{ deadline.status_label }}
+                        </Badge>
                     </dd>
                 </dl>
 

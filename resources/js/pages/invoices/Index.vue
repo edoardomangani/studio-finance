@@ -3,16 +3,9 @@
  * Invoices — Index page.
  *
  * Tabella paginata (50/pagina). Subbar: search testuale live + bottone
- * "Filtri" (badge counter). I filtri puntuali (anno, cliente, ritenuta)
- * vivono in [[InvoiceFilters]] e sono renderizzati in **due container
- * distinti** a seconda del viewport:
- * - **Desktop (md+)**: `<aside>` push-inline a destra del main, via
- *   Teleport a `#page-right-sidebar`. Pattern StudioOS, non-overlay.
- * - **Mobile (<md)**: `<Sheet>` slide-over da destra (shadcn primitive).
- *
- * `isMobile` viene da `useMediaQuery('(max-width: 767px)')` per evitare
- * di montare Sheet su desktop (il backdrop bloccherebbe l'aside inline).
- * SSR-safe: initial false, settla on client mount.
+ * "Filtri" (badge counter). I campi filtro (anno, cliente, ritenuta) vivono
+ * in [[InvoiceFilters]] dentro [[FilterPanel]], che gestisce la chrome
+ * responsive (aside desktop / Sheet mobile) e la semantica apply.
  */
 import { Head, Link, router, setLayoutProps } from '@inertiajs/vue3';
 import {

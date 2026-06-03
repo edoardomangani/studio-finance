@@ -10,8 +10,15 @@
  * Click su una riga → side-sheet (registrazione pagamento + reversibilità).
  */
 import { Head, router, setLayoutProps } from '@inertiajs/vue3';
-import { PhFunnel, PhMagnifyingGlass } from '@phosphor-icons/vue';
+import {
+    PhCheckCircle,
+    PhCircleDashed,
+    PhFunnel,
+    PhListBullets,
+    PhMagnifyingGlass,
+} from '@phosphor-icons/vue';
 import { computed, onUnmounted, ref, watch } from 'vue';
+import type { Component } from 'vue';
 import FilterPanel from '@/components/FilterPanel.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -37,12 +44,12 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { formatDateIT, formatEUR } from '@/lib/format';
 import DeadlineFilters from '@/pages/deadlines/DeadlineFilters.vue';
 import DeadlineSheet from '@/pages/deadlines/DeadlineSheet.vue';
+import { DEADLINE_STATUS_META } from '@/pages/deadlines/statusMeta';
 import { index as deadlinesIndex } from '@/routes/deadlines';
 import type {
     DeadlineFilterState,
     DeadlineListItem,
     DeadlineStateFilter,
-    DeadlineStatus,
     EnumOption,
     PaginatedList,
 } from '@/types';
@@ -54,17 +61,21 @@ const props = defineProps<{
         state: DeadlineStateFilter | null;
         kind: string | null;
         year: number | null;
+        due_year: number | null;
+        expense_item_id: number | null;
     };
     availableYears: number[];
+    availableDueYears: number[];
+    expenseItems: { id: number; name: string }[];
     kindOptions: EnumOption[];
 }>();
 
 // Toggle stato: segmentatore primario. 'closed' raccoglie completate + non
-// dovute ("cose fatte").
-const STATE_TABS = [
-    { value: 'open', label: 'Aperte' },
-    { value: 'closed', label: 'Completate' },
-    { value: 'all', label: 'Tutte' },
+// dovute ("cose fatte"). Stesse icone degli stati riga.
+const STATE_TABS: { value: string; label: string; icon: Component }[] = [
+    { value: 'open', label: 'Aperte', icon: PhCircleDashed },
+    { value: 'closed', label: 'Completate', icon: PhCheckCircle },
+    { value: 'all', label: 'Tutte', icon: PhListBullets },
 ];
 
 setLayoutProps({
@@ -91,12 +102,6 @@ function setStatus(value: unknown): void {
     applyFilters({ state: next });
 }
 
-// Status badge: aperta = piena, completata = attenuata, non dovuta = outline.
-const STATUS_VARIANT: Record<DeadlineStatus, 'default' | 'secondary' | 'outline'> = {
-    open: 'default',
-    completed: 'secondary',
-    not_due: 'outline',
-};
 
 // Search reattiva con debounce 250ms.
 const searchTerm = ref(props.filters.search);
@@ -121,33 +126,32 @@ const filtersOpen = ref(false);
 const filterState = ref<DeadlineFilterState>({
     kind: (props.filters.kind as DeadlineFilterState['kind']) ?? null,
     year: props.filters.year,
+    dueYear: props.filters.due_year,
+    expenseItemId: props.filters.expense_item_id,
 });
 
 watch(
-    () => [props.filters.kind, props.filters.year] as const,
-    ([kind, year]) => {
+    () => [props.filters.kind, props.filters.year, props.filters.due_year, props.filters.expense_item_id] as const,
+    ([kind, year, dueYear, expenseItemId]) => {
         filterState.value = {
             kind: (kind as DeadlineFilterState['kind']) ?? null,
             year,
+            dueYear,
+            expenseItemId,
         };
     },
 );
 
 // Lo stato vive nel toggle segmentato, non nel pannello: il badge "Filtri"
-// conta solo tipo e anno.
-const activeFilterCount = computed(() => {
-    let n = 0;
-
-    if (props.filters.kind !== null) {
-        n++;
-    }
-
-    if (props.filters.year !== null) {
-        n++;
-    }
-
-    return n;
-});
+// conta tipo, anni e voce.
+const activeFilterCount = computed(() =>
+    [
+        props.filters.kind,
+        props.filters.year,
+        props.filters.due_year,
+        props.filters.expense_item_id,
+    ].filter((v) => v !== null).length,
+);
 
 const hasActiveFilters = computed(() => activeFilterCount.value > 0 || !!props.filters.search);
 
@@ -157,13 +161,15 @@ function applyPanelFilters(): void {
     applyFilters({
         kind: filterState.value.kind,
         year: filterState.value.year,
+        due_year: filterState.value.dueYear,
+        expense_item_id: filterState.value.expenseItemId,
     });
 }
 
 function clearAllFilters(): void {
-    // Pulisce i filtri del pannello (tipo, anno); lo stato resta nel toggle.
-    filterState.value = { ...filterState.value, kind: null, year: null };
-    applyFilters({ kind: null, year: null });
+    // Pulisce i filtri del pannello; lo stato resta nel toggle.
+    filterState.value = { kind: null, year: null, dueYear: null, expenseItemId: null };
+    applyFilters({ kind: null, year: null, due_year: null, expense_item_id: null });
 }
 
 function applyFilters(next: {
@@ -171,6 +177,8 @@ function applyFilters(next: {
     state?: DeadlineStateFilter | null;
     kind?: string | null;
     year?: number | null;
+    due_year?: number | null;
+    expense_item_id?: number | null;
 }): void {
     router.get(
         deadlinesIndex().url,
@@ -179,6 +187,8 @@ function applyFilters(next: {
             state: (next.state !== undefined ? next.state : props.filters.state) ?? undefined,
             kind: (next.kind !== undefined ? next.kind : props.filters.kind) ?? undefined,
             year: (next.year !== undefined ? next.year : props.filters.year) ?? undefined,
+            due_year: (next.due_year !== undefined ? next.due_year : props.filters.due_year) ?? undefined,
+            expense_item_id: (next.expense_item_id !== undefined ? next.expense_item_id : props.filters.expense_item_id) ?? undefined,
         },
         { preserveState: true, preserveScroll: true, replace: true },
     );
@@ -192,6 +202,8 @@ function goToPage(page: number): void {
             state: props.filters.state ?? undefined,
             kind: props.filters.kind ?? undefined,
             year: props.filters.year ?? undefined,
+            due_year: props.filters.due_year ?? undefined,
+            expense_item_id: props.filters.expense_item_id ?? undefined,
             page,
         },
         { preserveState: true, preserveScroll: true },
@@ -247,6 +259,7 @@ function goToPage(page: number): void {
                     :key="tab.value"
                     :value="tab.value"
                 >
+                    <component :is="tab.icon" :size="14" />
                     {{ tab.label }}
                 </ToggleGroupItem>
             </ToggleGroup>
@@ -301,7 +314,10 @@ function goToPage(page: number): void {
                     <span v-else class="text-muted-foreground">—</span>
                 </TableCell>
                 <TableCell>
-                    <Badge :variant="STATUS_VARIANT[deadline.status]">{{ deadline.status_label }}</Badge>
+                    <Badge :variant="DEADLINE_STATUS_META[deadline.status].variant" class="gap-1">
+                        <component :is="DEADLINE_STATUS_META[deadline.status].icon" :size="12" />
+                        {{ deadline.status_label }}
+                    </Badge>
                 </TableCell>
             </TableRow>
         </TableBody>
@@ -353,6 +369,8 @@ function goToPage(page: number): void {
                 v-model="filterState"
                 :kind-options="kindOptions"
                 :available-years="availableYears"
+                :available-due-years="availableDueYears"
+                :expense-items="expenseItems"
                 @update:model-value="requestLiveApply"
             />
         </template>

@@ -38,6 +38,8 @@ class DeadlineController extends Controller
             : null;
         $kind = $this->stringOrNull($request->query('kind'));
         $year = $this->intOrNull($request->query('year'));
+        $dueYear = $this->intOrNull($request->query('due_year'));
+        $expenseItemId = $this->intOrNull($request->query('expense_item_id'));
 
         return Inertia::render('deadlines/Index', [
             'deadlines' => $this->deadlines->paginate([
@@ -45,14 +47,20 @@ class DeadlineController extends Controller
                 'state' => $state,
                 'kind' => $kind,
                 'year' => $year,
+                'due_year' => $dueYear,
+                'expense_item_id' => $expenseItemId,
             ]),
             'filters' => [
                 'search' => $search,
                 'state' => $state,
                 'kind' => $kind,
                 'year' => $year,
+                'due_year' => $dueYear,
+                'expense_item_id' => $expenseItemId,
             ],
             'availableYears' => $this->deadlines->availableYears(),
+            'availableDueYears' => $this->deadlines->availableDueYears(),
+            'expenseItems' => $this->deadlines->expenseItems(),
             'kindOptions' => $this->deadlines->kindOptions(),
         ]);
     }

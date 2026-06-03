@@ -314,7 +314,11 @@ export type DeadlineListItem = {
 /** Filtri del pannello (lo stato vive nel toggle segmentato dell'index). */
 export type DeadlineFilterState = {
     kind: DeadlineKind | null;
+    /** Anno di riferimento (spesa). */
     year: number | null;
+    /** Anno in cui cade la scadenza (due_at). */
+    dueYear: number | null;
+    expenseItemId: number | null;
 };
 
 /** Toggle stato: open = da fare, closed = completate + non dovute. */
