@@ -45,6 +45,7 @@ import {
 } from '@/components/ui/table';
 import { formatDateIT, formatEUR } from '@/lib/format';
 import DeadlineFilters from '@/pages/deadlines/DeadlineFilters.vue';
+import DeadlineSheet from '@/pages/deadlines/DeadlineSheet.vue';
 import { index as deadlinesIndex } from '@/routes/deadlines';
 import type {
     DeadlineFilterState,
@@ -74,6 +75,15 @@ setLayoutProps({
 });
 
 const isMobile = useMediaQuery('(max-width: 767px)');
+
+// Side-sheet: aperto al click su una riga, alimentato dai dati di riga.
+const sheetOpen = ref(false);
+const selectedDeadline = ref<DeadlineListItem | null>(null);
+
+function openDeadline(deadline: DeadlineListItem): void {
+    selectedDeadline.value = deadline;
+    sheetOpen.value = true;
+}
 
 // Status badge: aperta = piena, completata = attenuata, non dovuta = outline.
 const STATUS_VARIANT: Record<DeadlineStatus, 'default' | 'secondary' | 'outline'> = {
@@ -248,7 +258,18 @@ function goToPage(page: number): void {
                 <span v-if="hasActiveFilters">Nessuna scadenza trovata con questi filtri.</span>
                 <span v-else>Nessuna scadenza. Apri un anno per generarle.</span>
             </TableEmpty>
-            <TableRow v-for="deadline in deadlines.data" v-else :key="deadline.id">
+            <TableRow
+                v-for="deadline in deadlines.data"
+                v-else
+                :key="deadline.id"
+                class="cursor-pointer transition-colors hover:bg-muted/40"
+                :class="
+                    sheetOpen && selectedDeadline?.id === deadline.id
+                        ? 'bg-accent-strong/5 shadow-[inset_2px_0_0_0_var(--accent-strong)]'
+                        : ''
+                "
+                @click="openDeadline(deadline)"
+            >
                 <TableCell class="tabular text-muted-foreground">
                     {{ formatDateIT(deadline.due_at) }}
                 </TableCell>
@@ -375,4 +396,6 @@ function goToPage(page: number): void {
             </SheetFooter>
         </SheetContent>
     </Sheet>
+
+    <DeadlineSheet v-model:open="sheetOpen" :deadline="selectedDeadline" />
 </template>
