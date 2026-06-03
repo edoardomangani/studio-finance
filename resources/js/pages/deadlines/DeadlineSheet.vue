@@ -1,33 +1,22 @@
 <script setup lang="ts">
 /**
- * DeadlineSheet — side-sheet di una scadenza, aperto dal click su una riga di
+ * DeadlineSheet — sheet di una scadenza, aperto dal click su una riga di
  * [[deadlines/Index.vue]]. Si alimenta dai dati di riga (nessuna fetch).
  *
- * Scadenza di pagamento APERTA → form di registrazione in primo piano (F7):
- * descrizione, data effettiva, importo precompilato col previsto (RB8) ma
- * modificabile. Submit: planned→paid, open→completed.
- *
- * Altri stati → lettura + reversibilità (F9), confermata inline nel footer:
- * annulla completamento, marca non dovuta, riapri.
- *
- * `side` responsive: destra su desktop, bottom su mobile (tap→registra, CTA h-12).
+ * Layout su [[ActionSheet]] (bottom drawer mobile / pannello destro desktop):
+ * scadenza di pagamento APERTA → form di registrazione (F7) con primario a
+ * check in alto a destra (planned→paid, open→completed). Altri stati →
+ * lettura + reversibilità (F9) confermata inline nel footer.
  */
 import { router, useForm } from '@inertiajs/vue3';
-import { useMediaQuery } from '@vueuse/core';
+import { PhCheck } from '@phosphor-icons/vue';
 import { computed, ref, watch } from 'vue';
+import ActionSheet from '@/components/ActionSheet.vue';
 import FormField from '@/components/forms/FormField.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FieldGroup } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import {
-    Sheet,
-    SheetClose,
-    SheetContent,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
-} from '@/components/ui/sheet';
 import { Spinner } from '@/components/ui/spinner';
 import { formatDateIT, formatEUR } from '@/lib/format';
 import { DEADLINE_STATUS_META } from '@/pages/deadlines/statusMeta';
@@ -43,8 +32,6 @@ const props = defineProps<{
 }>();
 
 const open = defineModel<boolean>('open', { default: false });
-
-const isMobile = useMediaQuery('(max-width: 767px)');
 
 const isPayableOpen = computed(
     () => props.deadline?.kind === 'payment' && props.deadline?.status === 'open',
@@ -79,8 +66,8 @@ function todayISO(): string {
     return local.toISOString().slice(0, 10);
 }
 
-// Conferma inline (no dialog annidato nello sheet): una transizione di
-// reversibilità in attesa di conferma nel footer.
+// Conferma inline (no dialog annidato): una transizione di reversibilità in
+// attesa di conferma nel footer.
 type PendingReversal = {
     description: string;
     confirmLabel: string;
@@ -89,6 +76,15 @@ type PendingReversal = {
 };
 const pending = ref<PendingReversal | null>(null);
 const reversing = ref(false);
+
+// Footer visibile solo quando c'è un'azione (primario a parte, in header).
+const showFooter = computed(
+    () =>
+        pending.value !== null ||
+        isPayableOpen.value ||
+        props.deadline?.status === 'completed' ||
+        props.deadline?.status === 'not_due',
+);
 
 // Precompila il form e azzera la conferma ad ogni apertura.
 watch(open, (isOpen) => {
@@ -186,159 +182,154 @@ function submit(): void {
 </script>
 
 <template>
-    <Sheet v-model:open="open">
-        <SheetContent
-            :side="isMobile ? 'bottom' : 'right'"
-            :class="isMobile ? 'max-h-[90vh]' : 'w-full sm:max-w-md'"
-        >
-            <SheetHeader>
-                <SheetTitle>{{ deadline?.name ?? 'Scadenza' }}</SheetTitle>
-            </SheetHeader>
+    <ActionSheet v-model:open="open" :title="deadline?.name ?? 'Scadenza'">
+        <!-- Primario stile iOS: check in alto a destra (submit del form). -->
+        <template v-if="isPayableOpen" #primary>
+            <Button
+                type="submit"
+                form="register-payment"
+                size="icon"
+                aria-label="Registra pagamento"
+                :disabled="form.processing"
+            >
+                <Spinner v-if="form.processing" />
+                <PhCheck v-else :size="18" weight="bold" />
+            </Button>
+        </template>
 
-            <div v-if="deadline" class="flex min-h-0 flex-1 flex-col overflow-y-auto px-6 py-4">
-                <!-- Meta scadenza: contesto in lettura, niente card. -->
-                <dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-b border-border pb-4 text-13">
-                    <dt class="text-muted-foreground">Scadenza</dt>
-                    <dd class="tabular text-right text-foreground">{{ formatDateIT(deadline.due_at) }}</dd>
-                    <dt class="text-muted-foreground">Anno</dt>
-                    <dd class="tabular text-right text-foreground">{{ deadline.year }}</dd>
-                    <template v-if="deadline.annual_expense_name">
-                        <dt class="text-muted-foreground">Voce di spesa</dt>
-                        <dd class="text-right text-foreground">{{ deadline.annual_expense_name }}</dd>
-                    </template>
-                    <dt class="text-muted-foreground">Stato</dt>
-                    <dd class="text-right">
-                        <Badge :variant="DEADLINE_STATUS_META[deadline.status].variant" class="gap-1">
-                            <component :is="DEADLINE_STATUS_META[deadline.status].icon" :size="12" />
-                            {{ deadline.status_label }}
-                        </Badge>
-                    </dd>
-                </dl>
+        <template v-if="deadline">
+            <!-- Meta scadenza: contesto in lettura, niente card. -->
+            <dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-b border-border pb-4 text-13">
+                <dt class="text-muted-foreground">Scadenza</dt>
+                <dd class="tabular text-right text-foreground">{{ formatDateIT(deadline.due_at) }}</dd>
+                <dt class="text-muted-foreground">Anno</dt>
+                <dd class="tabular text-right text-foreground">{{ deadline.year }}</dd>
+                <template v-if="deadline.annual_expense_name">
+                    <dt class="text-muted-foreground">Voce di spesa</dt>
+                    <dd class="text-right text-foreground">{{ deadline.annual_expense_name }}</dd>
+                </template>
+                <dt class="text-muted-foreground">Stato</dt>
+                <dd class="text-right">
+                    <Badge :variant="DEADLINE_STATUS_META[deadline.status].variant" class="gap-1">
+                        <component :is="DEADLINE_STATUS_META[deadline.status].icon" :size="12" />
+                        {{ deadline.status_label }}
+                    </Badge>
+                </dd>
+            </dl>
 
-                <!-- Pagamento aperto → form di registrazione. -->
-                <form
-                    v-if="isPayableOpen"
-                    id="register-payment"
-                    class="pt-4"
-                    @submit.prevent="submit"
-                >
-                    <FieldGroup>
-                        <FormField label="Descrizione" for="payment-description">
-                            <Input id="payment-description" v-model="form.description" />
-                            <template v-if="form.errors.description" #error>{{ form.errors.description }}</template>
-                        </FormField>
+            <!-- Pagamento aperto → form di registrazione (submit dal check header). -->
+            <form
+                v-if="isPayableOpen"
+                id="register-payment"
+                class="pt-4"
+                @submit.prevent="submit"
+            >
+                <FieldGroup>
+                    <FormField label="Descrizione" for="payment-description">
+                        <Input id="payment-description" v-model="form.description" />
+                        <template v-if="form.errors.description" #error>{{ form.errors.description }}</template>
+                    </FormField>
 
-                        <FormField label="Data del pagamento" for="payment-date">
-                            <Input
-                                id="payment-date"
-                                v-model="form.paid_at"
-                                type="date"
-                                :max="todayISO()"
-                            />
-                            <template v-if="form.errors.paid_at" #error>{{ form.errors.paid_at }}</template>
-                        </FormField>
+                    <FormField label="Data del pagamento" for="payment-date">
+                        <Input id="payment-date" v-model="form.paid_at" type="date" :max="todayISO()" />
+                        <template v-if="form.errors.paid_at" #error>{{ form.errors.paid_at }}</template>
+                    </FormField>
 
-                        <FormField label="Importo" for="payment-amount" :hint="expectedHint">
-                            <Input
-                                id="payment-amount"
-                                v-model="form.amount"
-                                inputmode="decimal"
-                                placeholder="0.00"
-                                class="tabular"
-                            />
-                            <template #hint>
-                                <span class="flex items-center justify-between gap-2">
-                                    <span>{{ expectedHint }}</span>
-                                    <button
-                                        v-if="canRestoreExpected"
-                                        type="button"
-                                        class="text-accent-vivid hover:underline"
-                                        @click="restoreExpected"
-                                    >
-                                        Ripristina previsto
-                                    </button>
-                                </span>
-                            </template>
-                            <template v-if="form.errors.amount" #error>{{ form.errors.amount }}</template>
-                        </FormField>
-                    </FieldGroup>
-                </form>
+                    <FormField label="Importo" for="payment-amount">
+                        <Input
+                            id="payment-amount"
+                            v-model="form.amount"
+                            inputmode="decimal"
+                            placeholder="0.00"
+                            class="tabular"
+                        />
+                        <template #hint>
+                            <span class="flex items-center justify-between gap-2">
+                                <span>{{ expectedHint }}</span>
+                                <button
+                                    v-if="canRestoreExpected"
+                                    type="button"
+                                    class="text-accent-vivid hover:underline"
+                                    @click="restoreExpected"
+                                >
+                                    Ripristina previsto
+                                </button>
+                            </span>
+                        </template>
+                        <template v-if="form.errors.amount" #error>{{ form.errors.amount }}</template>
+                    </FormField>
+                </FieldGroup>
+            </form>
 
-                <!-- Pagamento registrato → lettura. -->
-                <dl
-                    v-else-if="deadline.payment && deadline.payment.status === 'paid'"
-                    class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 pt-4 text-13"
-                >
-                    <dt class="text-muted-foreground">Importo pagato</dt>
-                    <dd class="tabular text-right font-medium text-foreground">
-                        {{ deadline.payment.amount !== null ? formatEUR(deadline.payment.amount) : '—' }}
-                    </dd>
-                    <dt class="text-muted-foreground">Data</dt>
-                    <dd class="tabular text-right text-foreground">{{ formatDateIT(deadline.payment.paid_at) }}</dd>
-                </dl>
+            <!-- Pagamento registrato → lettura. -->
+            <dl
+                v-else-if="deadline.payment && deadline.payment.status === 'paid'"
+                class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 pt-4 text-13"
+            >
+                <dt class="text-muted-foreground">Importo pagato</dt>
+                <dd class="tabular text-right font-medium text-foreground">
+                    {{ deadline.payment.amount !== null ? formatEUR(deadline.payment.amount) : '—' }}
+                </dd>
+                <dt class="text-muted-foreground">Data</dt>
+                <dd class="tabular text-right text-foreground">{{ formatDateIT(deadline.payment.paid_at) }}</dd>
+            </dl>
 
-                <p v-else class="pt-4 text-13 text-muted-foreground">
-                    <span v-if="deadline.kind === 'fulfillment'">Adempimento, nessun pagamento collegato.</span>
-                    <span v-else-if="deadline.status === 'not_due'">Scadenza segnata come non dovuta.</span>
-                    <span v-else>Nessun pagamento da registrare.</span>
-                </p>
+            <p v-else class="pt-4 text-13 text-muted-foreground">
+                <span v-if="deadline.kind === 'fulfillment'">Adempimento, nessun pagamento collegato.</span>
+                <span v-else-if="deadline.status === 'not_due'">Scadenza segnata come non dovuta.</span>
+                <span v-else>Nessun pagamento da registrare.</span>
+            </p>
+        </template>
+
+        <template v-if="showFooter" #footer>
+            <!-- Conferma inline di una reversibilità. -->
+            <div v-if="pending" class="space-y-3">
+                <p class="text-13 text-muted-foreground">{{ pending.description }}</p>
+                <div class="flex gap-2">
+                    <Button type="button" variant="outline" class="flex-1" :disabled="reversing" @click="pending = null">
+                        Annulla
+                    </Button>
+                    <Button
+                        type="button"
+                        :variant="pending.destructive ? 'destructive' : 'default'"
+                        class="flex-1"
+                        :disabled="reversing"
+                        @click="runReversal"
+                    >
+                        <Spinner v-if="reversing" />
+                        {{ pending.confirmLabel }}
+                    </Button>
+                </div>
             </div>
 
-            <SheetFooter>
-                <!-- Conferma inline di una reversibilità. -->
-                <div v-if="pending" class="w-full space-y-3">
-                    <p class="text-13 text-muted-foreground">{{ pending.description }}</p>
-                    <div class="flex gap-2">
-                        <Button type="button" variant="outline" class="flex-1" :disabled="reversing" @click="pending = null">
-                            Annulla
-                        </Button>
-                        <Button
-                            type="button"
-                            :variant="pending.destructive ? 'destructive' : 'default'"
-                            class="flex-1"
-                            :disabled="reversing"
-                            @click="runReversal"
-                        >
-                            <Spinner v-if="reversing" />
-                            {{ pending.confirmLabel }}
-                        </Button>
-                    </div>
-                </div>
-
-                <!-- Azioni per stato. -->
-                <template v-else-if="isPayableOpen">
-                    <Button type="submit" form="register-payment" class="h-12 w-full" :disabled="form.processing">
-                        <Spinner v-if="form.processing" />
-                        Registra pagamento
-                    </Button>
-                    <Button type="button" variant="ghost" size="sm" class="w-full" @click="askMarkNotDue">
-                        Marca come non dovuta
-                    </Button>
-                </template>
-
-                <Button
-                    v-else-if="deadline && deadline.status === 'completed'"
-                    type="button"
-                    variant="outline"
-                    class="w-full"
-                    @click="askUndoCompletion"
-                >
-                    Annulla completamento
-                </Button>
-
-                <Button
-                    v-else-if="deadline && deadline.status === 'not_due'"
-                    type="button"
-                    class="w-full"
-                    @click="askReopen"
-                >
-                    Riapri scadenza
-                </Button>
-
-                <SheetClose v-else as-child>
-                    <Button type="button" variant="outline" class="w-full">Chiudi</Button>
-                </SheetClose>
-            </SheetFooter>
-        </SheetContent>
-    </Sheet>
+            <!-- Azioni secondarie per stato (il primario è il check in header). -->
+            <Button
+                v-else-if="isPayableOpen"
+                type="button"
+                variant="ghost"
+                size="sm"
+                class="w-full"
+                @click="askMarkNotDue"
+            >
+                Marca come non dovuta
+            </Button>
+            <Button
+                v-else-if="deadline && deadline.status === 'completed'"
+                type="button"
+                variant="outline"
+                class="w-full"
+                @click="askUndoCompletion"
+            >
+                Annulla completamento
+            </Button>
+            <Button
+                v-else-if="deadline && deadline.status === 'not_due'"
+                type="button"
+                class="w-full"
+                @click="askReopen"
+            >
+                Riapri scadenza
+            </Button>
+        </template>
+    </ActionSheet>
 </template>

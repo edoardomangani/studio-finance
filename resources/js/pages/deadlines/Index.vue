@@ -263,9 +263,11 @@ function goToPage(page: number): void {
                     v-for="tab in STATE_TABS"
                     :key="tab.value"
                     :value="tab.value"
+                    :aria-label="tab.label"
                 >
                     <component :is="tab.icon" :size="14" />
-                    {{ tab.label }}
+                    <!-- Solo icona su phone per non far debordare il subbar. -->
+                    <span class="hidden sm:inline">{{ tab.label }}</span>
                 </ToggleGroupItem>
             </ToggleGroup>
         </div>
