@@ -367,7 +367,6 @@ function goToPage(page: number): void {
         v-model:open="filtersOpen"
         :active-count="activeFilterCount"
         title="Filtri"
-        description="Restringi per tipo o anno."
         @apply="applyPanelFilters"
         @clear="clearAllFilters"
     >

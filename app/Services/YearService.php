@@ -113,7 +113,9 @@ class YearService
         $expenseRows = $this->expenseRows($amounts, $months);
 
         $deadlines = $year->deadlines()->orderBy('due_at')->orderBy('id')->with(['payment', 'annualExpense.year'])->get();
-        $context = $this->deadlineContextBuilder->build($deadlines);
+        // Scope completo: sono tutte le scadenze dell'anno → conteggio rate
+        // in-memory, niente query aggiuntiva.
+        $context = $this->deadlineContextBuilder->build($deadlines, completeScope: true);
 
         return [
             'id' => $year->id,

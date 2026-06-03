@@ -166,12 +166,9 @@ class DeadlineExpectation
      */
     private function siblingCount(Deadline $deadline, DeadlineContext $context): int
     {
-        $count = $context->deadlines
-            ->where('annual_expense_id', $deadline->annual_expense_id)
-            ->where('quota_type', $deadline->quota_type)
-            ->count();
+        $key = $deadline->annual_expense_id.':'.$deadline->quota_type?->value;
 
-        return max(1, $count);
+        return max(1, $context->siblingCounts[$key] ?? 1);
     }
 
     /**

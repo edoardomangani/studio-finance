@@ -390,7 +390,6 @@ function openInvoice(invoice: InvoiceListItem): void {
         v-model:open="filtersOpen"
         :active-count="activeFilterCount"
         title="Filtri"
-        description="Restringi per anno, cliente o stato ritenuta."
         @apply="applyPanelFilters"
         @clear="clearAllFilters"
     >

@@ -25,15 +25,19 @@ class DeadlineContextBuilder
 
     /**
      * @param  Collection<int, Deadline>  $deadlines  con `annualExpense.year` caricato
+     * @param  bool  $completeScope  true quando $deadlines contiene già TUTTE le
+     *                               scadenze referenziate (es. vista anno): i
+     *                               conteggi rate si fanno in-memory, senza query.
+     *                               false (lista paginata) → conteggio via DB.
      */
-    public function build(Collection $deadlines): DeadlineContext
+    public function build(Collection $deadlines, bool $completeScope = false): DeadlineContext
     {
         $payable = $deadlines->filter(
             fn (Deadline $d): bool => $d->kind === DeadlineKind::Payment && $d->annualExpense !== null,
         );
 
         if ($payable->isEmpty()) {
-            return new DeadlineContext([], new Collection, $deadlines);
+            return new DeadlineContext([], new Collection, []);
         }
 
         $userId = (int) $payable->first()->user_id;
@@ -47,7 +51,46 @@ class DeadlineContextBuilder
             ->with('deadline')
             ->get();
 
-        return new DeadlineContext($amountsByYear, $paidPayments, $deadlines);
+        $siblingCounts = $completeScope
+            ? $this->countSiblings($payable)
+            : $this->querySiblings($userId, $expenseIds->all());
+
+        return new DeadlineContext($amountsByYear, $paidPayments, $siblingCounts);
+    }
+
+    /**
+     * Conteggio rate per (annual_expense_id:quota_type) dalla collezione già in
+     * memoria (scope completo: vista anno). Nessuna query.
+     *
+     * @param  Collection<int, Deadline>  $payable
+     * @return array<string, int>
+     */
+    private function countSiblings(Collection $payable): array
+    {
+        return $payable
+            ->filter(fn (Deadline $d): bool => $d->quota_type !== null)
+            ->groupBy(fn (Deadline $d): string => $d->annual_expense_id.':'.$d->quota_type->value)
+            ->map->count()
+            ->all();
+    }
+
+    /**
+     * Come [[countSiblings]] ma via DB, per la lista paginata: i fratelli di una
+     * rata possono stare su un'altra pagina, quindi va contato l'insieme reale.
+     *
+     * @param  array<int, int>  $expenseIds
+     * @return array<string, int>
+     */
+    private function querySiblings(int $userId, array $expenseIds): array
+    {
+        return Deadline::query()
+            ->where('user_id', $userId)
+            ->whereIn('annual_expense_id', $expenseIds)
+            ->whereNotNull('quota_type')
+            ->get(['annual_expense_id', 'quota_type'])
+            ->groupBy(fn (Deadline $d): string => $d->annual_expense_id.':'.$d->quota_type->value)
+            ->map->count()
+            ->all();
     }
 
     /**

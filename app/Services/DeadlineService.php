@@ -90,7 +90,10 @@ class DeadlineService
      */
     public function availableDueYears(): array
     {
+        // Solo date distinte dal DB (poche righe), poi estrazione anno in PHP:
+        // l'estrazione lato DB non è portabile SQLite/Postgres senza raw.
         return Deadline::query()
+            ->distinct()
             ->pluck('due_at')
             ->map(fn ($date): int => (int) $date->format('Y'))
             ->unique()

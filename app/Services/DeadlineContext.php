@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Models\Deadline;
 use App\Models\Payment;
 use Illuminate\Support\Collection;
 
@@ -16,11 +15,11 @@ final class DeadlineContext
     /**
      * @param  array<int, YearAmounts>  $amountsByYear  chiave = numero anno (anno della spesa + anno N-1 per gli acconti)
      * @param  Collection<int, Payment>  $paidPayments  pagamenti pagati sulle spese referenziate, con `deadline` caricata
-     * @param  Collection<int, Deadline>  $deadlines  scadenze in scope, per contare le rate fratelle
+     * @param  array<string, int>  $siblingCounts  rate per (annual_expense_id:quota_type) — conteggio reale, non limitato alla pagina
      */
     public function __construct(
         public readonly array $amountsByYear,
         public readonly Collection $paidPayments,
-        public readonly Collection $deadlines,
+        public readonly array $siblingCounts,
     ) {}
 }
