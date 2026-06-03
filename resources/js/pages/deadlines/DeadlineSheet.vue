@@ -5,15 +5,16 @@
  *
  * Scadenza di pagamento APERTA → form di registrazione in primo piano (F7):
  * descrizione, data effettiva, importo precompilato col previsto (RB8) ma
- * modificabile. Submit: planned→paid, open→completed. Altri stati → lettura.
+ * modificabile. Submit: planned→paid, open→completed.
  *
- * `side` responsive: destra su desktop, bottom su mobile (tap→registra, CTA
- * h-12). La reversibilità (annulla/riapri/non dovuta) arriva nel passo
- * successivo della fase.
+ * Altri stati → lettura + reversibilità (F9), confermata inline nel footer:
+ * annulla completamento, marca non dovuta, riapri.
+ *
+ * `side` responsive: destra su desktop, bottom su mobile (tap→registra, CTA h-12).
  */
-import { useForm } from '@inertiajs/vue3';
+import { router, useForm } from '@inertiajs/vue3';
 import { useMediaQuery } from '@vueuse/core';
-import { computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import FormField from '@/components/forms/FormField.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -29,7 +30,11 @@ import {
 } from '@/components/ui/sheet';
 import { Spinner } from '@/components/ui/spinner';
 import { formatDateIT, formatEUR } from '@/lib/format';
-import { payment as registerPaymentRoute } from '@/routes/deadlines';
+import {
+    markNotDue as markNotDueRoute,
+    payment as registerPaymentRoute,
+    reopen as reopenRoute,
+} from '@/routes/deadlines';
 import type { DeadlineListItem, DeadlineStatus } from '@/types';
 
 const props = defineProps<{
@@ -79,12 +84,24 @@ function todayISO(): string {
     return local.toISOString().slice(0, 10);
 }
 
-// Precompila il form ad ogni apertura su una scadenza pagabile.
+// Conferma inline (no dialog annidato nello sheet): una transizione di
+// reversibilità in attesa di conferma nel footer.
+type PendingReversal = {
+    description: string;
+    confirmLabel: string;
+    url: string;
+    destructive: boolean;
+};
+const pending = ref<PendingReversal | null>(null);
+const reversing = ref(false);
+
+// Precompila il form e azzera la conferma ad ogni apertura.
 watch(open, (isOpen) => {
     if (!isOpen || !props.deadline) {
         return;
     }
 
+    pending.value = null;
     form.clearErrors();
     form.defaults({
         description: props.deadline.name,
@@ -93,6 +110,65 @@ watch(open, (isOpen) => {
     });
     form.reset();
 });
+
+function askMarkNotDue(): void {
+    if (!props.deadline) {
+        return;
+    }
+
+    pending.value = {
+        description: 'La scadenza e il pagamento collegato verranno segnati come non dovuti.',
+        confirmLabel: 'Marca non dovuta',
+        url: markNotDueRoute({ deadline: props.deadline.id }).url,
+        destructive: false,
+    };
+}
+
+function askUndoCompletion(): void {
+    if (!props.deadline) {
+        return;
+    }
+
+    pending.value = {
+        description: 'Il completamento verrà annullato: importo e data del pagamento verranno azzerati.',
+        confirmLabel: 'Annulla completamento',
+        url: reopenRoute({ deadline: props.deadline.id }).url,
+        destructive: true,
+    };
+}
+
+function askReopen(): void {
+    if (!props.deadline) {
+        return;
+    }
+
+    pending.value = {
+        description: 'La scadenza tornerà aperta e potrai registrare di nuovo il pagamento.',
+        confirmLabel: 'Riapri scadenza',
+        url: reopenRoute({ deadline: props.deadline.id }).url,
+        destructive: false,
+    };
+}
+
+function runReversal(): void {
+    if (!pending.value) {
+        return;
+    }
+
+    router.post(pending.value.url, {}, {
+        preserveScroll: true,
+        onStart: () => {
+            reversing.value = true;
+        },
+        onFinish: () => {
+            reversing.value = false;
+        },
+        onSuccess: () => {
+            pending.value = null;
+            open.value = false;
+        },
+    });
+}
 
 function restoreExpected(): void {
     if (props.deadline?.expected_amount != null) {
@@ -211,16 +287,56 @@ function submit(): void {
             </div>
 
             <SheetFooter>
+                <!-- Conferma inline di una reversibilità. -->
+                <div v-if="pending" class="w-full space-y-3">
+                    <p class="text-13 text-muted-foreground">{{ pending.description }}</p>
+                    <div class="flex gap-2">
+                        <Button type="button" variant="outline" class="flex-1" :disabled="reversing" @click="pending = null">
+                            Annulla
+                        </Button>
+                        <Button
+                            type="button"
+                            :variant="pending.destructive ? 'destructive' : 'default'"
+                            class="flex-1"
+                            :disabled="reversing"
+                            @click="runReversal"
+                        >
+                            <Spinner v-if="reversing" />
+                            {{ pending.confirmLabel }}
+                        </Button>
+                    </div>
+                </div>
+
+                <!-- Azioni per stato. -->
+                <template v-else-if="isPayableOpen">
+                    <Button type="submit" form="register-payment" class="h-12 w-full" :disabled="form.processing">
+                        <Spinner v-if="form.processing" />
+                        Registra pagamento
+                    </Button>
+                    <Button type="button" variant="ghost" size="sm" class="w-full" @click="askMarkNotDue">
+                        Marca come non dovuta
+                    </Button>
+                </template>
+
                 <Button
-                    v-if="isPayableOpen"
-                    type="submit"
-                    form="register-payment"
-                    class="h-12 w-full"
-                    :disabled="form.processing"
+                    v-else-if="deadline && deadline.status === 'completed'"
+                    type="button"
+                    variant="outline"
+                    class="w-full"
+                    @click="askUndoCompletion"
                 >
-                    <Spinner v-if="form.processing" />
-                    Registra pagamento
+                    Annulla completamento
                 </Button>
+
+                <Button
+                    v-else-if="deadline && deadline.status === 'not_due'"
+                    type="button"
+                    class="w-full"
+                    @click="askReopen"
+                >
+                    Riapri scadenza
+                </Button>
+
                 <SheetClose v-else as-child>
                     <Button type="button" variant="outline" class="w-full">Chiudi</Button>
                 </SheetClose>

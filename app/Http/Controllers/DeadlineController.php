@@ -2,8 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Studiofinance\MarkDeadlineNotDue;
 use App\Actions\Studiofinance\RegisterPayment;
+use App\Actions\Studiofinance\ReopenDeadline;
 use App\Concerns\FlashesToast;
+use App\Enums\DeadlineKind;
+use App\Enums\DeadlineStatus;
 use App\Http\Requests\RegisterPaymentRequest;
 use App\Models\Deadline;
 use App\Services\DeadlineService;
@@ -59,6 +63,38 @@ class DeadlineController extends Controller
         $registerPayment($deadline, $request->validated());
 
         $this->flashSuccess('Pagamento registrato.');
+
+        return back();
+    }
+
+    /**
+     * Riporta la scadenza ad aperta (F9), da completata o non dovuta.
+     */
+    public function reopen(Deadline $deadline, ReopenDeadline $reopen): RedirectResponse
+    {
+        abort_unless(
+            in_array($deadline->status, [DeadlineStatus::Completed, DeadlineStatus::NotDue], true),
+            422,
+        );
+
+        $reopen($deadline);
+
+        $this->flashSuccess('Scadenza riaperta.');
+
+        return back();
+    }
+
+    /**
+     * Marca una scadenza di pagamento aperta come non dovuta (F9).
+     */
+    public function markNotDue(Deadline $deadline, MarkDeadlineNotDue $markNotDue): RedirectResponse
+    {
+        abort_unless($deadline->kind === DeadlineKind::Payment, 422);
+        abort_unless($deadline->status === DeadlineStatus::Open, 422);
+
+        $markNotDue($deadline);
+
+        $this->flashSuccess('Scadenza segnata come non dovuta.');
 
         return back();
     }

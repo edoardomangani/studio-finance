@@ -81,6 +81,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('deadlines/{deadline}/payment', [DeadlineController::class, 'registerPayment'])
             ->name('deadlines.payment')
             ->middleware('throttle:60,1');
+        // Reversibilità (F9): riapri (da completata/non dovuta) e marca non dovuta.
+        Route::post('deadlines/{deadline}/reopen', [DeadlineController::class, 'reopen'])
+            ->name('deadlines.reopen')
+            ->middleware('throttle:60,1');
+        Route::post('deadlines/{deadline}/mark-not-due', [DeadlineController::class, 'markNotDue'])
+            ->name('deadlines.mark-not-due')
+            ->middleware('throttle:60,1');
 
         // Design system page: showroom dei componenti, accessibile solo in dev.
         // In production la rotta non esiste affatto.
