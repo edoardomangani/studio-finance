@@ -199,7 +199,7 @@ export type YearPlanExpense = {
 /**
  * Riga spesa editabile nel wizard apertura anno: come YearPlanExpense ma con
  * i campi numerici grezzi (`number | string`, vuoto = '') e il flag di
- * inclusione. Condivisa tra OpenYearDialog e WizardExpensesStep.
+ * inclusione. Condivisa tra la pagina di apertura anno e WizardExpensesStep.
  */
 export type YearWizardExpense = {
     expense_item_id: number | null;

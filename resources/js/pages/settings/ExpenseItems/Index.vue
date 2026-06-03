@@ -16,16 +16,10 @@ import {
 import { computed, ref } from 'vue';
 import ExpenseItemController from '@/actions/App/Http/Controllers/Settings/ExpenseItemController';
 import FormField from '@/components/forms/FormField.vue';
+import ResponsiveDialog from '@/components/ResponsiveDialog.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import {
-    ConfirmDialog,
-    Dialog,
-    DialogBody,
-    DialogContent,
-    DialogStandardFooter,
-    DialogStandardHeader,
-} from '@/components/ui/dialog';
+import { ConfirmDialog } from '@/components/ui/dialog';
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -41,7 +35,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import { Spinner } from '@/components/ui/spinner';
 import { Switch } from '@/components/ui/switch';
 import {
     Table,
@@ -64,10 +57,7 @@ defineProps<{
 
 setLayoutProps({
     pageTitle: 'Voci di spesa',
-    pageCrumbs: [
-        { label: 'Impostazioni' },
-        { label: 'Voci di spesa' },
-    ],
+    pageCrumbs: [{ label: 'Impostazioni' }, { label: 'Voci di spesa' }],
     subbar: false,
 });
 
@@ -99,9 +89,10 @@ const dialogOpen = ref(false);
 const editing = ref<ExpenseItem | null>(null);
 const form = useForm<FormPayload>(emptyForm());
 
-const { archiveOpen, archiveTarget, askArchive, confirmArchive } = useArchiveAction<ExpenseItem>(
-    (item) => ExpenseItemController.destroy.url({ expenseItem: item.id }),
-);
+const { archiveOpen, archiveTarget, askArchive, confirmArchive } =
+    useArchiveAction<ExpenseItem>((item) =>
+        ExpenseItemController.destroy.url({ expenseItem: item.id }),
+    );
 
 const isPercentage = computed(
     () =>
@@ -178,7 +169,9 @@ function onSubmit(): void {
 
 function formatDefault(item: ExpenseItem): string {
     if (item.calculation_type === 'fixed_annual') {
-        return item.default_amount !== null ? formatEUR(item.default_amount) : '—';
+        return item.default_amount !== null
+            ? formatEUR(item.default_amount)
+            : '—';
     }
 
     if (item.calculation_type === 'sum_of_bolli') {
@@ -217,7 +210,10 @@ function formatDefault(item: ExpenseItem): string {
                 v-for="item in expenseItems"
                 v-else
                 :key="item.id"
-                :class="['cursor-pointer transition-colors hover:bg-muted/40', !item.active && 'opacity-60']"
+                :class="[
+                    'cursor-pointer transition-colors hover:bg-muted/40',
+                    !item.active && 'opacity-60',
+                ]"
                 @click="openEdit(item)"
             >
                 <TableCell class="font-medium text-foreground">
@@ -226,7 +222,7 @@ function formatDefault(item: ExpenseItem): string {
                 <TableCell class="text-muted-foreground">
                     {{ item.calculation_type_label }}
                 </TableCell>
-                <TableCell class="text-right tabular text-foreground">
+                <TableCell class="tabular text-right text-foreground">
                     {{ formatDefault(item) }}
                 </TableCell>
                 <TableCell class="text-right">
@@ -265,92 +261,146 @@ function formatDefault(item: ExpenseItem): string {
         </TableBody>
     </Table>
 
-    <Dialog v-model:open="dialogOpen">
-        <DialogContent size="default">
-            <DialogStandardHeader
-                :title="dialogTitle"
-                :description="dialogDescription"
-            />
-            <DialogBody>
-                <form id="expense-item-form" @submit.prevent="onSubmit">
-                    <FieldGroup>
-                        <FormField label="Nome" for="item-name" required>
-                            <Input
-                                id="item-name"
-                                v-model="form.name"
-                                placeholder="Es. Imposta sostitutiva"
-                            />
-                            <template v-if="form.errors.name" #error>{{ form.errors.name }}</template>
-                        </FormField>
+    <ResponsiveDialog
+        v-model:open="dialogOpen"
+        :title="dialogTitle"
+        :description="dialogDescription"
+        submit-form="expense-item-form"
+        :submit-label="editing ? 'Salva modifiche' : 'Aggiungi voce'"
+        :submitting="form.processing"
+    >
+        <form id="expense-item-form" @submit.prevent="onSubmit">
+            <FieldGroup>
+                <FormField label="Nome" for="item-name" required>
+                    <Input
+                        id="item-name"
+                        v-model="form.name"
+                        placeholder="Es. Imposta sostitutiva"
+                    />
+                    <template v-if="form.errors.name" #error>{{
+                        form.errors.name
+                    }}</template>
+                </FormField>
 
-                        <FormField label="Tipo di calcolo" for="item-type" required>
-                            <Select v-model="form.calculation_type">
-                                <SelectTrigger id="item-type" class="w-full">
-                                    <SelectValue placeholder="Seleziona…" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem
-                                        v-for="opt in calculationTypes"
-                                        :key="opt.value"
-                                        :value="opt.value"
-                                    >
-                                        {{ opt.label }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <template v-if="form.errors.calculation_type" #error>{{ form.errors.calculation_type }}</template>
-                        </FormField>
+                <FormField label="Tipo di calcolo" for="item-type" required>
+                    <Select v-model="form.calculation_type">
+                        <SelectTrigger id="item-type" class="w-full">
+                            <SelectValue placeholder="Seleziona…" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="opt in calculationTypes"
+                                :key="opt.value"
+                                :value="opt.value"
+                            >
+                                {{ opt.label }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <template v-if="form.errors.calculation_type" #error>{{
+                        form.errors.calculation_type
+                    }}</template>
+                </FormField>
 
-                        <div v-if="isPercentage" class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                            <FormField label="Aliquota (%)" for="item-rate">
-                                <Input id="item-rate" v-model="form.default_rate" type="number" inputmode="decimal" step="0.01" min="0" max="100" class="tabular text-right" placeholder="0,00" @blur="form.default_rate = clampNumber(form.default_rate, 0, 100)" />
-                                <template v-if="form.errors.default_rate" #error>{{ form.errors.default_rate }}</template>
-                            </FormField>
-
-                            <FormField label="Minimale (€)" for="item-min">
-                                <Input id="item-min" v-model="form.default_minimum" type="number" inputmode="decimal" step="0.01" min="0" class="tabular text-right" placeholder="0,00" />
-                                <template v-if="form.errors.default_minimum" #error>{{ form.errors.default_minimum }}</template>
-                            </FormField>
-
-                            <FormField label="Massimale (€)" for="item-max">
-                                <Input id="item-max" v-model="form.default_maximum" type="number" inputmode="decimal" step="0.01" min="0" class="tabular text-right" placeholder="0,00" />
-                                <template v-if="form.errors.default_maximum" #error>{{ form.errors.default_maximum }}</template>
-                            </FormField>
-                        </div>
-
-                        <FormField v-if="isFixed" label="Importo annuale (€)" for="item-amount">
-                            <Input id="item-amount" v-model="form.default_amount" type="number" inputmode="decimal" step="0.01" min="0" class="tabular text-right" placeholder="0,00" />
-                            <template v-if="form.errors.default_amount" #error>{{ form.errors.default_amount }}</template>
-                        </FormField>
-
-                        <Field orientation="horizontal">
-                            <Switch id="item-active" v-model="form.active" />
-                            <FieldLabel for="item-active" class="font-normal">
-                                Voce attiva (proposta nei nuovi anni)
-                            </FieldLabel>
-                        </Field>
-                    </FieldGroup>
-                </form>
-            </DialogBody>
-            <DialogStandardFooter>
-                <Button
-                    type="submit"
-                    form="expense-item-form"
-                    :disabled="form.processing"
+                <div
+                    v-if="isPercentage"
+                    class="grid grid-cols-1 gap-4 md:grid-cols-3"
                 >
-                    <Spinner v-if="form.processing" />
-                    {{ editing ? 'Salva modifiche' : 'Aggiungi voce' }}
-                </Button>
-            </DialogStandardFooter>
-        </DialogContent>
-    </Dialog>
+                    <FormField label="Aliquota (%)" for="item-rate">
+                        <Input
+                            id="item-rate"
+                            v-model="form.default_rate"
+                            type="number"
+                            inputmode="decimal"
+                            step="0.01"
+                            min="0"
+                            max="100"
+                            class="tabular text-right"
+                            placeholder="0,00"
+                            @blur="
+                                form.default_rate = clampNumber(
+                                    form.default_rate,
+                                    0,
+                                    100,
+                                )
+                            "
+                        />
+                        <template v-if="form.errors.default_rate" #error>{{
+                            form.errors.default_rate
+                        }}</template>
+                    </FormField>
+
+                    <FormField label="Minimale (€)" for="item-min">
+                        <Input
+                            id="item-min"
+                            v-model="form.default_minimum"
+                            type="number"
+                            inputmode="decimal"
+                            step="0.01"
+                            min="0"
+                            class="tabular text-right"
+                            placeholder="0,00"
+                        />
+                        <template v-if="form.errors.default_minimum" #error>{{
+                            form.errors.default_minimum
+                        }}</template>
+                    </FormField>
+
+                    <FormField label="Massimale (€)" for="item-max">
+                        <Input
+                            id="item-max"
+                            v-model="form.default_maximum"
+                            type="number"
+                            inputmode="decimal"
+                            step="0.01"
+                            min="0"
+                            class="tabular text-right"
+                            placeholder="0,00"
+                        />
+                        <template v-if="form.errors.default_maximum" #error>{{
+                            form.errors.default_maximum
+                        }}</template>
+                    </FormField>
+                </div>
+
+                <FormField
+                    v-if="isFixed"
+                    label="Importo annuale (€)"
+                    for="item-amount"
+                >
+                    <Input
+                        id="item-amount"
+                        v-model="form.default_amount"
+                        type="number"
+                        inputmode="decimal"
+                        step="0.01"
+                        min="0"
+                        class="tabular text-right"
+                        placeholder="0,00"
+                    />
+                    <template v-if="form.errors.default_amount" #error>{{
+                        form.errors.default_amount
+                    }}</template>
+                </FormField>
+
+                <Field orientation="horizontal">
+                    <Switch id="item-active" v-model="form.active" />
+                    <FieldLabel for="item-active" class="font-normal">
+                        Voce attiva (proposta nei nuovi anni)
+                    </FieldLabel>
+                </Field>
+            </FieldGroup>
+        </form>
+    </ResponsiveDialog>
 
     <ConfirmDialog
         v-model:open="archiveOpen"
         title="Archiviare la voce?"
-        :description="archiveTarget
-            ? `«${archiveTarget.name}» verrà nascosta dal catalogo. Le istanze già create negli anni esistenti restano invariate; non sarà più proposta nei nuovi anni.`
-            : undefined"
+        :description="
+            archiveTarget
+                ? `«${archiveTarget.name}» verrà nascosta dal catalogo. Le istanze già create negli anni esistenti restano invariate; non sarà più proposta nei nuovi anni.`
+                : undefined
+        "
         confirm-label="Archivia"
         destructive
         @confirm="confirmArchive"

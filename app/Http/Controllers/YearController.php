@@ -31,7 +31,18 @@ class YearController extends Controller
     {
         return Inertia::render('years/Index', [
             'years' => $this->years->list(),
-            // Anno proposto di default all'apertura del wizard (dialog).
+        ]);
+    }
+
+    /**
+     * Wizard di apertura anno: pagina dedicata (non più dialog). Il piano
+     * editabile è caricato dalla pagina via `years.plan` (JSON) al mount e a
+     * ogni cambio anno, così l'edit degli step sopravvive al ricalcolo.
+     */
+    public function create(): Response
+    {
+        return Inertia::render('years/Create', [
+            // Anno proposto di default all'apertura del wizard.
             'suggestedYear' => $this->years->suggestedYear(),
         ]);
     }

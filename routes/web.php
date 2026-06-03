@@ -60,6 +60,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('years/plan', [YearController::class, 'plan'])
             ->name('years.plan')
             ->middleware('throttle:60,1');
+        Route::get('years/create', [YearController::class, 'create'])
+            ->name('years.create')
+            ->middleware('throttle:60,1');
         Route::get('years', [YearController::class, 'index'])
             ->name('years.index')
             ->middleware('throttle:60,1');

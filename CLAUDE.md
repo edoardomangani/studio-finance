@@ -241,6 +241,40 @@ The project follows the shadcn-vue Field family rules (see `shadcn-vue` skill `r
 | 4 | Domain page with one or more `FormSection` | `<form>` wraps the `<FormSection>` (never inside) |
 | 5 | Monolite page with global topbar submit | No `<form>`, programmatic submit |
 
+## Create / edit / detail surfaces (desktop + mobile)
+
+The surface for an entity's create / edit / detail is chosen by **what the form needs, not by which entity it is**. One razor governs everything; the goal is a predictable decision, not a single uniform container.
+
+**The razor — does the form show a result that changes while you type, OR create another entity from inside itself, OR span multiple steps?**
+
+- **Yes → dedicated page** (create / edit / show), desktop and mobile alike. Today: Invoice (live total/net + inline client creation) and Year (multi-step wizard + inherited tables). Pages put their actions in the topbar via `Teleport to="#page-topbar-actions"` — **primary action always in the header, never a bottom bar.** For a wizard the secondary slot is `Annulla` on the first step and `Indietro` on later steps; the primary is `Avanti`/`Apri…`.
+- **No → modal** (`ResponsiveDialog`, `mode="dialog"`). Flat config/anagrafica forms (≤ ~10 fields, no live math, no nesting): Client, ExpenseItem, RecurringDeadline.
+
+**`sheet` is for acting on an existing row**, not for creating/editing an entity's core data: register a payment, change a status (Deadline). Use `ResponsiveDialog mode="sheet"` (or the legacy `ActionSheet`, same Drawer base).
+
+**One shell, two desktop faces, one mobile face.** `ResponsiveDialog` ([components/ResponsiveDialog.vue](resources/js/components/ResponsiveDialog.vue)) is the single guscio:
+
+- `mode="dialog"` → desktop centered dialog · mobile bottom sheet.
+- `mode="sheet"` → desktop right panel · mobile bottom sheet.
+- The primary action follows the platform: on the **mobile bottom sheet (and desktop sheet) it is a check in the iOS-style header**, top-right; on the **desktop dialog it is a labelled button in the footer** next to `Annulla`. Pass `submit-form` (the `<form id>`), `submit-label`, and `:submitting`; the shell builds the right button in each context (`#primary` slot to override, `#footer` for secondary actions).
+
+**Detail / show** follows the same content-driven logic:
+
+- Has relational / secondary content to display → dedicated **page** (Client → storico fatturato, Invoice → ricevuta, Year → voci).
+- Pure config with nothing beyond its own fields → **no show surface; the edit modal IS the detail** (ExpenseItem, RecurringDeadline).
+- Quick row inspection + action → the **sheet** doubles as show (Deadline).
+
+### Surface decision table
+
+| Entity | Create | Edit | Show |
+| --- | --- | --- | --- |
+| Client | dialog | dialog | page (storico) |
+| ExpenseItem | dialog | dialog | — (edit is the detail) |
+| RecurringDeadline | dialog | dialog | — (edit is the detail) |
+| Invoice | page | page | page |
+| Year | page (wizard) | — (immutable) | page |
+| Deadline (instance) | — (auto-generated) | sheet | sheet |
+
 ## Phase quality gates
 
 Each implementation phase listed in `~/.claude/plans/piano-studiofinance-brief.md` declares its own quality gate skills (see the "Quality gates" section of the plan). **A phase is NOT considered closed until every gate listed for it has been invoked formally via the relevant Skill (`review-backend`, `review-frontend`, `review-security`, `review-component-size`, `review-feature`) and the issues raised have been triaged.** Same applies to `impeccable` skills declared in the phase steps (`/impeccable shape`, `/impeccable polish`, `/impeccable adapt`): inline reasoning in chat does NOT substitute for invoking the skill.

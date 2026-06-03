@@ -1,7 +1,7 @@
 // Primitive shadcn — usabili per casi edge.
 export { default as Dialog } from "./Dialog.vue"
 export { default as DialogClose } from "./DialogClose.vue"
-export { default as DialogContent } from "./DialogContent.vue"
+export { default as DialogContent, type DialogContentSize } from "./DialogContent.vue"
 export { default as DialogDescription } from "./DialogDescription.vue"
 export { default as DialogFooter } from "./DialogFooter.vue"
 export { default as DialogHeader } from "./DialogHeader.vue"

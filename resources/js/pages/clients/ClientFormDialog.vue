@@ -19,17 +19,9 @@ import { useForm } from '@inertiajs/vue3';
 import { computed, watch } from 'vue';
 import ClientController from '@/actions/App/Http/Controllers/ClientController';
 import FormField from '@/components/forms/FormField.vue';
-import { Button } from '@/components/ui/button';
-import {
-    Dialog,
-    DialogBody,
-    DialogContent,
-    DialogStandardFooter,
-    DialogStandardHeader,
-} from '@/components/ui/dialog';
+import ResponsiveDialog from '@/components/ResponsiveDialog.vue';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
-import { Spinner } from '@/components/ui/spinner';
 import { Switch } from '@/components/ui/switch';
 import { Textarea } from '@/components/ui/textarea';
 import type { Client } from '@/types';
@@ -137,96 +129,76 @@ function submit(): void {
 </script>
 
 <template>
-    <Dialog v-model:open="open">
-        <DialogContent size="default">
-            <DialogStandardHeader
-                :title="dialogTitle"
-                :description="dialogDescription"
-            />
-            <DialogBody>
-                <form id="client-form" @submit.prevent="submit">
-                    <FieldGroup>
-                        <FormField
-                            label="Denominazione"
-                            for="client-name"
-                            required
-                        >
-                            <Input
-                                id="client-name"
-                                v-model="form.name"
-                                placeholder="Es. Acme Architettura srl"
-                                autofocus
-                            />
-                            <template v-if="form.errors.name" #error>{{
-                                form.errors.name
-                            }}</template>
-                        </FormField>
+    <ResponsiveDialog
+        v-model:open="open"
+        :title="dialogTitle"
+        :description="dialogDescription"
+        submit-form="client-form"
+        :submit-label="isEditing ? 'Salva modifiche' : 'Aggiungi cliente'"
+        :submitting="form.processing"
+    >
+        <form id="client-form" @submit.prevent="submit">
+            <FieldGroup>
+                <FormField label="Denominazione" for="client-name" required>
+                    <Input
+                        id="client-name"
+                        v-model="form.name"
+                        placeholder="Es. Acme Architettura srl"
+                        autofocus
+                    />
+                    <template v-if="form.errors.name" #error>{{
+                        form.errors.name
+                    }}</template>
+                </FormField>
 
-                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <FormField label="P.IVA" for="client-vat">
-                                <Input
-                                    id="client-vat"
-                                    v-model="form.vat_number"
-                                    placeholder="IT12345678901"
-                                    autocomplete="off"
-                                />
-                                <template
-                                    v-if="form.errors.vat_number"
-                                    #error
-                                    >{{ form.errors.vat_number }}</template
-                                >
-                            </FormField>
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                    <FormField label="P.IVA" for="client-vat">
+                        <Input
+                            id="client-vat"
+                            v-model="form.vat_number"
+                            placeholder="IT12345678901"
+                            autocomplete="off"
+                        />
+                        <template v-if="form.errors.vat_number" #error>{{
+                            form.errors.vat_number
+                        }}</template>
+                    </FormField>
 
-                            <FormField label="Codice Fiscale" for="client-cf">
-                                <Input
-                                    id="client-cf"
-                                    v-model="form.tax_code"
-                                    placeholder="RSSMRA80A01H501Z"
-                                    autocomplete="off"
-                                />
-                                <template v-if="form.errors.tax_code" #error>{{
-                                    form.errors.tax_code
-                                }}</template>
-                            </FormField>
-                        </div>
+                    <FormField label="Codice Fiscale" for="client-cf">
+                        <Input
+                            id="client-cf"
+                            v-model="form.tax_code"
+                            placeholder="RSSMRA80A01H501Z"
+                            autocomplete="off"
+                        />
+                        <template v-if="form.errors.tax_code" #error>{{
+                            form.errors.tax_code
+                        }}</template>
+                    </FormField>
+                </div>
 
-                        <Field orientation="horizontal">
-                            <Switch
-                                id="client-withholding"
-                                v-model="form.bank_withholding"
-                            />
-                            <FieldLabel
-                                for="client-withholding"
-                                class="font-normal"
-                            >
-                                Ritenuta bancaria
-                            </FieldLabel>
-                        </Field>
+                <Field orientation="horizontal">
+                    <Switch
+                        id="client-withholding"
+                        v-model="form.bank_withholding"
+                    />
+                    <FieldLabel for="client-withholding" class="font-normal">
+                        Ritenuta bancaria
+                    </FieldLabel>
+                </Field>
 
-                        <FormField label="Note" for="client-notes">
-                            <Textarea
-                                id="client-notes"
-                                v-model="form.notes"
-                                rows="3"
-                                placeholder="Note libere sul cliente."
-                            />
-                            <template v-if="form.errors.notes" #error>{{
-                                form.errors.notes
-                            }}</template>
-                        </FormField>
-                    </FieldGroup>
-                </form>
-            </DialogBody>
-            <DialogStandardFooter>
-                <Button
-                    type="submit"
-                    form="client-form"
-                    :disabled="form.processing"
-                >
-                    <Spinner v-if="form.processing" />
-                    {{ isEditing ? 'Salva modifiche' : 'Aggiungi cliente' }}
-                </Button>
-            </DialogStandardFooter>
-        </DialogContent>
-    </Dialog>
+                <FormField label="Note" for="client-notes">
+                    <Textarea
+                        id="client-notes"
+                        v-model="form.notes"
+                        rows="3"
+                        placeholder="Note libere sul cliente."
+                    />
+                    <template v-if="form.errors.notes" #error>{{
+                        form.errors.notes
+                    }}</template>
+                </FormField>
+            </FieldGroup>
+        </form>
+    </ResponsiveDialog>
 </template>

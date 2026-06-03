@@ -50,6 +50,16 @@ it('mostra la lista anni', function () {
             ->where('years.0.year', 2025));
 });
 
+it('mostra la pagina di apertura anno con l anno suggerito', function () {
+    onboardedUserWithTemplates();
+
+    $this->get(route('years.create'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('years/Create')
+            ->where('suggestedYear', 2026));
+});
+
 it('restituisce il piano JSON per l anno richiesto', function () {
     onboardedUserWithTemplates();
 
