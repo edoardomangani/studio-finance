@@ -4,11 +4,10 @@
  *
  * Vista cronologica pluriennale delle scadenze (50/pagina), con l'importo
  * previsto (suggerimento, RB8) calcolato a runtime per ogni riga. Subbar:
- * search live sul nome + bottone "Filtri" (stato / tipo / anno) in aside
- * desktop o Sheet mobile, come la lista fatture.
+ * search live sul nome + toggle stato (segmentatore primario) accanto al
+ * bottone "Filtri" (tipo / anno) in aside desktop o Sheet mobile.
  *
- * La registrazione pagamento e la reversibilità (side-sheet) arrivano nei
- * passi successivi della fase: qui la lista è di sola lettura.
+ * Click su una riga → side-sheet (registrazione pagamento + reversibilità).
  */
 import { Head, router, setLayoutProps } from '@inertiajs/vue3';
 import { PhFunnel, PhMagnifyingGlass } from '@phosphor-icons/vue';
@@ -43,6 +42,7 @@ import {
     TableHeader,
     TableRow,
 } from '@/components/ui/table';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { formatDateIT, formatEUR } from '@/lib/format';
 import DeadlineFilters from '@/pages/deadlines/DeadlineFilters.vue';
 import DeadlineSheet from '@/pages/deadlines/DeadlineSheet.vue';
@@ -83,6 +83,15 @@ const selectedDeadline = ref<DeadlineListItem | null>(null);
 function openDeadline(deadline: DeadlineListItem): void {
     selectedDeadline.value = deadline;
     sheetOpen.value = true;
+}
+
+// Toggle stato (segmentatore primario, accanto al bottone Filtri): 'all'
+// quando nessun filtro stato è attivo.
+const statusTab = computed(() => props.filters.status ?? 'all');
+
+function setStatus(value: unknown): void {
+    const next = value === 'all' || value === '' || value == null ? null : (value as DeadlineStatus);
+    applyFilters({ status: next });
 }
 
 // Status badge: aperta = piena, completata = attenuata, non dovuta = outline.
@@ -129,12 +138,10 @@ watch(
     },
 );
 
+// Lo stato vive nel toggle segmentato, non nel pannello: il badge "Filtri"
+// conta solo tipo e anno.
 const activeFilterCount = computed(() => {
     let n = 0;
-
-    if (props.filters.status !== null) {
-        n++;
-    }
 
     if (props.filters.kind !== null) {
         n++;
@@ -167,8 +174,9 @@ function applyDraftFiltersMobile(): void {
 }
 
 function clearAllFilters(): void {
-    filterState.value = { status: null, kind: null, year: null };
-    applyFilters({ status: null, kind: null, year: null });
+    // Pulisce i filtri del pannello (tipo, anno); lo stato resta nel toggle.
+    filterState.value = { ...filterState.value, kind: null, year: null };
+    applyFilters({ kind: null, year: null });
 }
 
 function applyFilters(next: {
@@ -221,24 +229,43 @@ function goToPage(page: number): void {
     </Teleport>
 
     <Teleport to="#page-topbar-filters" defer>
-        <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            class="relative"
-            :aria-pressed="filtersOpen"
-            @click="filtersOpen = !filtersOpen"
-        >
-            <PhFunnel :size="14" />
-            Filtri
-            <Badge
-                v-if="activeFilterCount > 0"
-                variant="secondary"
-                class="ml-1 h-4 min-w-4 px-1 text-2xs tabular"
+        <div class="flex items-center gap-2">
+            <ToggleGroup
+                :model-value="statusTab"
+                type="single"
+                variant="boxed"
+                size="sm"
+                @update:model-value="setStatus"
             >
-                {{ activeFilterCount }}
-            </Badge>
-        </Button>
+                <ToggleGroupItem value="all">Tutte</ToggleGroupItem>
+                <ToggleGroupItem
+                    v-for="o in statusOptions"
+                    :key="o.value"
+                    :value="o.value"
+                >
+                    {{ o.label }}
+                </ToggleGroupItem>
+            </ToggleGroup>
+
+            <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                class="relative"
+                :aria-pressed="filtersOpen"
+                @click="filtersOpen = !filtersOpen"
+            >
+                <PhFunnel :size="14" />
+                Filtri
+                <Badge
+                    v-if="activeFilterCount > 0"
+                    variant="secondary"
+                    class="ml-1 h-4 min-w-4 px-1 text-2xs tabular"
+                >
+                    {{ activeFilterCount }}
+                </Badge>
+            </Button>
+        </div>
     </Teleport>
 
     <Table boxed>
@@ -349,7 +376,6 @@ function goToPage(page: number): void {
                 </div>
                 <DeadlineFilters
                     v-model="filterState"
-                    :status-options="statusOptions"
                     :kind-options="kindOptions"
                     :available-years="availableYears"
                     @update:model-value="onFilterChangeDesktop"
@@ -369,7 +395,6 @@ function goToPage(page: number): void {
             <div class="px-6 py-4">
                 <DeadlineFilters
                     v-model="filterState"
-                    :status-options="statusOptions"
                     :kind-options="kindOptions"
                     :available-years="availableYears"
                 />

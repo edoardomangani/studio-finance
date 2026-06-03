@@ -8,22 +8,14 @@
  */
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import type { DeadlineFilterState, DeadlineKind, DeadlineStatus, EnumOption } from '@/types';
+import type { DeadlineFilterState, DeadlineKind, EnumOption } from '@/types';
 
 defineProps<{
-    statusOptions: EnumOption[];
     kindOptions: EnumOption[];
     availableYears: number[];
 }>();
 
 const modelValue = defineModel<DeadlineFilterState>({ required: true });
-
-function setStatus(value: string): void {
-    modelValue.value = {
-        ...modelValue.value,
-        status: value === '' ? null : (value as DeadlineStatus),
-    };
-}
 
 function setKind(value: string): void {
     modelValue.value = {
@@ -42,26 +34,6 @@ function setYear(value: string): void {
 
 <template>
     <div class="space-y-6">
-        <div>
-            <h3 class="kicker mb-2">Stato</h3>
-            <RadioGroup
-                :model-value="modelValue.status ?? ''"
-                class="gap-1"
-                @update:model-value="(v) => setStatus(String(v ?? ''))"
-            >
-                <div class="flex items-center gap-2">
-                    <RadioGroupItem id="flt-status-all" value="" />
-                    <Label for="flt-status-all" class="cursor-pointer text-13 font-normal">Tutti</Label>
-                </div>
-                <div v-for="o in statusOptions" :key="o.value" class="flex items-center gap-2">
-                    <RadioGroupItem :id="`flt-status-${o.value}`" :value="o.value" />
-                    <Label :for="`flt-status-${o.value}`" class="cursor-pointer text-13 font-normal">
-                        {{ o.label }}
-                    </Label>
-                </div>
-            </RadioGroup>
-        </div>
-
         <div>
             <h3 class="kicker mb-2">Tipo</h3>
             <RadioGroup
