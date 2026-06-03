@@ -23,11 +23,10 @@ import {
     PhPencil,
     PhPlus,
     PhUploadSimple,
-    PhX,
 } from '@phosphor-icons/vue';
-import { useMediaQuery } from '@vueuse/core';
 import { computed, onUnmounted, ref, watch } from 'vue';
 import InvoiceController from '@/actions/App/Http/Controllers/InvoiceController';
+import FilterPanel from '@/components/FilterPanel.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/dialog';
@@ -46,15 +45,6 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from '@/components/ui/pagination';
-import {
-    Sheet,
-    SheetClose,
-    SheetContent,
-    SheetDescription,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
-} from '@/components/ui/sheet';
 import {
     Table,
     TableBody,
@@ -92,8 +82,6 @@ setLayoutProps({
 const { archiveOpen, archiveTarget, askArchive, confirmArchive } = useArchiveAction<InvoiceListItem>(
     (invoice) => InvoiceController.destroy.url({ invoice: invoice.id }),
 );
-
-const isMobile = useMediaQuery('(max-width: 767px)');
 
 // Search reattiva con debounce 250ms.
 const searchTerm = ref(props.filters.search);
@@ -157,22 +145,14 @@ const hasActiveFilters = computed(
     () => activeFilterCount.value > 0 || !!props.filters.search,
 );
 
-function onFilterChangeDesktop(): void {
-    // Desktop: applica live, ogni modifica della radio/select naviga.
+// Applica i filtri del pannello (desktop live via requestLiveApply, mobile
+// via "Applica").
+function applyPanelFilters(): void {
     applyFilters({
         year: filterState.value.year,
         client_id: filterState.value.client_id,
         withholding: filterState.value.withholding,
     });
-}
-
-function applyDraftFiltersMobile(): void {
-    applyFilters({
-        year: filterState.value.year,
-        client_id: filterState.value.client_id,
-        withholding: filterState.value.withholding,
-    });
-    filtersOpen.value = false;
 }
 
 function clearAllFilters(): void {
@@ -408,84 +388,23 @@ function openInvoice(invoice: InvoiceListItem): void {
         </Pagination>
     </footer>
 
-    <!-- DESKTOP: aside push-inline. Teleportato al mount-point del layout.
-         Su mobile è hidden via Tailwind. -->
-    <Teleport to="#page-right-sidebar" defer>
-        <aside
-            v-show="filtersOpen && !isMobile"
-            class="hidden w-[260px] shrink-0 overflow-y-auto border-l border-border md:block"
-        >
-            <div class="p-5">
-                <div class="mb-4 flex items-center justify-between h-8">
-                    <span class="text-13 font-medium text-foreground">Filtri</span>
-                    <div class="flex items-center gap-2">
-                        <Button
-                            v-if="activeFilterCount > 0"
-                            type="button"
-                            variant="link"
-                            size="sm"
-                            @click="clearAllFilters"
-                        >
-                            Pulisci
-                        </Button>
-                        
-                    </div>
-                </div>
-                <InvoiceFilters
-                    v-model="filterState"
-                    :available-years="availableYears"
-                    :clients="clientsForFilter"
-                    @update:model-value="onFilterChangeDesktop"
-                />
-            </div>
-        </aside>
-    </Teleport>
-
-    <!-- MOBILE: Sheet slide-over. Renderizzato solo se isMobile per evitare
-         backdrop su desktop. Pattern "draft + Applica" (più decisivo che
-         on-change live, coerente con mobile UX). -->
-    <Sheet v-if="isMobile" v-model:open="filtersOpen">
-        <SheetContent side="right" class="w-full max-w-sm">
-            <SheetHeader>
-                <SheetTitle>Filtra fatture</SheetTitle>
-                <SheetDescription>
-                    Restringi per anno, cliente o stato ritenuta.
-                </SheetDescription>
-            </SheetHeader>
-
-            <div class="px-6 py-4">
-                <InvoiceFilters
-                    v-model="filterState"
-                    :available-years="availableYears"
-                    :clients="clientsForFilter"
-                />
-            </div>
-
-            <SheetFooter class="flex flex-row items-center justify-between gap-2">
-                <Button
-                    v-if="activeFilterCount > 0"
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    @click="clearAllFilters"
-                >
-                    Pulisci filtri
-                </Button>
-                <span v-else />
-
-                <div class="flex items-center gap-2">
-                    <SheetClose as-child>
-                        <Button type="button" variant="outline" size="sm">
-                            Annulla
-                        </Button>
-                    </SheetClose>
-                    <Button type="button" size="sm" @click="applyDraftFiltersMobile">
-                        Applica
-                    </Button>
-                </div>
-            </SheetFooter>
-        </SheetContent>
-    </Sheet>
+    <FilterPanel
+        v-model:open="filtersOpen"
+        :active-count="activeFilterCount"
+        title="Filtri"
+        description="Restringi per anno, cliente o stato ritenuta."
+        @apply="applyPanelFilters"
+        @clear="clearAllFilters"
+    >
+        <template #default="{ requestLiveApply }">
+            <InvoiceFilters
+                v-model="filterState"
+                :available-years="availableYears"
+                :clients="clientsForFilter"
+                @update:model-value="requestLiveApply"
+            />
+        </template>
+    </FilterPanel>
 
     <ConfirmDialog
         v-model:open="archiveOpen"

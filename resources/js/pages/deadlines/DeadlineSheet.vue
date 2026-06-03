@@ -61,7 +61,7 @@ const expectedHint = computed(() => {
     }
 
     return props.deadline.expected_amount !== null
-        ? `Previsto ${formatEUR(props.deadline.expected_amount)} · modificabile`
+        ? `Previsto ${formatEUR(props.deadline.expected_amount)}`
         : 'Nessun previsto: inserisci l’importo dall’F24.';
 });
 
@@ -257,7 +257,7 @@ function submit(): void {
                                         class="text-accent-vivid hover:underline"
                                         @click="restoreExpected"
                                     >
-                                        ripristina previsto
+                                        Ripristina previsto
                                     </button>
                                 </span>
                             </template>

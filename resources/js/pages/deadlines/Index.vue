@@ -11,8 +11,8 @@
  */
 import { Head, router, setLayoutProps } from '@inertiajs/vue3';
 import { PhFunnel, PhMagnifyingGlass } from '@phosphor-icons/vue';
-import { useMediaQuery } from '@vueuse/core';
 import { computed, onUnmounted, ref, watch } from 'vue';
+import FilterPanel from '@/components/FilterPanel.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
@@ -24,15 +24,6 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from '@/components/ui/pagination';
-import {
-    Sheet,
-    SheetClose,
-    SheetContent,
-    SheetDescription,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
-} from '@/components/ui/sheet';
 import {
     Table,
     TableBody,
@@ -81,8 +72,6 @@ setLayoutProps({
     pageCrumbs: [{ label: 'Scadenze' }],
     subbar: true,
 });
-
-const isMobile = useMediaQuery('(max-width: 767px)');
 
 // Side-sheet: aperto al click su una riga, alimentato dai dati di riga.
 const sheetOpen = ref(false);
@@ -162,19 +151,13 @@ const activeFilterCount = computed(() => {
 
 const hasActiveFilters = computed(() => activeFilterCount.value > 0 || !!props.filters.search);
 
-function onFilterChangeDesktop(): void {
+// Applica i filtri del pannello (desktop live via requestLiveApply, mobile
+// via "Applica"). Lo stato resta nel toggle.
+function applyPanelFilters(): void {
     applyFilters({
         kind: filterState.value.kind,
         year: filterState.value.year,
     });
-}
-
-function applyDraftFiltersMobile(): void {
-    applyFilters({
-        kind: filterState.value.kind,
-        year: filterState.value.year,
-    });
-    filtersOpen.value = false;
 }
 
 function clearAllFilters(): void {
@@ -234,22 +217,6 @@ function goToPage(page: number): void {
 
     <Teleport to="#page-topbar-filters" defer>
         <div class="flex items-center gap-2">
-            <ToggleGroup
-                :model-value="statusTab"
-                type="single"
-                variant="boxed"
-                size="sm"
-                @update:model-value="setStatus"
-            >
-                <ToggleGroupItem
-                    v-for="tab in STATE_TABS"
-                    :key="tab.value"
-                    :value="tab.value"
-                >
-                    {{ tab.label }}
-                </ToggleGroupItem>
-            </ToggleGroup>
-
             <Button
                 type="button"
                 variant="outline"
@@ -268,6 +235,21 @@ function goToPage(page: number): void {
                     {{ activeFilterCount }}
                 </Badge>
             </Button>
+            <ToggleGroup
+                :model-value="statusTab"
+                type="single"
+                variant="boxed"
+                size="sm"
+                @update:model-value="setStatus"
+            >
+                <ToggleGroupItem
+                    v-for="tab in STATE_TABS"
+                    :key="tab.value"
+                    :value="tab.value"
+                >
+                    {{ tab.label }}
+                </ToggleGroupItem>
+            </ToggleGroup>
         </div>
     </Teleport>
 
@@ -358,72 +340,23 @@ function goToPage(page: number): void {
         </Pagination>
     </footer>
 
-    <!-- DESKTOP: aside push-inline. -->
-    <Teleport to="#page-right-sidebar" defer>
-        <aside
-            v-show="filtersOpen && !isMobile"
-            class="hidden w-[260px] shrink-0 overflow-y-auto border-l border-border md:block"
-        >
-            <div class="p-5">
-                <div class="mb-4 flex items-center justify-between">
-                    <span class="text-13 font-medium text-foreground">Filtri</span>
-                    <Button
-                        v-if="activeFilterCount > 0"
-                        type="button"
-                        variant="link"
-                        size="sm"
-                        @click="clearAllFilters"
-                    >
-                        Pulisci
-                    </Button>
-                </div>
-                <DeadlineFilters
-                    v-model="filterState"
-                    :kind-options="kindOptions"
-                    :available-years="availableYears"
-                    @update:model-value="onFilterChangeDesktop"
-                />
-            </div>
-        </aside>
-    </Teleport>
-
-    <!-- MOBILE: Sheet slide-over (draft + Applica). -->
-    <Sheet v-if="isMobile" v-model:open="filtersOpen">
-        <SheetContent side="right" class="w-full max-w-sm">
-            <SheetHeader>
-                <SheetTitle>Filtra scadenze</SheetTitle>
-                <SheetDescription>Restringi per stato, tipo o anno.</SheetDescription>
-            </SheetHeader>
-
-            <div class="px-6 py-4">
-                <DeadlineFilters
-                    v-model="filterState"
-                    :kind-options="kindOptions"
-                    :available-years="availableYears"
-                />
-            </div>
-
-            <SheetFooter class="flex flex-row items-center justify-between gap-2">
-                <Button
-                    v-if="activeFilterCount > 0"
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    @click="clearAllFilters"
-                >
-                    Pulisci filtri
-                </Button>
-                <span v-else />
-
-                <div class="flex items-center gap-2">
-                    <SheetClose as-child>
-                        <Button type="button" variant="outline" size="sm">Annulla</Button>
-                    </SheetClose>
-                    <Button type="button" size="sm" @click="applyDraftFiltersMobile">Applica</Button>
-                </div>
-            </SheetFooter>
-        </SheetContent>
-    </Sheet>
+    <FilterPanel
+        v-model:open="filtersOpen"
+        :active-count="activeFilterCount"
+        title="Filtri"
+        description="Restringi per tipo o anno."
+        @apply="applyPanelFilters"
+        @clear="clearAllFilters"
+    >
+        <template #default="{ requestLiveApply }">
+            <DeadlineFilters
+                v-model="filterState"
+                :kind-options="kindOptions"
+                :available-years="availableYears"
+                @update:model-value="requestLiveApply"
+            />
+        </template>
+    </FilterPanel>
 
     <DeadlineSheet v-model:open="sheetOpen" :deadline="selectedDeadline" />
 </template>
