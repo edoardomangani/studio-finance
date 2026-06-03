@@ -6,6 +6,7 @@ use App\Concerns\BelongsToUser;
 use App\Enums\DeadlineKind;
 use App\Enums\DueYearOffset;
 use App\Enums\ExpenseYearOffset;
+use App\Enums\QuotaType;
 use Database\Factories\RecurringDeadlineFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -26,6 +27,7 @@ class RecurringDeadline extends Model
         'expense_item_id',
         'due_year_offset',
         'expense_year_offset',
+        'quota_type',
         'active',
     ];
 
@@ -37,6 +39,7 @@ class RecurringDeadline extends Model
             'kind' => DeadlineKind::class,
             'due_year_offset' => DueYearOffset::class,
             'expense_year_offset' => ExpenseYearOffset::class,
+            'quota_type' => QuotaType::class,
             'active' => 'boolean',
         ];
     }

@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Services\YearAmountsLoader;
 use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\Date;
 use Illuminate\Support\Facades\DB;
@@ -15,7 +16,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        // Una sola istanza per richiesta: la cache per year_id è condivisa tra
+        // gli orchestratori (vista anno + scadenze), così ogni anno è caricato
+        // una volta sola.
+        $this->app->scoped(YearAmountsLoader::class);
     }
 
     /**

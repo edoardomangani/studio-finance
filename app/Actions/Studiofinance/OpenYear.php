@@ -168,6 +168,7 @@ class OpenYear
             'due_at' => $row['due_at'],
             'kind' => DeadlineKind::Payment,
             'annual_expense_id' => $expense->id,
+            'quota_type' => $row['quota_type'] ?? null,
             'status' => DeadlineStatus::Open,
         ]);
 

@@ -2,12 +2,9 @@
 
 namespace App\Services;
 
-use App\Enums\ExpenseCalculationType;
-use App\Enums\PaymentStatus;
 use App\Models\AnnualExpense;
 use App\Models\Deadline;
 use App\Models\Invoice;
-use App\Models\Payment;
 use App\Models\User;
 use App\Models\Year;
 use Illuminate\Support\Carbon;
@@ -29,6 +26,9 @@ class YearService
         private readonly RevenueCalculator $revenueCalculator,
         private readonly MonthlyStatement $monthlyStatement,
         private readonly YearStatement $yearStatement,
+        private readonly YearAmountsLoader $amountsLoader,
+        private readonly DeadlineContextBuilder $deadlineContextBuilder,
+        private readonly DeadlineExpectation $deadlineExpectation,
     ) {}
 
     /**
@@ -101,40 +101,19 @@ class YearService
      */
     public function forShow(Year $year): array
     {
-        $year->loadMissing(['annualExpenses' => fn ($q) => $q->orderBy('id')]);
         $year->loadCount('deadlines');
-
         $coefficient = (float) $year->profitability_coefficient;
-        $invoices = Invoice::query()
-            ->where('user_id', $year->user_id)
-            ->whereYear('issued_at', $year->year)
-            ->orderByDesc('issued_at')
-            ->orderByDesc('number_sort')
-            ->orderByDesc('id')
-            ->get();
 
-        $months = $this->months($invoices, $year->annualExpenses, $coefficient);
+        // Carico l'anno una volta (fatture + figure + importi spesa) dal loader
+        // condiviso: lo stesso anno richiesto dalle scadenze non viene ricaricato.
+        $amounts = $this->amountsLoader->load($year);
+        $invoices = $amounts->invoices;
 
-        // Pagamenti pagati per cassa (data_effettiva) nell'anno; la spesa serve al filtro previdenziale.
-        $cashPayments = Payment::query()
-            ->where('user_id', $year->user_id)
-            ->where('status', PaymentStatus::Paid)
-            ->whereYear('paid_at', $year->year)
-            ->with('annualExpense')
-            ->get();
+        $months = $this->months($invoices, $amounts->expenses, $coefficient);
+        $expenseRows = $this->expenseRows($amounts, $months);
 
-        // Pagamenti pagati collegati alle spese dell'anno (per l'importo pagato per spesa).
-        $expensePayments = Payment::query()
-            ->where('user_id', $year->user_id)
-            ->where('status', PaymentStatus::Paid)
-            ->whereIn('annual_expense_id', $year->annualExpenses->pluck('id'))
-            ->get()
-            ->groupBy('annual_expense_id');
-
-        $figures = $this->yearStatement->figures($invoices, $coefficient, $cashPayments);
-        $monthsElapsed = $this->monthsElapsed($year->year);
-        $expenseRows = $this->expenseRows($year->annualExpenses, $months, $figures, $expensePayments, $monthsElapsed);
-        $deadlines = $year->deadlines()->orderBy('due_at')->with('payment')->get();
+        $deadlines = $year->deadlines()->orderBy('due_at')->orderBy('id')->with(['payment', 'annualExpense.year'])->get();
+        $context = $this->deadlineContextBuilder->build($deadlines);
 
         return [
             'id' => $year->id,
@@ -145,19 +124,21 @@ class YearService
             'deadlines_count' => $year->deadlines_count,
             'invoices' => $invoices->map(fn (Invoice $invoice): array => $this->invoiceRow($invoice))->all(),
             'months' => $months,
-            'totals' => $this->yearStatement->totals($figures, $expenseRows),
+            'totals' => $this->yearStatement->totals($amounts->figures, $expenseRows),
             'expenses' => $expenseRows,
-            'deadlines' => $this->deadlineRows($deadlines),
+            'deadlines' => $this->deadlineRows($deadlines, $context),
         ];
     }
 
     /**
-     * Righe scadenze/pagamenti. importo previsto = null finché manca il tipo_quota (7b).
+     * Righe scadenze/pagamenti, con l'importo previsto (suggerimento) calcolato
+     * dal tipo quota (RB8). null per gli adempimenti e quando i dati necessari
+     * non esistono.
      *
      * @param  Collection<int, Deadline>  $deadlines
      * @return array<int, array<string, mixed>>
      */
-    private function deadlineRows(Collection $deadlines): array
+    private function deadlineRows(Collection $deadlines, DeadlineContext $context): array
     {
         return $deadlines
             ->map(fn (Deadline $d): array => [
@@ -165,9 +146,10 @@ class YearService
                 'name' => $d->name,
                 'due_at' => $d->due_at->toDateString(),
                 'kind' => $d->kind->value,
+                'quota_type' => $d->quota_type?->value,
                 'status' => $d->status->value,
                 'annual_expense_id' => $d->annual_expense_id,
-                'expected_amount' => null,
+                'expected_amount' => $this->deadlineExpectation->for($d, $context),
                 'payment' => $d->payment === null ? null : [
                     'id' => $d->payment->id,
                     'status' => $d->payment->status->value,
@@ -179,64 +161,39 @@ class YearService
     }
 
     /**
-     * Righe spesa annuali: meta + famiglia importi (expected dalla somma dei mesi).
+     * Righe spesa annuali: meta + famiglia importi (dal loader; expected dalla
+     * somma dei mesi, sovrascritto qui).
      *
-     * @param  Collection<int, AnnualExpense>  $expenses
      * @param  array<int, array<string, mixed>>  $months
-     * @param  Collection<int, Collection<int, Payment>>  $paymentsByExpense
      * @return array<int, array<string, mixed>>
      */
-    private function expenseRows(Collection $expenses, array $months, YearFigures $figures, Collection $paymentsByExpense, int $monthsElapsed): array
+    private function expenseRows(YearAmounts $amounts, array $months): array
     {
         $expected = $this->expectedByExpense($months);
 
-        return $expenses
-            ->map(fn (AnnualExpense $e): array => [
-                'id' => $e->id,
-                'name' => $e->name,
-                'calculation_type' => $e->calculation_type->value,
-                'calculation_type_label' => $e->calculation_type->label(),
-                'rate' => $e->rate !== null ? (float) $e->rate : null,
-                'minimum' => $e->minimum !== null ? (float) $e->minimum : null,
-                'maximum' => $e->maximum !== null ? (float) $e->maximum : null,
-                'amount' => $e->amount !== null ? (float) $e->amount : null,
-                'is_pension_contribution' => $e->is_pension_contribution,
-                'is_imposta_sostitutiva' => $this->isImpostaSostitutiva($e),
-                'previous_year_credit' => $e->previous_year_credit !== null ? (float) $e->previous_year_credit : null,
-                ...$this->yearStatement->expenseAmounts(
-                    $e,
-                    $expected[$e->id] ?? 0.0,
-                    $figures->grossBases,
-                    $figures->netBases,
-                    $paymentsByExpense->get($e->id, new Collection),
-                    $monthsElapsed,
-                    $this->expenseDeductions($e, $figures->withholdings),
-                    $this->isImpostaSostitutiva($e) ? 0 : 2,
-                ),
-            ])
+        return $amounts->expenses
+            ->map(function (AnnualExpense $e) use ($expected, $amounts): array {
+                // I derivati (definitive, paid, due) vengono dal loader; expected
+                // dalla somma dei mesi, che è una preoccupazione della vista anno.
+                $row = $amounts->expenseAmounts[$e->id];
+                $row['expected'] = $expected[$e->id] ?? 0.0;
+
+                return [
+                    'id' => $e->id,
+                    'name' => $e->name,
+                    'calculation_type' => $e->calculation_type->value,
+                    'calculation_type_label' => $e->calculation_type->label(),
+                    'rate' => $e->rate !== null ? (float) $e->rate : null,
+                    'minimum' => $e->minimum !== null ? (float) $e->minimum : null,
+                    'maximum' => $e->maximum !== null ? (float) $e->maximum : null,
+                    'amount' => $e->amount !== null ? (float) $e->amount : null,
+                    'is_pension_contribution' => $e->is_pension_contribution,
+                    'is_imposta_sostitutiva' => YearExpenseAmounts::isImpostaSostitutiva($e),
+                    'previous_year_credit' => $e->previous_year_credit !== null ? (float) $e->previous_year_credit : null,
+                    ...$row,
+                ];
+            })
             ->all();
-    }
-
-    /**
-     * Deduzioni della spesa: solo l'imposta sostitutiva (% reddito IRPEF non
-     * previdenziale) scala ritenute bancarie + credito anno precedente; le altre 0.
-     */
-    private function expenseDeductions(AnnualExpense $expense, float $withholdings): float
-    {
-        if (! $this->isImpostaSostitutiva($expense)) {
-            return 0.0;
-        }
-
-        return round($withholdings + (float) ($expense->previous_year_credit ?? 0), 2);
-    }
-
-    /**
-     * L'imposta sostitutiva: voce % su reddito IRPEF non previdenziale.
-     */
-    private function isImpostaSostitutiva(AnnualExpense $expense): bool
-    {
-        return ! $expense->is_pension_contribution
-            && $expense->calculation_type === ExpenseCalculationType::PercentageOfIrpefIncome;
     }
 
     /**
@@ -255,21 +212,6 @@ class YearService
         }
 
         return $totals;
-    }
-
-    /**
-     * Mesi trascorsi per la proporzione "ad oggi": 12 se anno passato, 0 se futuro,
-     * altrimenti il mese corrente.
-     */
-    private function monthsElapsed(int $year): int
-    {
-        $current = (int) Carbon::now()->year;
-
-        return match (true) {
-            $year < $current => 12,
-            $year > $current => 0,
-            default => (int) Carbon::now()->month,
-        };
     }
 
     /**

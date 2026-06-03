@@ -170,7 +170,8 @@ it('espone le figure mensili calcolate nella vista anno', function () {
             ->where('year.totals.expenses_paid', 0)           // nessun pagamento
             ->where('year.totals.bank_income', 665)           // netto 782 − IS 117 (all'unità)
             ->has('year.deadlines', 20)                       // scadenze generate dal wizard
-            ->where('year.deadlines.0.expected_amount', null)); // null finché manca tipo_quota (7b)
+            ->where('year.deadlines.0.quota_type', 'full_amount')   // Assicurazione (31/3, prima per data)
+            ->where('year.deadlines.0.expected_amount', 350));      // fissa €350, scadenza unica → previsto pieno
 });
 
 it('scala ritenute e credito dal definitivo della imposta sostitutiva', function () {

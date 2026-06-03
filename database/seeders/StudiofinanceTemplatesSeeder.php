@@ -6,6 +6,7 @@ use App\Enums\DeadlineKind;
 use App\Enums\DueYearOffset;
 use App\Enums\ExpenseCalculationType;
 use App\Enums\ExpenseYearOffset;
+use App\Enums\QuotaType;
 use App\Models\ExpenseItem;
 use App\Models\RecurringDeadline;
 use App\Models\User;
@@ -125,6 +126,9 @@ class StudiofinanceTemplatesSeeder extends Seeder
         // Legenda flag locali:
         //   due_next     = la data scadenza cade in N+1 (saldi, bolli Q4)
         //   expense_next = la scadenza paga la spesa di N+1 (solo commercialista)
+        //   quota        = tipo quota → come si calcola l'importo previsto (RB8).
+        //                  Le rate bolli sono full_amount ma l'importo è gestito
+        //                  a parte (saldo maturato), vedi DeadlineExpectation.
         // Default (assenti) = N / N.
         $rows = [
             // Imposta sostitutiva — acconti in N, saldo in N+1 (sempre spesa N).
@@ -133,12 +137,14 @@ class StudiofinanceTemplatesSeeder extends Seeder
                 'day' => 30, 'month' => 6,
                 'kind' => DeadlineKind::Payment,
                 'item' => 'imposta_sostitutiva',
+                'quota' => QuotaType::TaxAdvance,
             ],
             [
                 'name' => '2° acconto imposta sostitutiva',
                 'day' => 30, 'month' => 11,
                 'kind' => DeadlineKind::Payment,
                 'item' => 'imposta_sostitutiva',
+                'quota' => QuotaType::TaxAdvance,
             ],
             [
                 'name' => 'Saldo imposta sostitutiva',
@@ -146,6 +152,7 @@ class StudiofinanceTemplatesSeeder extends Seeder
                 'kind' => DeadlineKind::Payment,
                 'item' => 'imposta_sostitutiva',
                 'due_next' => true,
+                'quota' => QuotaType::TaxBalance,
             ],
 
             // Inarcassa Soggettivo — 2 rate acconto in N, saldo in N+1.
@@ -154,12 +161,14 @@ class StudiofinanceTemplatesSeeder extends Seeder
                 'day' => 30, 'month' => 6,
                 'kind' => DeadlineKind::Payment,
                 'item' => 'inarcassa_soggettivo',
+                'quota' => QuotaType::ContributionMinimum,
             ],
             [
                 'name' => '2ª rata Inarcassa Soggettivo',
                 'day' => 30, 'month' => 9,
                 'kind' => DeadlineKind::Payment,
                 'item' => 'inarcassa_soggettivo',
+                'quota' => QuotaType::ContributionMinimum,
             ],
             [
                 'name' => 'Saldo Inarcassa Soggettivo',
@@ -167,6 +176,7 @@ class StudiofinanceTemplatesSeeder extends Seeder
                 'kind' => DeadlineKind::Payment,
                 'item' => 'inarcassa_soggettivo',
                 'due_next' => true,
+                'quota' => QuotaType::ContributionAdjustment,
             ],
 
             // Inarcassa Integrativo — 2 rate acconto in N, saldo in N+1.
@@ -175,12 +185,14 @@ class StudiofinanceTemplatesSeeder extends Seeder
                 'day' => 30, 'month' => 6,
                 'kind' => DeadlineKind::Payment,
                 'item' => 'inarcassa_integrativo',
+                'quota' => QuotaType::ContributionMinimum,
             ],
             [
                 'name' => '2ª rata Inarcassa Integrativo',
                 'day' => 30, 'month' => 9,
                 'kind' => DeadlineKind::Payment,
                 'item' => 'inarcassa_integrativo',
+                'quota' => QuotaType::ContributionMinimum,
             ],
             [
                 'name' => 'Saldo Inarcassa Integrativo',
@@ -188,6 +200,7 @@ class StudiofinanceTemplatesSeeder extends Seeder
                 'kind' => DeadlineKind::Payment,
                 'item' => 'inarcassa_integrativo',
                 'due_next' => true,
+                'quota' => QuotaType::ContributionAdjustment,
             ],
 
             // Inarcassa Maternità — 2 rate acconto in N.
@@ -196,12 +209,15 @@ class StudiofinanceTemplatesSeeder extends Seeder
                 'day' => 30, 'month' => 6,
                 'kind' => DeadlineKind::Payment,
                 'item' => 'inarcassa_maternita',
+                // Fissa, nessun minimale: full_amount ÷ n° rate → quota/2.
+                'quota' => QuotaType::FullAmount,
             ],
             [
                 'name' => '2ª rata Inarcassa Maternità',
                 'day' => 30, 'month' => 9,
                 'kind' => DeadlineKind::Payment,
                 'item' => 'inarcassa_maternita',
+                'quota' => QuotaType::FullAmount,
             ],
 
             // Bolli — Q1, Q2, Q3 in N; Q4 paga in N+1 ma spesa di N.
@@ -210,18 +226,21 @@ class StudiofinanceTemplatesSeeder extends Seeder
                 'day' => 31, 'month' => 5,
                 'kind' => DeadlineKind::Payment,
                 'item' => 'bolli',
+                'quota' => QuotaType::FullAmount,
             ],
             [
                 'name' => 'Bolli — 2° trimestre',
                 'day' => 30, 'month' => 9,
                 'kind' => DeadlineKind::Payment,
                 'item' => 'bolli',
+                'quota' => QuotaType::FullAmount,
             ],
             [
                 'name' => 'Bolli — 3° trimestre',
                 'day' => 30, 'month' => 11,
                 'kind' => DeadlineKind::Payment,
                 'item' => 'bolli',
+                'quota' => QuotaType::FullAmount,
             ],
             [
                 'name' => 'Bolli — 4° trimestre',
@@ -229,6 +248,7 @@ class StudiofinanceTemplatesSeeder extends Seeder
                 'kind' => DeadlineKind::Payment,
                 'item' => 'bolli',
                 'due_next' => true,
+                'quota' => QuotaType::FullAmount,
             ],
 
             // Assicurazione + OATO — rinnovi a marzo (data N, spesa N).
@@ -237,12 +257,14 @@ class StudiofinanceTemplatesSeeder extends Seeder
                 'day' => 31, 'month' => 3,
                 'kind' => DeadlineKind::Payment,
                 'item' => 'assicurazione',
+                'quota' => QuotaType::FullAmount,
             ],
             [
                 'name' => 'Quota Ordine (OATO)',
                 'day' => 31, 'month' => 3,
                 'kind' => DeadlineKind::Payment,
                 'item' => 'oato',
+                'quota' => QuotaType::FullAmount,
             ],
 
             // Commercialista — UNICO caso forward: data 31/12/N, spesa N+1.
@@ -253,6 +275,7 @@ class StudiofinanceTemplatesSeeder extends Seeder
                 'kind' => DeadlineKind::Payment,
                 'item' => 'commercialista',
                 'expense_next' => true,
+                'quota' => QuotaType::FullAmount,
             ],
 
             // Adempimenti — nessun pagamento collegato.
@@ -288,6 +311,7 @@ class StudiofinanceTemplatesSeeder extends Seeder
                 'expense_year_offset' => ($row['expense_next'] ?? false)
                     ? ExpenseYearOffset::Next
                     : ExpenseYearOffset::Current,
+                'quota_type' => $row['quota'] ?? null,
             ]);
         }
 

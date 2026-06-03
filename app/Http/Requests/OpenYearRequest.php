@@ -5,6 +5,7 @@ namespace App\Http\Requests;
 use App\Enums\DeadlineKind;
 use App\Enums\ExpenseCalculationType;
 use App\Enums\ExpenseYearOffset;
+use App\Enums\QuotaType;
 use App\Models\ExpenseItem;
 use App\Models\Year;
 use Illuminate\Foundation\Http\FormRequest;
@@ -68,6 +69,7 @@ class OpenYearRequest extends FormRequest
                 Rule::exists((new ExpenseItem)->getTable(), 'id')->where('user_id', Auth::id()),
             ],
             'deadlines.*.expense_year_offset' => ['required', Rule::enum(ExpenseYearOffset::class)],
+            'deadlines.*.quota_type' => ['nullable', Rule::enum(QuotaType::class)],
         ];
     }
 

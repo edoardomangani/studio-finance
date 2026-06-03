@@ -106,6 +106,7 @@ class YearController extends Controller
                 'kind' => $row['kind'],
                 'expense_item_id' => $row['expense_item_id'] ?? null,
                 'expense_year_offset' => $row['expense_year_offset'],
+                'quota_type' => $row['quota_type'] ?? null,
             ])
             ->all();
 

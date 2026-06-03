@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Concerns\BelongsToUser;
 use App\Enums\DeadlineKind;
 use App\Enums\DeadlineStatus;
+use App\Enums\QuotaType;
 use Database\Factories\DeadlineFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -25,6 +26,7 @@ class Deadline extends Model
         'due_at',
         'kind',
         'annual_expense_id',
+        'quota_type',
         'status',
         'note',
     ];
@@ -34,6 +36,7 @@ class Deadline extends Model
         return [
             'due_at' => 'date',
             'kind' => DeadlineKind::class,
+            'quota_type' => QuotaType::class,
             'status' => DeadlineStatus::class,
         ];
     }

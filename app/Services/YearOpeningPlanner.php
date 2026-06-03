@@ -20,7 +20,7 @@ use Illuminate\Support\Carbon;
  * aliquote/quote ed escludere voci prima di chiamare l'action.
  *
  * @phpstan-type ExpenseRow array{expense_item_id: int|null, name: string, calculation_type: string, rate: float|null, minimum: float|null, maximum: float|null, amount: float|null, previous_year_credit: float|null}
- * @phpstan-type DeadlineRow array{recurring_deadline_id: int|null, name: string, due_at: string, kind: string, expense_item_id: int|null, expense_year_offset: string}
+ * @phpstan-type DeadlineRow array{recurring_deadline_id: int|null, name: string, due_at: string, kind: string, expense_item_id: int|null, expense_year_offset: string, quota_type: string|null}
  * @phpstan-type Plan array{year: int, profitability_coefficient: float, note: string|null, expenses: list<ExpenseRow>, deadlines: list<DeadlineRow>, cross_year_deadlines: list<string>, next_year: int, next_year_exists: bool, next_year_needs_preopen: bool}
  */
 class YearOpeningPlanner
@@ -72,6 +72,7 @@ class YearOpeningPlanner
                 'kind' => $rd->kind->value,
                 'expense_item_id' => $rd->kind === DeadlineKind::Payment ? $rd->expense_item_id : null,
                 'expense_year_offset' => $rd->expense_year_offset->value,
+                'quota_type' => $rd->kind === DeadlineKind::Payment ? $rd->quota_type?->value : null,
             ];
 
             if ($rd->kind === DeadlineKind::Payment
