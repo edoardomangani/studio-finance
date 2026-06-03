@@ -28,13 +28,15 @@ class DeadlineService
      * Pagina di scadenze (cronologica, più recenti per data prima) con i filtri
      * applicati e l'importo previsto per riga.
      *
-     * @param  array{search?: string, status?: ?string, kind?: ?string, year?: ?int}  $filters
+     * @param  array{search?: string, state?: ?string, kind?: ?string, year?: ?int}  $filters
      * @return LengthAwarePaginator<int, array<string, mixed>>
      */
     public function paginate(array $filters = []): LengthAwarePaginator
     {
         $search = isset($filters['search']) ? trim((string) $filters['search']) : '';
-        $status = isset($filters['status']) ? DeadlineStatus::tryFrom((string) $filters['status']) : null;
+        // Stato come gruppo: open = da fare; closed = già gestite (completate +
+        // non dovute, "cose fatte"). Toggle primario in UI.
+        $state = $filters['state'] ?? null;
         $kind = isset($filters['kind']) ? DeadlineKind::tryFrom((string) $filters['kind']) : null;
         $year = $filters['year'] ?? null;
 
@@ -44,7 +46,8 @@ class DeadlineService
                 $like = '%'.strtolower(str_replace(['%', '_'], ['\%', '\_'], $search)).'%';
                 $query->whereRaw("LOWER(name) LIKE ? ESCAPE '\\'", [$like]);
             })
-            ->when($status !== null, fn ($q) => $q->where('status', $status))
+            ->when($state === 'open', fn ($q) => $q->where('status', DeadlineStatus::Open))
+            ->when($state === 'closed', fn ($q) => $q->whereIn('status', [DeadlineStatus::Completed, DeadlineStatus::NotDue]))
             ->when($kind !== null, fn ($q) => $q->where('kind', $kind))
             ->when($year !== null, fn ($q) => $q->whereHas('year', fn ($yq) => $yq->where('year', $year)))
             ->orderByDesc('due_at')
@@ -65,17 +68,6 @@ class DeadlineService
     public function availableYears(): array
     {
         return Year::query()->orderByDesc('year')->pluck('year')->all();
-    }
-
-    /**
-     * @return array<int, array{value: string, label: string}>
-     */
-    public function statusOptions(): array
-    {
-        return array_map(
-            fn (DeadlineStatus $s): array => ['value' => $s->value, 'label' => $s->label()],
-            DeadlineStatus::cases(),
-        );
     }
 
     /**

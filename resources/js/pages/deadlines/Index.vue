@@ -50,6 +50,7 @@ import { index as deadlinesIndex } from '@/routes/deadlines';
 import type {
     DeadlineFilterState,
     DeadlineListItem,
+    DeadlineStateFilter,
     DeadlineStatus,
     EnumOption,
     PaginatedList,
@@ -59,14 +60,21 @@ const props = defineProps<{
     deadlines: PaginatedList<DeadlineListItem>;
     filters: {
         search: string;
-        status: DeadlineStatus | null;
+        state: DeadlineStateFilter | null;
         kind: string | null;
         year: number | null;
     };
     availableYears: number[];
-    statusOptions: EnumOption[];
     kindOptions: EnumOption[];
 }>();
+
+// Toggle stato: segmentatore primario. 'closed' raccoglie completate + non
+// dovute ("cose fatte").
+const STATE_TABS = [
+    { value: 'open', label: 'Aperte' },
+    { value: 'closed', label: 'Completate' },
+    { value: 'all', label: 'Tutte' },
+];
 
 setLayoutProps({
     pageTitle: 'Scadenze',
@@ -87,11 +95,11 @@ function openDeadline(deadline: DeadlineListItem): void {
 
 // Toggle stato (segmentatore primario, accanto al bottone Filtri): 'all'
 // quando nessun filtro stato è attivo.
-const statusTab = computed(() => props.filters.status ?? 'all');
+const statusTab = computed(() => props.filters.state ?? 'all');
 
 function setStatus(value: unknown): void {
-    const next = value === 'all' || value === '' || value == null ? null : (value as DeadlineStatus);
-    applyFilters({ status: next });
+    const next = value === 'open' || value === 'closed' ? value : null;
+    applyFilters({ state: next });
 }
 
 // Status badge: aperta = piena, completata = attenuata, non dovuta = outline.
@@ -122,16 +130,14 @@ onUnmounted(() => {
 const filtersOpen = ref(false);
 
 const filterState = ref<DeadlineFilterState>({
-    status: props.filters.status,
     kind: (props.filters.kind as DeadlineFilterState['kind']) ?? null,
     year: props.filters.year,
 });
 
 watch(
-    () => [props.filters.status, props.filters.kind, props.filters.year] as const,
-    ([status, kind, year]) => {
+    () => [props.filters.kind, props.filters.year] as const,
+    ([kind, year]) => {
         filterState.value = {
-            status,
             kind: (kind as DeadlineFilterState['kind']) ?? null,
             year,
         };
@@ -158,7 +164,6 @@ const hasActiveFilters = computed(() => activeFilterCount.value > 0 || !!props.f
 
 function onFilterChangeDesktop(): void {
     applyFilters({
-        status: filterState.value.status,
         kind: filterState.value.kind,
         year: filterState.value.year,
     });
@@ -166,7 +171,6 @@ function onFilterChangeDesktop(): void {
 
 function applyDraftFiltersMobile(): void {
     applyFilters({
-        status: filterState.value.status,
         kind: filterState.value.kind,
         year: filterState.value.year,
     });
@@ -181,7 +185,7 @@ function clearAllFilters(): void {
 
 function applyFilters(next: {
     search?: string;
-    status?: DeadlineStatus | null;
+    state?: DeadlineStateFilter | null;
     kind?: string | null;
     year?: number | null;
 }): void {
@@ -189,7 +193,7 @@ function applyFilters(next: {
         deadlinesIndex().url,
         {
             search: (next.search ?? props.filters.search) || undefined,
-            status: (next.status !== undefined ? next.status : props.filters.status) ?? undefined,
+            state: (next.state !== undefined ? next.state : props.filters.state) ?? undefined,
             kind: (next.kind !== undefined ? next.kind : props.filters.kind) ?? undefined,
             year: (next.year !== undefined ? next.year : props.filters.year) ?? undefined,
         },
@@ -202,7 +206,7 @@ function goToPage(page: number): void {
         deadlinesIndex().url,
         {
             search: props.filters.search || undefined,
-            status: props.filters.status ?? undefined,
+            state: props.filters.state ?? undefined,
             kind: props.filters.kind ?? undefined,
             year: props.filters.year ?? undefined,
             page,
@@ -237,13 +241,12 @@ function goToPage(page: number): void {
                 size="sm"
                 @update:model-value="setStatus"
             >
-                <ToggleGroupItem value="all">Tutte</ToggleGroupItem>
                 <ToggleGroupItem
-                    v-for="o in statusOptions"
-                    :key="o.value"
-                    :value="o.value"
+                    v-for="tab in STATE_TABS"
+                    :key="tab.value"
+                    :value="tab.value"
                 >
-                    {{ o.label }}
+                    {{ tab.label }}
                 </ToggleGroupItem>
             </ToggleGroup>
 

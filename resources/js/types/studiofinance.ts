@@ -311,9 +311,12 @@ export type DeadlineListItem = {
     payment: DeadlinePayment | null;
 };
 
+/** Filtri del pannello (lo stato vive nel toggle segmentato dell'index). */
 export type DeadlineFilterState = {
-    status: DeadlineStatus | null;
     kind: DeadlineKind | null;
     year: number | null;
 };
+
+/** Toggle stato: open = da fare, closed = completate + non dovute. */
+export type DeadlineStateFilter = 'open' | 'closed';
 

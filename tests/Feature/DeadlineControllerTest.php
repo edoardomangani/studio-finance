@@ -1,6 +1,9 @@
 <?php
 
 use App\Actions\Studiofinance\OpenYear;
+use App\Actions\Studiofinance\RegisterPayment;
+use App\Enums\DeadlineKind;
+use App\Models\Deadline;
 use App\Models\User;
 use App\Services\YearOpeningPlanner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -69,8 +72,30 @@ it('espone gli anni e le opzioni di filtro', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->has('availableYears')
-            ->has('statusOptions', 3)
             ->has('kindOptions', 2)
+            ->etc());
+});
+
+it('il toggle stato "closed" mostra completate e non dovute, non le aperte', function () {
+    $user = userWithOpenYear();
+    // Una scadenza di pagamento la registro (→ completata), un'altra resta aperta.
+    $paid = Deadline::query()
+        ->where('kind', DeadlineKind::Payment)
+        ->whereNotNull('annual_expense_id')
+        ->firstOrFail();
+    app(RegisterPayment::class)($paid, ['amount' => 100, 'paid_at' => '2026-03-15']);
+
+    $this->get(route('deadlines.index', ['state' => 'closed']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('deadlines.data', 1)
+            ->where('deadlines.data.0.status', 'completed')
+            ->etc());
+
+    $this->get(route('deadlines.index', ['state' => 'open']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('deadlines.data', fn ($rows) => collect($rows)->every(fn ($r) => $r['status'] === 'open'))
             ->etc());
 });
 

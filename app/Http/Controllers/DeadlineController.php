@@ -32,25 +32,27 @@ class DeadlineController extends Controller
     public function index(Request $request): Response
     {
         $search = trim((string) $request->query('search', ''));
-        $status = $this->stringOrNull($request->query('status'));
+        // Toggle stato: open (da fare) | closed (completate + non dovute).
+        $state = in_array($request->query('state'), ['open', 'closed'], true)
+            ? (string) $request->query('state')
+            : null;
         $kind = $this->stringOrNull($request->query('kind'));
         $year = $this->intOrNull($request->query('year'));
 
         return Inertia::render('deadlines/Index', [
             'deadlines' => $this->deadlines->paginate([
                 'search' => $search,
-                'status' => $status,
+                'state' => $state,
                 'kind' => $kind,
                 'year' => $year,
             ]),
             'filters' => [
                 'search' => $search,
-                'status' => $status,
+                'state' => $state,
                 'kind' => $kind,
                 'year' => $year,
             ],
             'availableYears' => $this->deadlines->availableYears(),
-            'statusOptions' => $this->deadlines->statusOptions(),
             'kindOptions' => $this->deadlines->kindOptions(),
         ]);
     }
