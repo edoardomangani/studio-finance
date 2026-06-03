@@ -11,6 +11,7 @@
 import { router, useForm } from '@inertiajs/vue3';
 import { PhCheck } from '@phosphor-icons/vue';
 import { computed, ref, watch } from 'vue';
+import { toast } from 'vue-sonner';
 import ActionSheet from '@/components/ActionSheet.vue';
 import FormField from '@/components/forms/FormField.vue';
 import { Badge } from '@/components/ui/badge';
@@ -47,17 +48,17 @@ const expectedHint = computed(() => {
         : 'Nessun previsto: inserisci l’importo dall’F24.';
 });
 
-const canRestoreExpected = computed(
-    () =>
-        props.deadline?.expected_amount != null &&
-        form.amount !== String(props.deadline.expected_amount),
-);
-
 const form = useForm<{ description: string; amount: string; paid_at: string }>({
     description: '',
     amount: '',
     paid_at: '',
 });
+
+const canRestoreExpected = computed(
+    () =>
+        props.deadline?.expected_amount != null &&
+        form.amount !== String(props.deadline.expected_amount),
+);
 
 function todayISO(): string {
     const now = new Date();
@@ -158,6 +159,9 @@ function runReversal(): void {
             pending.value = null;
             open.value = false;
         },
+        onError: () => {
+            toast.error('Operazione non riuscita. Riprova.');
+        },
     });
 }
 
@@ -176,6 +180,13 @@ function submit(): void {
         preserveScroll: true,
         onSuccess: () => {
             open.value = false;
+        },
+        // Gli errori di validazione vanno inline nei FormField; il toast copre
+        // i fallimenti non-di-validazione.
+        onError: (errors) => {
+            if (Object.keys(errors).length === 0) {
+                toast.error('Registrazione non riuscita. Riprova.');
+            }
         },
     });
 }

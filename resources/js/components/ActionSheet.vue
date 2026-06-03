@@ -17,9 +17,9 @@
 import { PhX } from '@phosphor-icons/vue';
 import { useMediaQuery } from '@vueuse/core';
 import { Button } from '@/components/ui/button';
-import { Drawer, DrawerContent, DrawerTitle } from '@/components/ui/drawer';
+import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from '@/components/ui/drawer';
 
-defineProps<{ title: string }>();
+defineProps<{ title: string; description?: string }>();
 
 const open = defineModel<boolean>('open', { default: false });
 
@@ -55,6 +55,7 @@ const isMobile = useMediaQuery('(max-width: 767px)');
                     <slot name="primary" />
                 </div>
             </header>
+            <DrawerDescription class="sr-only">{{ description ?? title }}</DrawerDescription>
 
             <div class="flex-1 overflow-y-auto px-6 py-4">
                 <slot />
