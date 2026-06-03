@@ -19,7 +19,7 @@ import { Button } from '@/components/ui/button';
 import { FieldGroup } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
-import { formatDateIT, formatEUR } from '@/lib/format';
+import { formatDateIT, formatEUR, todayISO } from '@/lib/format';
 import { DEADLINE_STATUS_META } from '@/pages/deadlines/statusMeta';
 import {
     markNotDue as markNotDueRoute,
@@ -59,13 +59,6 @@ const canRestoreExpected = computed(
         props.deadline?.expected_amount != null &&
         form.amount !== String(props.deadline.expected_amount),
 );
-
-function todayISO(): string {
-    const now = new Date();
-    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-
-    return local.toISOString().slice(0, 10);
-}
 
 // Conferma inline (no dialog annidato): una transizione di reversibilità in
 // attesa di conferma nel footer.

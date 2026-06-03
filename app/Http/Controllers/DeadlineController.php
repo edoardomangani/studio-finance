@@ -6,6 +6,7 @@ use App\Actions\Studiofinance\MarkDeadlineNotDue;
 use App\Actions\Studiofinance\RegisterPayment;
 use App\Actions\Studiofinance\ReopenDeadline;
 use App\Concerns\FlashesToast;
+use App\Concerns\NormalizesFacetFilters;
 use App\Enums\DeadlineKind;
 use App\Enums\DeadlineStatus;
 use App\Http\Requests\RegisterPaymentRequest;
@@ -25,7 +26,7 @@ use Inertia\Response;
  */
 class DeadlineController extends Controller
 {
-    use FlashesToast;
+    use FlashesToast, NormalizesFacetFilters;
 
     public function __construct(private readonly DeadlineService $deadlines) {}
 
@@ -108,36 +109,5 @@ class DeadlineController extends Controller
         $this->flashSuccess('Scadenza segnata come non dovuta.');
 
         return back();
-    }
-
-    /**
-     * Normalizza un parametro faccetta a lista di int. Accetta sia l'array
-     * (`?year[]=2026&year[]=2027`) sia lo scalare (`?year=2026`).
-     *
-     * @return list<int>
-     */
-    private function intArray(mixed $raw): array
-    {
-        return collect(is_array($raw) ? $raw : [$raw])
-            ->filter(fn ($v): bool => is_numeric($v))
-            ->map(fn ($v): int => (int) $v)
-            ->unique()
-            ->values()
-            ->all();
-    }
-
-    /**
-     * Come [[intArray]] ma per valori stringa (es. enum kind).
-     *
-     * @return list<string>
-     */
-    private function stringArray(mixed $raw): array
-    {
-        return collect(is_array($raw) ? $raw : [$raw])
-            ->map(fn ($v): string => is_string($v) ? trim($v) : '')
-            ->filter(fn (string $v): bool => $v !== '')
-            ->unique()
-            ->values()
-            ->all();
     }
 }

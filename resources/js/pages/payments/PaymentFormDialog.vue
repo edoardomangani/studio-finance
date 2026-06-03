@@ -17,6 +17,7 @@ import FormField from '@/components/forms/FormField.vue';
 import ResponsiveDialog from '@/components/ResponsiveDialog.vue';
 import { FieldGroup } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { todayISO } from '@/lib/format';
 import type { AnnualExpenseForPicker } from '@/types';
 
 defineProps<{
@@ -40,13 +41,6 @@ const emptyForm = (): FormPayload => ({
 });
 
 const form = useForm<FormPayload>(emptyForm());
-
-function todayISO(): string {
-    const now = new Date();
-    const local = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
-
-    return local.toISOString().slice(0, 10);
-}
 
 // Reset a ogni apertura: la data del pagamento parte da oggi.
 watch(open, (isOpen) => {

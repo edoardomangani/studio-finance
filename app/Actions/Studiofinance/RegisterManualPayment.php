@@ -19,8 +19,8 @@ class RegisterManualPayment
      */
     public function __invoke(AnnualExpense $annualExpense, array $data): Payment
     {
+        // user_id è forzato dal trait BelongsToUser in creating (= Auth::id()).
         return Payment::create([
-            'user_id' => $annualExpense->user_id,
             'annual_expense_id' => $annualExpense->id,
             'deadline_id' => null,
             'description' => $data['description'] ?? null,

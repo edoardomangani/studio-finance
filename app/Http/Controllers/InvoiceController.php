@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Concerns\FlashesToast;
+use App\Concerns\NormalizesFacetFilters;
 use App\Http\Requests\StoreInvoiceRequest;
 use App\Http\Requests\UpdateInvoiceRequest;
 use App\Models\Invoice;
@@ -26,7 +27,7 @@ use Inertia\Response;
  */
 class InvoiceController extends Controller
 {
-    use FlashesToast;
+    use FlashesToast, NormalizesFacetFilters;
 
     public function __construct(private readonly InvoiceService $invoices) {}
 
@@ -66,18 +67,6 @@ class InvoiceController extends Controller
         }
 
         return is_numeric($raw) ? (int) $raw : null;
-    }
-
-    /** Faccetta multi-select → lista di int. Accetta array o scalare.
-     *  @return list<int> */
-    private function intArray(mixed $raw): array
-    {
-        return collect(is_array($raw) ? $raw : [$raw])
-            ->filter(fn ($v): bool => is_numeric($v))
-            ->map(fn ($v): int => (int) $v)
-            ->unique()
-            ->values()
-            ->all();
     }
 
     /** Helper tri-state: "1"/"true" → true, "0"/"false" → false, altro → null.

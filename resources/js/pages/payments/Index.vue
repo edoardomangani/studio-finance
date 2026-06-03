@@ -42,10 +42,10 @@ import { index as paymentsIndex } from '@/routes/payments';
 import type {
     AnnualExpenseForPicker,
     EnumOption,
+    PaginatedList,
     PaymentFilterState,
     PaymentListItem,
     PaymentStatus,
-    PaginatedList,
 } from '@/types';
 
 const props = defineProps<{
