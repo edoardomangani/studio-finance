@@ -40,6 +40,11 @@ const [DefineMonthTemplate, ReuseMonthTemplate] = createReusableTemplate<{ date:
 const [DefineYearTemplate, ReuseYearTemplate] = createReusableTemplate<{ date: DateValue }>()
 
 const forwarded = useForwardPropsEmits(delegatedProps, emits)
+
+// Intl in it-IT rende mese/giorno minuscoli (gen, lun…): iniziale maiuscola.
+function cap(value: string): string {
+  return value ? value.charAt(0).toUpperCase() + value.slice(1) : value
+}
 </script>
 
 <template>
@@ -47,7 +52,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
     <div class="**:data-[slot=native-select-icon]:right-1">
       <div class="relative">
         <div class="absolute inset-0 flex h-full items-center text-13 pl-2 pointer-events-none">
-          {{ formatter.custom(toDate(date), { month: 'short' }) }}
+          {{ cap(formatter.custom(toDate(date), { month: 'short' })) }}
         </div>
         <NativeSelect
           class="text-xs h-8 pr-6 pl-2 text-transparent relative"
@@ -59,7 +64,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
           }"
         >
           <NativeSelectOption v-for="(month) in createYear({ dateObj: date })" :key="month.toString()" :value="month.month" :selected="date.month === month.month">
-            {{ formatter.custom(toDate(month), { month: 'short' }) }}
+            {{ cap(formatter.custom(toDate(month), { month: 'short' })) }}
           </NativeSelectOption>
         </NativeSelect>
       </div>
@@ -138,7 +143,7 @@ const forwarded = useForwardPropsEmits(delegatedProps, emits)
             <CalendarHeadCell
               v-for="day in weekDays" :key="day"
             >
-              {{ day }}
+              {{ cap(day) }}
             </CalendarHeadCell>
           </CalendarGridRow>
         </CalendarGridHead>
