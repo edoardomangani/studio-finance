@@ -1,0 +1,33 @@
+services:
+  - type: web
+    name: studio-finance
+    runtime: docker
+    plan: starter
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /up
+    # Migra prima di mandare traffico alla nuova versione (gira una volta per deploy).
+    preDeployCommand: php artisan migrate --force
+    envVars:
+      - key: APP_KEY          # genera in locale: php artisan key:generate --show
+        sync: false
+      - key: APP_URL          # es. https://studio-finance.onrender.com
+        sync: false
+      - key: DB_URL           # connection string POOLED di Neon (con -pooler e ?sslmode=require)
+        sync: false
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: PORT
+        value: "8080"
