@@ -44,7 +44,7 @@ import {
     useSidebar,
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
-import { dashboard, designSystem } from '@/routes';
+import { dashboard } from '@/routes';
 import { index as clientsIndex } from '@/routes/clients';
 import { index as deadlinesIndex } from '@/routes/deadlines';
 import { index as invoicesIndex } from '@/routes/invoices';
@@ -104,7 +104,10 @@ const mainSections: NavSection[] = [
                 icon: PhGearSix,
                 href: expenseItemsIndex(),
             },
-            { label: 'Design system', icon: PhBookOpen, href: designSystem() },
+            // La route design-system esiste solo in dev (vedi routes/web.php)
+            ...(import.meta.env.DEV
+                ? [{ label: 'Design system', icon: PhBookOpen, href: '/design-system' }]
+                : []),
         ],
     },
 ];
