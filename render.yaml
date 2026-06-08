@@ -1,0 +1,35 @@
+services:
+  - type: web
+    name: studio-finance
+    runtime: docker
+    plan: starter
+    region: frankfurt
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /up
+    # Nota: preDeployCommand richiede il piano Starter+. Sul Free le migration e
+    # il caching girano all'avvio del container via AUTORUN_* (vedi sotto).
+    envVars:
+      - key: AUTORUN_ENABLED   # serversideup: esegue migrate --force + config/route/view cache al boot
+        value: "true"
+      - key: APP_KEY          # genera in locale: php artisan key:generate --show
+        sync: false
+      - key: APP_URL          # es. https://studio-finance.onrender.com
+        sync: false
+      - key: DB_URL           # connection string POOLED di Neon (con -pooler e ?sslmode=require)
+        sync: false
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: DB_CONNECTION
+        value: pgsql
+      - key: SESSION_DRIVER
+        value: database
+      - key: CACHE_STORE
+        value: database
+      - key: QUEUE_CONNECTION
+        value: sync
+      - key: LOG_CHANNEL
+        value: stderr
+      - key: PORT
+        value: "8080"
