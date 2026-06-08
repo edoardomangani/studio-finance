@@ -174,8 +174,22 @@ const netAmount = computed(
                         </dd>
                     </div>
                     <div class="flex items-baseline justify-between">
-                        <dt class="text-muted-foreground">Bollo</dt>
-                        <dd class="tabular text-foreground">
+                        <dt class="text-muted-foreground">
+                            Bollo
+                            <span
+                                v-if="!invoice.stamp_charged_to_client"
+                                class="text-2xs"
+                                >(a tuo carico, fuori totale)</span
+                            >
+                        </dt>
+                        <dd
+                            class="tabular"
+                            :class="
+                                invoice.stamp_charged_to_client
+                                    ? 'text-foreground'
+                                    : 'text-muted-foreground line-through'
+                            "
+                        >
                             {{ formatEUR(invoice.stamp_amount) }}
                         </dd>
                     </div>

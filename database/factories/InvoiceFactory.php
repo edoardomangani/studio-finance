@@ -33,9 +33,23 @@ class InvoiceFactory extends Factory
             // Cassa Inarcassa: base = imponibile + bollo (RB3).
             'inarcassa_amount' => round(($amount + $stamp) * 0.04, 2),
             'stamp_amount' => $stamp,
+            // Rivalsa bollo: default a carico del cliente (bollo nel totale).
+            'stamp_charged_to_client' => true,
             'art_15_amount' => 0.00,
             'bank_withholding' => false,
         ];
+    }
+
+    /**
+     * Bollo a carico dello studio: fuori dal totale, ma resta nei bolli da
+     * pagare. La base cassa Inarcassa esclude il bollo (solo imponibile).
+     */
+    public function stampNotChargedToClient(): static
+    {
+        return $this->state(fn (array $attrs): array => [
+            'stamp_charged_to_client' => false,
+            'inarcassa_amount' => round(((float) $attrs['amount']) * 0.04, 2),
+        ]);
     }
 
     /**

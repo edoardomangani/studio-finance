@@ -46,6 +46,8 @@ class StoreImportInvoicesRequest extends FormRequest
             'previews.*.inarcassa_amount' => ['required', 'numeric', 'min:0', 'max:9999999.99', 'decimal:0,2'],
             'previews.*.stamp_amount' => ['required', 'numeric', 'min:0', 'max:9999999.99', 'decimal:0,2'],
             'previews.*.art_15_amount' => ['required', 'numeric', 'min:0', 'max:9999999.99', 'decimal:0,2'],
+            // L'XML non porta la rivalsa bollo: opzionale, default true lato action.
+            'previews.*.stamp_charged_to_client' => ['sometimes', 'boolean'],
             'previews.*.bank_withholding' => ['required', 'boolean'],
 
             'previews.*.client_mode' => ['required', 'in:existing,new'],

@@ -28,6 +28,7 @@ use Illuminate\Support\Facades\DB;
  *     amount: float|int|string,
  *     inarcassa_amount: float|int|string,
  *     stamp_amount: float|int|string,
+ *     stamp_charged_to_client?: bool,
  *     art_15_amount: float|int|string,
  *     bank_withholding: bool,
  *     client_mode: 'existing'|'new',
@@ -74,6 +75,7 @@ class ImportInvoices
                     'amount' => $preview['amount'],
                     'inarcassa_amount' => $preview['inarcassa_amount'],
                     'stamp_amount' => $preview['stamp_amount'],
+                    'stamp_charged_to_client' => (bool) ($preview['stamp_charged_to_client'] ?? true),
                     'art_15_amount' => $preview['art_15_amount'],
                     'bank_withholding' => (bool) $preview['bank_withholding'],
                 ]);

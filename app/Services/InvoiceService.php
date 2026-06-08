@@ -139,6 +139,7 @@ class InvoiceService
             'amount' => (float) $invoice->amount,
             'inarcassa_amount' => (float) $invoice->inarcassa_amount,
             'stamp_amount' => (float) $invoice->stamp_amount,
+            'stamp_charged_to_client' => $invoice->stamp_charged_to_client,
             'art_15_amount' => (float) $invoice->art_15_amount,
             'bank_withholding' => $invoice->bank_withholding,
             'total' => (float) $invoice->total,
@@ -217,7 +218,7 @@ class InvoiceService
             ->orderByDesc('issued_at')
             ->orderByDesc('number_sort')
             ->orderByDesc('id')
-            ->get(['id', 'number', 'issued_at', 'amount', 'inarcassa_amount', 'stamp_amount', 'art_15_amount', 'bank_withholding'])
+            ->get(['id', 'number', 'issued_at', 'amount', 'inarcassa_amount', 'stamp_amount', 'stamp_charged_to_client', 'art_15_amount', 'bank_withholding'])
             ->map(fn (Invoice $i) => [
                 'id' => $i->id,
                 'number' => $i->number,
@@ -241,6 +242,7 @@ class InvoiceService
             'amount' => (float) $invoice->amount,
             'inarcassa_amount' => (float) $invoice->inarcassa_amount,
             'stamp_amount' => (float) $invoice->stamp_amount,
+            'stamp_charged_to_client' => $invoice->stamp_charged_to_client,
             'art_15_amount' => (float) $invoice->art_15_amount,
             'total' => (float) $invoice->total,
             'bank_withholding' => $invoice->bank_withholding,

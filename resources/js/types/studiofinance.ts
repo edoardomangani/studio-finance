@@ -92,6 +92,7 @@ export type InvoiceListItem = {
     amount: number;
     inarcassa_amount: number;
     stamp_amount: number;
+    stamp_charged_to_client: boolean;
     art_15_amount: number;
     total: number;
     bank_withholding: boolean;
@@ -174,6 +175,7 @@ export type Invoice = {
     amount: number;
     inarcassa_amount: number;
     stamp_amount: number;
+    stamp_charged_to_client: boolean;
     art_15_amount: number;
     bank_withholding: boolean;
     total: number;

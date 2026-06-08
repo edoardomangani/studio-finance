@@ -44,6 +44,7 @@ export type InvoiceTotalsForm = {
     amount: number | string;
     inarcassa_amount: number | string;
     stamp_amount: number | string;
+    stamp_charged_to_client: boolean;
     art_15_amount: number | string;
     bank_withholding: boolean;
 };
@@ -69,7 +70,10 @@ export function useInvoiceTotals(form: InvoiceTotalsForm) {
     const total = computed(() => {
         const a = toFloat(form.amount);
         const inarcassa = toFloat(form.inarcassa_amount);
-        const stamp = toFloat(form.stamp_amount);
+        // Il bollo entra nel totale solo se a carico del cliente (rivalsa).
+        const stamp = form.stamp_charged_to_client
+            ? toFloat(form.stamp_amount)
+            : 0;
         const art15 = toFloat(form.art_15_amount);
 
         return Math.round((a + inarcassa + stamp + art15) * 100) / 100;
@@ -110,12 +114,18 @@ export function useInvoiceTotals(form: InvoiceTotalsForm) {
         stampDirty.value = false;
     }
 
-    // Watch combinata su amount + stamp_amount. Evita race condition tra
-    // due watch separati: l'auto-stamp arriva PRIMA dell'auto-cassa così
-    // la base per Inarcassa include il bollo aggiornato.
+    // Watch combinata su amount + stamp_amount + rivalsa bollo. Evita race
+    // condition tra watch separati: l'auto-stamp arriva PRIMA dell'auto-cassa
+    // così la base per Inarcassa include il bollo aggiornato. Dipende anche
+    // dal flag rivalsa: se il bollo non è a carico del cliente esce dalla base.
     watch(
-        () => [toFloat(form.amount), toFloat(form.stamp_amount)] as const,
-        ([amount]) => {
+        () =>
+            [
+                toFloat(form.amount),
+                toFloat(form.stamp_amount),
+                form.stamp_charged_to_client,
+            ] as const,
+        ([amount, , chargedToClient]) => {
             // Auto-bollo dipende solo da amount.
             let stampEffective = toFloat(form.stamp_amount);
 
@@ -129,9 +139,10 @@ export function useInvoiceTotals(form: InvoiceTotalsForm) {
                 }
             }
 
-            // Auto-cassa: base = imponibile + bollo (vedi RB3).
+            // Auto-cassa: base = imponibile + bollo (RB3), ma il bollo entra
+            // nella base solo se a carico del cliente (coerente col totale).
             if (!inarcassaDirty.value) {
-                const base = amount + stampEffective;
+                const base = amount + (chargedToClient ? stampEffective : 0);
                 form.inarcassa_amount = (
                     Math.round(base * INARCASSA_RATE * 100) / 100
                 ).toFixed(2);

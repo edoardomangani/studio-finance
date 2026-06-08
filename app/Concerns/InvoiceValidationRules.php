@@ -20,9 +20,11 @@ use Illuminate\Validation\Validator;
  *   specifico ("«2026/001» già usato nel 2026.").
  * - `client_id` scopato all'utente loggato via `Rule::exists()` filtrato
  *   per `user_id`: impedisce IDOR via FK guessing.
- * - Importi: numerici ≥ 0, max realistico 9.999.999,99 (€10M, soglia
- *   sentinel: forfettario ha limite di ricavi €85k/anno, sopra a 10M
- *   c'è certamente un errore di digitazione).
+ * - Importi: numerici tra ±9.999.999,99 (€10M, soglia sentinel:
+ *   forfettario ha limite di ricavi €85k/anno, oltre i 10M c'è
+ *   certamente un errore di digitazione). I negativi sono ammessi per
+ *   modellare le note di credito come fatture a importo negativo: gli
+ *   storni scalano linearmente in tutte le aggregazioni.
  *
  * @mixin FormRequest
  */
@@ -41,10 +43,13 @@ trait InvoiceValidationRules
                 Rule::exists((new Client)->getTable(), 'id')
                     ->where('user_id', Auth::id()),
             ],
-            'amount' => ['required', 'numeric', 'min:0', 'max:9999999.99', 'decimal:0,2'],
-            'inarcassa_amount' => ['required', 'numeric', 'min:0', 'max:9999999.99', 'decimal:0,2'],
-            'stamp_amount' => ['required', 'numeric', 'min:0', 'max:9999999.99', 'decimal:0,2'],
-            'art_15_amount' => ['required', 'numeric', 'min:0', 'max:9999999.99', 'decimal:0,2'],
+            'amount' => ['required', 'numeric', 'min:-9999999.99', 'max:9999999.99', 'decimal:0,2'],
+            'inarcassa_amount' => ['required', 'numeric', 'min:-9999999.99', 'max:9999999.99', 'decimal:0,2'],
+            'stamp_amount' => ['required', 'numeric', 'min:-9999999.99', 'max:9999999.99', 'decimal:0,2'],
+            'art_15_amount' => ['required', 'numeric', 'min:-9999999.99', 'max:9999999.99', 'decimal:0,2'],
+            // Default true (a carico cliente) se assente: comportamento
+            // storico, applicato in InvoiceCalculator::canonicalize.
+            'stamp_charged_to_client' => ['sometimes', 'boolean'],
             'bank_withholding' => ['required', 'boolean'],
         ];
     }
@@ -60,10 +65,14 @@ trait InvoiceValidationRules
             'issued_at.date' => 'Inserisci una data valida.',
             'client_id.required' => 'Seleziona un cliente.',
             'client_id.exists' => 'Cliente non valido.',
-            'amount.min' => 'L\'imponibile non può essere negativo.',
-            'inarcassa_amount.min' => 'La cassa Inarcassa non può essere negativa.',
-            'stamp_amount.min' => 'Il bollo non può essere negativo.',
-            'art_15_amount.min' => 'L\'art.15 non può essere negativo.',
+            'amount.min' => 'L\'imponibile è fuori dai limiti consentiti.',
+            'amount.max' => 'L\'imponibile è fuori dai limiti consentiti.',
+            'inarcassa_amount.min' => 'La cassa Inarcassa è fuori dai limiti consentiti.',
+            'inarcassa_amount.max' => 'La cassa Inarcassa è fuori dai limiti consentiti.',
+            'stamp_amount.min' => 'Il bollo è fuori dai limiti consentiti.',
+            'stamp_amount.max' => 'Il bollo è fuori dai limiti consentiti.',
+            'art_15_amount.min' => 'L\'art.15 è fuori dai limiti consentiti.',
+            'art_15_amount.max' => 'L\'art.15 è fuori dai limiti consentiti.',
         ];
     }
 

@@ -24,6 +24,7 @@ class Invoice extends Model
         'amount',
         'inarcassa_amount',
         'stamp_amount',
+        'stamp_charged_to_client',
         'art_15_amount',
         'bank_withholding',
         'xml_path',
@@ -36,6 +37,7 @@ class Invoice extends Model
             'amount' => 'decimal:2',
             'inarcassa_amount' => 'decimal:2',
             'stamp_amount' => 'decimal:2',
+            'stamp_charged_to_client' => 'boolean',
             'art_15_amount' => 'decimal:2',
             'bank_withholding' => 'boolean',
         ];
@@ -77,13 +79,15 @@ class Invoice extends Model
     /**
      * Totale fattura: imponibile + cassa + bollo + art.15. Derivato, mai
      * persistito (single source of truth = le quattro colonne).
+     * Il bollo entra nel totale solo se a carico del cliente (rivalsa);
+     * altrimenti lo studio lo assorbe e resta solo nei bolli da pagare.
      */
     protected function total(): Attribute
     {
         return Attribute::get(fn (): string => number_format(
             (float) $this->amount
             + (float) $this->inarcassa_amount
-            + (float) $this->stamp_amount
+            + (($this->stamp_charged_to_client ?? true) ? (float) $this->stamp_amount : 0.0)
             + (float) $this->art_15_amount,
             2,
             '.',

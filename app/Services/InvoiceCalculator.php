@@ -24,8 +24,10 @@ use DateTimeInterface;
  *
  * **Regole RB3** (forfettario architetti Inarcassa):
  * - Bollo €2.00 se imponibile > €77,47, altrimenti 0.
- * - Cassa Inarcassa = (imponibile + bollo) × 4%.
- * - Totale = imponibile + bollo + cassa + art.15.
+ * - Cassa Inarcassa = (imponibile + bollo) × 4% se il bollo è a carico del
+ *   cliente; (imponibile) × 4% se lo studio lo assorbe.
+ * - Totale = imponibile + cassa + art.15 + bollo (quest'ultimo solo se a
+ *   carico del cliente; il bollo resta comunque nei bolli da pagare).
  * - Ritenuta bancaria = (totale / 1,22) × aliquota per data: 8% fino al 29/2/2024, 11% dal 1/3/2024.
  * - Netto = totale − ritenuta.
  *
@@ -92,8 +94,9 @@ class InvoiceCalculator
     }
 
     /**
-     * Totale + ritenuta + netto, partendo dai 4 importi, dal flag e dalla data.
-     * Non applica nessun override/heuristic: pura aritmetica.
+     * Totale + ritenuta + netto, partendo dai 4 importi, dai flag e dalla data.
+     * Non applica nessun override/heuristic: pura aritmetica. Il bollo entra
+     * nel totale solo se a carico del cliente.
      *
      * @return array{total: float, withholding_amount: float, net_amount: float}
      */
@@ -104,8 +107,10 @@ class InvoiceCalculator
         float $art15,
         bool $bankWithholding,
         DateTimeInterface $issuedAt,
+        bool $stampChargedToClient = true,
     ): array {
-        $total = $this->round2($amount + $stamp + $inarcassa + $art15);
+        $stampInTotal = $stampChargedToClient ? $stamp : 0.0;
+        $total = $this->round2($amount + $stampInTotal + $inarcassa + $art15);
 
         $withholdingAmount = $bankWithholding
             ? self::withholding($total, $issuedAt)
@@ -135,6 +140,7 @@ class InvoiceCalculator
      * @param  array{
      *     amount: float|int|string,
      *     stamp_amount?: float|int|string|null,
+     *     stamp_charged_to_client?: bool,
      *     inarcassa_amount?: float|int|string|null,
      *     art_15_amount?: float|int|string|null,
      *     bank_withholding?: bool,
@@ -142,6 +148,7 @@ class InvoiceCalculator
      * @return array{
      *     amount: float,
      *     stamp_amount: float,
+     *     stamp_charged_to_client: bool,
      *     inarcassa_amount: float,
      *     art_15_amount: float,
      *     bank_withholding: bool,
@@ -155,16 +162,18 @@ class InvoiceCalculator
         $amount = $this->toFloat($input['amount'] ?? 0);
         $art15 = $this->round2($this->toFloat($input['art_15_amount'] ?? 0));
         $bankWithholding = (bool) ($input['bank_withholding'] ?? false);
+        $stampChargedToClient = (bool) ($input['stamp_charged_to_client'] ?? true);
 
         $stamp = $this->canonicalizeStamp($amount, $this->toFloat($input['stamp_amount'] ?? null));
-        $inarcassa = $this->canonicalizeInarcassa($amount, $stamp, $this->toFloat($input['inarcassa_amount'] ?? null));
+        $inarcassa = $this->canonicalizeInarcassa($amount, $stamp, $stampChargedToClient, $this->toFloat($input['inarcassa_amount'] ?? null));
 
         $issuedAt = new DateTimeImmutable((string) ($input['issued_at'] ?? 'now'));
-        $totals = $this->totals($amount, $stamp, $inarcassa, $art15, $bankWithholding, $issuedAt);
+        $totals = $this->totals($amount, $stamp, $inarcassa, $art15, $bankWithholding, $issuedAt, $stampChargedToClient);
 
         return [
             'amount' => $this->round2($amount),
             'stamp_amount' => $stamp,
+            'stamp_charged_to_client' => $stampChargedToClient,
             'inarcassa_amount' => $inarcassa,
             'art_15_amount' => $art15,
             'bank_withholding' => $bankWithholding,
@@ -180,10 +189,14 @@ class InvoiceCalculator
         return $this->isAuto($sent, $auto) ? $auto : $this->round2($sent);
     }
 
-    /** Canonicalize inarcassa: base = amount + stamp CANONICO (non sent). */
-    private function canonicalizeInarcassa(float $amount, float $canonicalStamp, float $sent): float
+    /**
+     * Canonicalize inarcassa: base = amount + stamp CANONICO, ma il bollo
+     * entra nella base solo se a carico del cliente (coerente col totale).
+     */
+    private function canonicalizeInarcassa(float $amount, float $canonicalStamp, bool $stampChargedToClient, float $sent): float
     {
-        $auto = $this->defaultInarcassa($amount, $canonicalStamp);
+        $base = $stampChargedToClient ? $canonicalStamp : 0.0;
+        $auto = $this->defaultInarcassa($amount, $base);
 
         return $this->isAuto($sent, $auto) ? $auto : $this->round2($sent);
     }

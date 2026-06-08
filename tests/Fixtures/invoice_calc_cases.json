@@ -260,5 +260,50 @@
             "withholding_amount": 137.08,
             "net_amount": 1953.32
         }
+    },
+    {
+        "name": "bollo non a carico cliente: fuori dal totale, cassa su solo imponibile",
+        "input": {
+            "amount": 1000.00,
+            "stamp_amount": 2.00,
+            "stamp_charged_to_client": false,
+            "inarcassa_amount": 40.00,
+            "art_15_amount": 0.00,
+            "bank_withholding": false
+        },
+        "expected": {
+            "amount": 1000.00,
+            "stamp_amount": 2.00,
+            "stamp_charged_to_client": false,
+            "inarcassa_amount": 40.00,
+            "art_15_amount": 0.00,
+            "bank_withholding": false,
+            "total": 1040.00,
+            "withholding_amount": 0.00,
+            "net_amount": 1040.00
+        }
+    },
+    {
+        "name": "bollo non a carico cliente + ritenuta 11%: base ritenuta segue il totale ridotto",
+        "input": {
+            "amount": 1000.00,
+            "stamp_amount": 2.00,
+            "stamp_charged_to_client": false,
+            "inarcassa_amount": 40.00,
+            "art_15_amount": 0.00,
+            "issued_at": "2026-01-15",
+            "bank_withholding": true
+        },
+        "expected": {
+            "amount": 1000.00,
+            "stamp_amount": 2.00,
+            "stamp_charged_to_client": false,
+            "inarcassa_amount": 40.00,
+            "art_15_amount": 0.00,
+            "bank_withholding": true,
+            "total": 1040.00,
+            "withholding_amount": 93.77,
+            "net_amount": 946.23
+        }
     }
 ]

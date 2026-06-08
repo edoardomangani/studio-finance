@@ -62,6 +62,10 @@ it('totals: somma + ritenuta scorporata per data se flag attivo', function (): v
     expect($with['total'])->toBe(1042.08)
         ->and($with['withholding_amount'])->toBe(93.96)   // 1042.08 / 1.22 × 11%
         ->and($with['net_amount'])->toBe(948.12);
+
+    // Bollo non a carico del cliente: escluso dal totale.
+    $notCharged = $calc->totals(1000.0, 2.0, 40.0, 0.0, false, $date, stampChargedToClient: false);
+    expect($notCharged['total'])->toBe(1040.0);
 });
 
 it('withholding: scorporo IVA 22% e aliquota 8% (≤29/2/2024) / 11% (≥1/3/2024)', function (): void {

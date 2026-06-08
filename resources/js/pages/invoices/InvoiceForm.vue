@@ -50,6 +50,7 @@ type FormPayload = {
     amount: string;
     inarcassa_amount: string;
     stamp_amount: string;
+    stamp_charged_to_client: boolean;
     art_15_amount: string;
     bank_withholding: boolean;
 };
@@ -63,6 +64,7 @@ function initialPayload(): FormPayload {
             amount: props.invoice.amount.toFixed(2),
             inarcassa_amount: props.invoice.inarcassa_amount.toFixed(2),
             stamp_amount: props.invoice.stamp_amount.toFixed(2),
+            stamp_charged_to_client: props.invoice.stamp_charged_to_client ?? true,
             art_15_amount: props.invoice.art_15_amount.toFixed(2),
             bank_withholding: props.invoice.bank_withholding,
         };
@@ -75,6 +77,7 @@ function initialPayload(): FormPayload {
         amount: '',
         inarcassa_amount: '0.00',
         stamp_amount: '0.00',
+        stamp_charged_to_client: true,
         art_15_amount: '0.00',
         bank_withholding: false,
     };
@@ -214,7 +217,7 @@ defineExpose({ processing: computed(() => form.processing) });
                         v-model="form.amount"
                         type="number"
                         step="0.01"
-                        min="0"
+                        min="-9999999.99"
                         max="9999999.99"
                         inputmode="decimal"
                         class="tabular text-right"
@@ -233,7 +236,7 @@ defineExpose({ processing: computed(() => form.processing) });
                         v-model="form.stamp_amount"
                         type="number"
                         step="0.01"
-                        min="0"
+                        min="-9999999.99"
                         max="9999999.99"
                         inputmode="decimal"
                         class="tabular text-right"
@@ -250,7 +253,7 @@ defineExpose({ processing: computed(() => form.processing) });
                         v-model="form.inarcassa_amount"
                         type="number"
                         step="0.01"
-                        min="0"
+                        min="-9999999.99"
                         max="9999999.99"
                         inputmode="decimal"
                         class="tabular text-right"
@@ -267,7 +270,7 @@ defineExpose({ processing: computed(() => form.processing) });
                         v-model="form.art_15_amount"
                         type="number"
                         step="0.01"
-                        min="0"
+                        min="-9999999.99"
                         max="9999999.99"
                         inputmode="decimal"
                         class="tabular text-right"
@@ -279,6 +282,19 @@ defineExpose({ processing: computed(() => form.processing) });
             </div>
 
             <Field orientation="horizontal" class="pt-2">
+                <Switch
+                    id="invoice-stamp-charged"
+                    v-model="form.stamp_charged_to_client"
+                />
+                <FieldLabel
+                    for="invoice-stamp-charged"
+                    class="font-normal"
+                >
+                    Bollo a carico del cliente
+                </FieldLabel>
+            </Field>
+
+            <Field orientation="horizontal">
                 <Switch
                     id="invoice-withholding"
                     v-model="form.bank_withholding"
@@ -300,6 +316,20 @@ defineExpose({ processing: computed(() => form.processing) });
                         <dd class="tabular text-lg font-medium text-foreground">
                             {{ formatEUR(total) }}
                         </dd>
+                    </div>
+
+                    <!-- Bollo a carico studio: fuori dal totale ma sempre
+                         dovuto (resta nei bolli da pagare). -->
+                    <div
+                        v-if="
+                            !form.stamp_charged_to_client &&
+                            Number(form.stamp_amount) > 0
+                        "
+                        class="text-13 text-muted-foreground"
+                    >
+                        Bollo {{ formatEUR(Number(form.stamp_amount)) }} a tuo
+                        carico — escluso dal totale, ma resta tra i bolli da
+                        pagare.
                     </div>
 
                     <template v-if="form.bank_withholding">

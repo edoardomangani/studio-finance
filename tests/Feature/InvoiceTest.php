@@ -384,7 +384,86 @@ it('harden: payload sopra il max (>9.999.999,99) viene rifiutato', function (): 
         ->assertSessionHasErrors(['amount']);
 });
 
-it('harden: importo negativo rifiutato', function (): void {
+it('store: ammette importo negativo (nota di credito) e storna i derivati', function (): void {
+    $user = onboardedInvoiceUser();
+    $client = Client::factory()->for($user)->create();
+
+    // NC che storna una fattura: imponibile negativo, cassa negativa,
+    // bollo €2 a mano (dovuto comunque), ritenuta che si inverte.
+    $this->actingAs($user)
+        ->post('/invoices', [
+            'number' => 'NC/2026/001',
+            'issued_at' => '2026-03-15',
+            'client_id' => $client->id,
+            'amount' => -1000.00,
+            'inarcassa_amount' => -40.00,
+            'stamp_amount' => 2.00,
+            'art_15_amount' => 0.00,
+            'bank_withholding' => true,
+        ])
+        ->assertSessionDoesntHaveErrors();
+
+    $nc = Invoice::firstWhere('number', 'NC/2026/001');
+
+    // total = -1000 + (-40) + 2 = -1038 → storno netto.
+    expect((float) $nc->total)->toBe(-1038.0)
+        // ritenuta 11% scorporata si inverte di segno: (-1038/1,22)*0,11.
+        ->and((float) $nc->withholding_amount)->toBeLessThan(0.0);
+});
+
+it('store: bollo non a carico del cliente esce dal totale ma resta in stamp_amount', function (): void {
+    $user = onboardedInvoiceUser();
+    $client = Client::factory()->for($user)->create();
+
+    $this->actingAs($user)
+        ->post('/invoices', [
+            'number' => '2026/010',
+            'issued_at' => '2026-03-15',
+            'client_id' => $client->id,
+            'amount' => 1000.00,
+            // Cassa su solo imponibile quando il bollo non è a carico.
+            'inarcassa_amount' => 40.00,
+            'stamp_amount' => 2.00,
+            'stamp_charged_to_client' => false,
+            'art_15_amount' => 0.00,
+            'bank_withholding' => false,
+        ])
+        ->assertSessionDoesntHaveErrors();
+
+    $invoice = Invoice::firstWhere('number', '2026/010');
+
+    expect((float) $invoice->stamp_amount)->toBe(2.0)
+        ->and($invoice->stamp_charged_to_client)->toBeFalse()
+        // 1000 + 40, bollo escluso dal totale.
+        ->and((float) $invoice->total)->toBe(1040.0);
+});
+
+it('store: bollo a carico del cliente (default) entra nel totale', function (): void {
+    $user = onboardedInvoiceUser();
+    $client = Client::factory()->for($user)->create();
+
+    $this->actingAs($user)
+        ->post('/invoices', [
+            'number' => '2026/011',
+            'issued_at' => '2026-03-15',
+            'client_id' => $client->id,
+            'amount' => 1000.00,
+            'inarcassa_amount' => 40.08,
+            'stamp_amount' => 2.00,
+            'stamp_charged_to_client' => true,
+            'art_15_amount' => 0.00,
+            'bank_withholding' => false,
+        ])
+        ->assertSessionDoesntHaveErrors();
+
+    $invoice = Invoice::firstWhere('number', '2026/011');
+
+    // 1000 + 40.08 + 2 = 1042.08.
+    expect((float) $invoice->total)->toBe(1042.08)
+        ->and($invoice->stamp_charged_to_client)->toBeTrue();
+});
+
+it('harden: payload sotto il min (<-9.999.999,99) viene rifiutato', function (): void {
     $user = onboardedInvoiceUser();
     $client = Client::factory()->for($user)->create();
 
@@ -393,7 +472,7 @@ it('harden: importo negativo rifiutato', function (): void {
             'number' => '2026/001',
             'issued_at' => '2026-03-15',
             'client_id' => $client->id,
-            'amount' => -1.00,
+            'amount' => -10_000_000.00,
             'inarcassa_amount' => 0.00,
             'stamp_amount' => 0.00,
             'art_15_amount' => 0.00,
