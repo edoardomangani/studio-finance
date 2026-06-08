@@ -12,6 +12,7 @@ import { PhPencil, PhPlus, PhTrash } from '@phosphor-icons/vue';
 import { ref } from 'vue';
 import { toast } from 'vue-sonner';
 import AnnualExpenseController from '@/actions/App/Http/Controllers/AnnualExpenseController';
+import FamilyBadge from '@/components/FamilyBadge.vue';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/dialog';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
@@ -85,13 +86,14 @@ const createOpen = ref(false);
         <DataTable>
             <DataTableHeader>
                 <TableHead>Voce</TableHead>
+                <TableHead>Famiglia</TableHead>
                 <TableHead class="text-right">Previsto</TableHead>
                 <TableHead class="text-right">Definitivo</TableHead>
                 <TableHead class="text-right">Pagato</TableHead>
                 <TableHead class="text-right">Da pagare</TableHead>
             </DataTableHeader>
             <DataTableBody>
-                <TableEmpty v-if="year.expenses.length === 0" :colspan="6">
+                <TableEmpty v-if="year.expenses.length === 0" :colspan="7">
                     Nessuna voce di spesa.
                 </TableEmpty>
                 <DataTableRow
@@ -105,6 +107,9 @@ const createOpen = ref(false);
                     <TableCell class="font-medium text-foreground">
                         {{ e.name }}
                         <span class="block text-xs font-normal text-muted-foreground">{{ e.calculation_type_label }}</span>
+                    </TableCell>
+                    <TableCell>
+                        <FamilyBadge :kind="e.kind" :name="e.family_name" />
                     </TableCell>
                     <TableCell class="tabular text-right text-muted-foreground">{{ formatEUR(e.expected) }}</TableCell>
                     <TableCell class="tabular text-right text-foreground">{{ formatEUR(e.definitive) }}</TableCell>
@@ -129,6 +134,7 @@ const createOpen = ref(false);
             <TableFooter v-if="year.expenses.length > 0">
                 <TableRow class="font-medium">
                     <TableCell class="text-foreground">Totale</TableCell>
+                    <TableCell />
                     <TableCell class="tabular text-right text-foreground">{{ formatEUR(year.totals.expenses_expected) }}</TableCell>
                     <TableCell class="tabular text-right text-foreground">{{ formatEUR(year.totals.expenses_definitive) }}</TableCell>
                     <TableCell class="tabular text-right text-foreground">{{ formatEUR(year.totals.expenses_paid) }}</TableCell>
@@ -139,7 +145,7 @@ const createOpen = ref(false);
         </DataTable>
 
         <AnnualExpenseSheet v-model:open="sheetOpen" :expense="selected" />
-        <AnnualExpenseFormDialog v-model:open="createOpen" :year-id="year.id" />
+        <AnnualExpenseFormDialog v-model:open="createOpen" :year-id="year.id" :families="year.families" />
 
         <ConfirmDialog
             v-model:open="deleteOpen"

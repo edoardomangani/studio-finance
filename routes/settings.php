@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Settings\ExpenseFamilyController;
 use App\Http\Controllers\Settings\ExpenseItemController;
 use App\Http\Controllers\Settings\ProfessionalController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -62,6 +63,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->name('settings.expense-items.update');
         Route::delete('settings/expense-items/{expenseItem}', [ExpenseItemController::class, 'destroy'])
             ->name('settings.expense-items.destroy');
+
+        // Famiglie di spesa: i 4 tipi fissi, solo rinominabili.
+        Route::get('settings/families', [ExpenseFamilyController::class, 'index'])
+            ->name('settings.families.index');
+        Route::patch('settings/families/{expenseFamily}', [ExpenseFamilyController::class, 'update'])
+            ->name('settings.families.update');
 
         // Recurring deadlines template (Index.vue dedicato).
         Route::get('settings/recurring-deadlines', [RecurringDeadlineController::class, 'index'])

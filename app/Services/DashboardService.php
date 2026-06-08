@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Enums\DeadlineKind;
 use App\Enums\DeadlineStatus;
+use App\Enums\ExpenseKind;
 use App\Models\AnnualExpense;
 use App\Models\Deadline;
+use App\Models\ExpenseFamily;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\Year;
@@ -67,9 +69,9 @@ class DashboardService
             ? $this->monthExpenses($amountsByYear->get($current->year), (float) $current->profitability_coefficient, $calendarMonth)
             : [];
 
-        // Prossime 6 scadenze aperte (le altre nella pagina Scadenze); il box
+        // Prossime 3 scadenze aperte (le altre nella pagina Scadenze); il box
         // Spese si allunga via flex per allineare il fondo.
-        $deadlineLimit = 6;
+        $deadlineLimit = 3;
 
         return [
             'has_data' => true,
@@ -171,21 +173,28 @@ class DashboardService
     }
 
     /**
-     * Spese del mese, una riga per voce (niente famiglie/mapping rigido):
-     * accantonamento del mese di ciascuna spesa, ordinate per importo. Il totale
-     * lo deriva il frontend.
+     * Spese del mese raggruppate per **famiglia** (kind): accantonamento del mese
+     * sommato per tipo, etichetta = nome famiglia dell'utente. Bounded a 4 voci,
+     * stabile mese su mese. Il totale lo deriva il frontend.
      *
-     * @return array<int, array{id: int, label: string, amount: float}>
+     * @return array<int, array{kind: string, label: string, amount: float}>
      */
     private function monthExpenses(YearAmounts $amounts, float $coefficient, int $month): array
     {
         $bases = $this->revenueCalculator->bases($this->monthInvoices($amounts, $month), $coefficient);
+        $familyNames = ExpenseFamily::namesByKind();
 
-        return $amounts->expenses
-            ->map(fn (AnnualExpense $expense): array => [
-                'id' => $expense->id,
-                'label' => $expense->name,
-                'amount' => $this->monthlyStatement->monthlyAccrual($expense, $bases),
+        $byKind = [];
+        foreach ($amounts->expenses as $expense) {
+            $kind = $expense->kind->value;
+            $byKind[$kind] = round(($byKind[$kind] ?? 0.0) + $this->monthlyStatement->monthlyAccrual($expense, $bases), 2);
+        }
+
+        return collect($byKind)
+            ->map(fn (float $amount, string $kind): array => [
+                'kind' => $kind,
+                'label' => $familyNames[$kind] ?? ExpenseKind::from($kind)->label(),
+                'amount' => $amount,
             ])
             ->sortByDesc('amount')
             ->values()

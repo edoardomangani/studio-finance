@@ -2,6 +2,7 @@
 
 use App\Actions\Studiofinance\RegisterManualPayment;
 use App\Enums\ExpenseCalculationType;
+use App\Enums\ExpenseKind;
 use App\Enums\PaymentStatus;
 use App\Models\AnnualExpense;
 use App\Models\Deadline;
@@ -223,7 +224,7 @@ it('scala ritenute e credito dal definitivo della imposta sostitutiva', function
     // Credito IS dell'anno precedente sulla voce imposta sostitutiva.
     AnnualExpense::where('year_id', $year->id)
         ->where('calculation_type', 'percentage_of_irpef_income')
-        ->where('is_pension_contribution', false)
+        ->where('kind', 'tax')
         ->update(['previous_year_credit' => 20.00]);
 
     $this->get(route('years.show', 2026))
@@ -324,7 +325,7 @@ it('maturato a oggi di un contributo a minimo è income-based, non il minimo', f
         'user_id' => $user->id,
         'year_id' => $year->id,
         'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome,
-        'is_pension_contribution' => true,
+        'kind' => ExpenseKind::Pension,
         'rate' => 10.00,
         'minimum' => 2000.00,
         'amount' => null,

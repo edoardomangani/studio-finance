@@ -41,6 +41,7 @@ it('crea una nuova voce di spesa', function (): void {
     $this->actingAs($user)->post('/settings/expense-items', [
         'name' => 'Tasse comunali',
         'calculation_type' => ExpenseCalculationType::FixedAnnual->value,
+        'kind' => 'fixed',
         'default_amount' => 150,
         'active' => true,
         'position' => 100,
@@ -54,6 +55,7 @@ it('valida name required', function (): void {
 
     $this->actingAs($user)->post('/settings/expense-items', [
         'calculation_type' => ExpenseCalculationType::FixedAnnual->value,
+        'kind' => 'fixed',
         'active' => true,
     ])->assertSessionHasErrors(['name']);
 });
@@ -64,6 +66,7 @@ it('valida default_maximum >= default_minimum', function (): void {
     $this->actingAs($user)->post('/settings/expense-items', [
         'name' => 'X',
         'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome->value,
+        'kind' => 'fixed',
         'default_rate' => 10,
         'default_minimum' => 500,
         'default_maximum' => 100,
@@ -80,6 +83,7 @@ it('aggiorna una voce esistente', function (): void {
     $this->actingAs($user)->patch("/settings/expense-items/{$item->id}", [
         'name' => 'Nuovo nome',
         'calculation_type' => ExpenseCalculationType::FixedAnnual->value,
+        'kind' => 'fixed',
         'default_amount' => 200,
         'active' => true,
     ])->assertRedirect('/settings/expense-items');
@@ -104,6 +108,7 @@ it('blocca utenti non onboarded', function (): void {
     $this->actingAs($user)->post('/settings/expense-items', [
         'name' => 'X',
         'calculation_type' => ExpenseCalculationType::FixedAnnual->value,
+        'kind' => 'fixed',
         'active' => true,
     ])->assertRedirect('/onboarding');
 });
@@ -118,6 +123,7 @@ it('blocca cross-user via tenancy scope (route binding 404)', function (): void 
         ->patch("/settings/expense-items/{$itemAltro->id}", [
             'name' => 'Hijack',
             'calculation_type' => ExpenseCalculationType::FixedAnnual->value,
+            'kind' => 'fixed',
             'active' => true,
         ])
         ->assertNotFound();

@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Enums\DeadlineKind;
 use App\Enums\DueYearOffset;
 use App\Enums\ExpenseCalculationType;
+use App\Enums\ExpenseKind;
 use App\Enums\ExpenseYearOffset;
 use App\Enums\QuotaType;
 use App\Models\ExpenseItem;
@@ -31,6 +32,7 @@ class StudiofinanceTemplatesSeeder extends Seeder
      */
     public function seedForUser(User $user): array
     {
+        $this->seedFamilies($user);
         $items = $this->seedExpenseItems($user);
         $deadlines = $this->seedRecurringDeadlines($user, $items);
 
@@ -38,6 +40,19 @@ class StudiofinanceTemplatesSeeder extends Seeder
             'expense_items' => count($items),
             'recurring_deadlines' => count($deadlines),
         ];
+    }
+
+    /**
+     * Le quattro famiglie (un tipo ciascuna), col nome di default rinominabile.
+     */
+    private function seedFamilies(User $user): void
+    {
+        foreach (ExpenseKind::cases() as $kind) {
+            $user->expenseFamilies()->create([
+                'kind' => $kind,
+                'name' => $kind->label(),
+            ]);
+        }
     }
 
     /**
@@ -57,13 +72,14 @@ class StudiofinanceTemplatesSeeder extends Seeder
             'imposta_sostitutiva' => [
                 'name' => 'Imposta sostitutiva',
                 'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome,
+                'kind' => ExpenseKind::Tax,
                 'default_rate' => 15.00,
                 'position' => 10,
             ],
             'inarcassa_soggettivo' => [
                 'name' => 'Inarcassa Soggettivo',
                 'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome,
-                'is_pension_contribution' => true,
+                'kind' => ExpenseKind::Pension,
                 'default_rate' => 14.50,
                 'default_minimum' => 2435.00,
                 'default_maximum' => 137195.00,
@@ -72,7 +88,7 @@ class StudiofinanceTemplatesSeeder extends Seeder
             'inarcassa_integrativo' => [
                 'name' => 'Inarcassa Integrativo',
                 'calculation_type' => ExpenseCalculationType::PercentageOfIvaRevenue,
-                'is_pension_contribution' => true,
+                'kind' => ExpenseKind::Pension,
                 'default_rate' => 4.00,
                 'default_minimum' => 815.00,
                 'position' => 30,
@@ -80,30 +96,34 @@ class StudiofinanceTemplatesSeeder extends Seeder
             'inarcassa_maternita' => [
                 'name' => 'Inarcassa Maternità',
                 'calculation_type' => ExpenseCalculationType::FixedAnnual,
-                'is_pension_contribution' => true,
+                'kind' => ExpenseKind::Pension,
                 'default_amount' => 72.00,
                 'position' => 40,
             ],
             'bolli' => [
                 'name' => 'Bolli',
                 'calculation_type' => ExpenseCalculationType::SumOfBolli,
+                'kind' => ExpenseKind::StampDuty,
                 'position' => 50,
             ],
             'commercialista' => [
                 'name' => 'Commercialista',
                 'calculation_type' => ExpenseCalculationType::FixedAnnual,
+                'kind' => ExpenseKind::Fixed,
                 'default_amount' => 300.00,
                 'position' => 60,
             ],
             'assicurazione' => [
                 'name' => 'Assicurazione professionale',
                 'calculation_type' => ExpenseCalculationType::FixedAnnual,
+                'kind' => ExpenseKind::Fixed,
                 'default_amount' => 350.00,
                 'position' => 70,
             ],
             'oato' => [
                 'name' => 'Quota Ordine (OATO)',
                 'calculation_type' => ExpenseCalculationType::FixedAnnual,
+                'kind' => ExpenseKind::Fixed,
                 'default_amount' => 230.00,
                 'position' => 80,
             ],

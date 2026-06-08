@@ -19,6 +19,7 @@ import {
     PhCaretLeft,
     PhCaretRight,
     PhCoins,
+    PhFolders,
     PhGearSix,
     PhHouse,
     PhListChecks,
@@ -50,6 +51,7 @@ import { index as deadlinesIndex } from '@/routes/deadlines';
 import { index as invoicesIndex } from '@/routes/invoices';
 import { index as paymentsIndex } from '@/routes/payments';
 import { index as expenseItemsIndex } from '@/routes/settings/expense-items';
+import { index as familiesIndex } from '@/routes/settings/families';
 import { index as recurringDeadlinesIndex } from '@/routes/settings/recurring-deadlines';
 import { index as yearsIndex } from '@/routes/years';
 
@@ -69,6 +71,7 @@ const { state, toggleSidebar } = useSidebar();
 
 const SETTINGS_PREFIXES = [
     '/settings/expense-items',
+    '/settings/families',
     '/settings/recurring-deadlines',
 ];
 
@@ -117,6 +120,7 @@ const settingsSections: NavSection[] = [
         label: 'Impostazioni',
         items: [
             { label: 'Voci di spesa', icon: PhTag, href: expenseItemsIndex() },
+            { label: 'Famiglie di spesa', icon: PhFolders, href: familiesIndex() },
             {
                 label: 'Scadenze tipo',
                 icon: PhListChecks,

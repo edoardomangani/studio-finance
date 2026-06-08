@@ -61,7 +61,7 @@ const tax = computed(() => {
     const due = anno ? t.expenses_due : t.expenses_due_to_date;
 
     return {
-        dueLabel: isPast.value ? 'Spese da pagare' : anno ? 'Spese da pagare · intero anno' : 'Spese da pagare · a oggi',
+        dueLabel: isPast.value ? 'Spese da pagare' : anno ? 'Spese da pagare' : 'Spese da pagare a oggi',
         due,
         total: anno ? t.expenses_definitive : t.expenses_amount_to_date,
         paid: t.expenses_paid,
@@ -78,7 +78,7 @@ const tax = computed(() => {
         <section class="flex flex-col px-5 py-3.5">
             <div class="flex flex-col gap-3">
                 <header class="flex h-7 items-center">
-                    <h3 class="kicker text-muted-foreground">Reddito{{ isPast ? ' · consuntivo' : ' · a oggi' }}</h3>
+                    <h3 class="kicker text-muted-foreground">Reddito{{ isPast ? '' : ' a oggi' }}</h3>
                 </header>
                 <div class="flex flex-col gap-1">
                     <p class="text-13 text-muted-foreground">Fatturato</p>
@@ -103,7 +103,7 @@ const tax = computed(() => {
         <section class="flex flex-col px-5 py-3.5">
             <div class="flex flex-col gap-3">
                 <header class="flex h-7 items-center justify-between gap-3">
-                    <h3 class="kicker text-muted-foreground">Imposte e contributi{{ isPast ? ' · consuntivo' : '' }}</h3>
+                    <h3 class="kicker text-muted-foreground">Imposte e contributi</h3>
                     <ToggleGroup
                         v-if="!isPast"
                         :model-value="view"

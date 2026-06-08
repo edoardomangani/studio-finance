@@ -30,6 +30,7 @@ class ExpenseItemController extends Controller
         return Inertia::render('settings/ExpenseItems/Index', [
             'expenseItems' => $this->items->list(),
             'calculationTypes' => $this->items->calculationTypeOptions(),
+            'familyKinds' => $this->items->kindOptions(),
         ]);
     }
 

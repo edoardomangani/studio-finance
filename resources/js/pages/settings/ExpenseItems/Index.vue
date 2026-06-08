@@ -10,6 +10,7 @@ import { Head, setLayoutProps, useForm } from '@inertiajs/vue3';
 import { PhArchive, PhPencil, PhPlus } from '@phosphor-icons/vue';
 import { computed, ref } from 'vue';
 import ExpenseItemController from '@/actions/App/Http/Controllers/Settings/ExpenseItemController';
+import FamilyBadge from '@/components/FamilyBadge.vue';
 import FormField from '@/components/forms/FormField.vue';
 import ResponsiveDialog from '@/components/ResponsiveDialog.vue';
 import { Badge } from '@/components/ui/badge';
@@ -38,11 +39,12 @@ import {
 import { useArchiveAction } from '@/composables/useArchiveAction';
 import { clampNumber } from '@/lib/clampNumber';
 import { formatEUR, formatPercent } from '@/lib/format';
-import type { EnumOption, ExpenseCalculationType, ExpenseItem } from '@/types';
+import type { EnumOption, ExpenseCalculationType, ExpenseItem, ExpenseKind } from '@/types';
 
 defineProps<{
     expenseItems: ExpenseItem[];
     calculationTypes: EnumOption[];
+    familyKinds: EnumOption[];
 }>();
 
 setLayoutProps({
@@ -56,6 +58,7 @@ setLayoutProps({
 type FormPayload = {
     name: string;
     calculation_type: ExpenseCalculationType;
+    kind: ExpenseKind;
     default_rate: number | string;
     default_minimum: number | string;
     default_maximum: number | string;
@@ -67,6 +70,7 @@ type FormPayload = {
 const emptyForm = (): FormPayload => ({
     name: '',
     calculation_type: 'fixed_annual',
+    kind: 'fixed',
     default_rate: '',
     default_minimum: '',
     default_maximum: '',
@@ -114,6 +118,7 @@ function openEdit(item: ExpenseItem): void {
     const next: FormPayload = {
         name: item.name,
         calculation_type: item.calculation_type,
+        kind: item.kind,
         default_rate: item.default_rate ?? '',
         default_minimum: item.default_minimum ?? '',
         default_maximum: item.default_maximum ?? '',
@@ -184,15 +189,16 @@ function formatDefault(item: ExpenseItem): string {
 
     <DataTable>
         <DataTableHeader>
-            <TableHead class="w-[40%]">Nome</TableHead>
+            <TableHead class="w-[34%]">Nome</TableHead>
             <TableHead>Tipo calcolo</TableHead>
+            <TableHead>Famiglia</TableHead>
             <TableHead class="text-right">Default</TableHead>
             <TableHead class="w-[120px] text-right">Minimo</TableHead>
             <TableHead class="w-[120px] text-right">Massimo</TableHead>
             <TableHead class="w-[80px] text-right">Stato</TableHead>
         </DataTableHeader>
         <DataTableBody>
-            <TableEmpty v-if="expenseItems.length === 0" :colspan="7">
+            <TableEmpty v-if="expenseItems.length === 0" :colspan="8">
                 Nessuna voce di spesa. Creane una dal pulsante in alto.
             </TableEmpty>
             <DataTableRow
@@ -208,6 +214,9 @@ function formatDefault(item: ExpenseItem): string {
                 </TableCell>
                 <TableCell class="text-muted-foreground">
                     {{ item.calculation_type_label }}
+                </TableCell>
+                <TableCell>
+                    <FamilyBadge :kind="item.kind" :name="item.family_name" />
                 </TableCell>
                 <TableCell class="tabular text-right text-foreground">
                     {{ formatDefault(item) }}
@@ -284,6 +293,26 @@ function formatDefault(item: ExpenseItem): string {
                     </Select>
                     <template v-if="form.errors.calculation_type" #error>{{
                         form.errors.calculation_type
+                    }}</template>
+                </FormField>
+
+                <FormField label="Famiglia" for="item-kind" required>
+                    <Select v-model="form.kind">
+                        <SelectTrigger id="item-kind" class="w-full">
+                            <SelectValue placeholder="Seleziona…" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem
+                                v-for="opt in familyKinds"
+                                :key="opt.value"
+                                :value="opt.value"
+                            >
+                                {{ opt.label }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <template v-if="form.errors.kind" #error>{{
+                        form.errors.kind
                     }}</template>
                 </FormField>
 

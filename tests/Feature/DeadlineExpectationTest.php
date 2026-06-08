@@ -3,6 +3,7 @@
 use App\Enums\DeadlineKind;
 use App\Enums\DeadlineStatus;
 use App\Enums\ExpenseCalculationType;
+use App\Enums\ExpenseKind;
 use App\Enums\QuotaType;
 use App\Models\AnnualExpense;
 use App\Models\Deadline;
@@ -99,7 +100,7 @@ it('minimo contributivo: minimale diviso per il numero di rate', function () {
     $year = aYear(2026);
     $expense = anExpense($year, [
         'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome,
-        'is_pension_contribution' => true,
+        'kind' => ExpenseKind::Pension,
         'rate' => 14.50,
         'minimum' => 2435.00,
     ]);
@@ -126,7 +127,7 @@ it('acconto imposta: IS netta dell anno precedente diviso il numero di acconti',
     $previous = aYear(2025);
     $isPrev = anExpense($previous, [
         'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome,
-        'is_pension_contribution' => false,
+        'kind' => ExpenseKind::Tax,
         'rate' => 10.00,
         'amount' => null,
     ]);
@@ -142,7 +143,7 @@ it('acconto imposta: IS netta dell anno precedente diviso il numero di acconti',
     $year = aYear(2026);
     $isCurrent = anExpense($year, [
         'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome,
-        'is_pension_contribution' => false,
+        'kind' => ExpenseKind::Tax,
         'rate' => 10.00,
         'amount' => null,
     ]);
@@ -158,7 +159,7 @@ it('acconto imposta: nessun suggerimento al primo anno (manca N-1)', function ()
     $year = aYear(2026);
     $is = anExpense($year, [
         'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome,
-        'is_pension_contribution' => false,
+        'kind' => ExpenseKind::Tax,
         'rate' => 10.00,
         'amount' => null,
     ]);
@@ -171,7 +172,7 @@ it('saldo imposta: definitivo meno gli acconti già versati', function () {
     $year = aYear(2026);
     $is = anExpense($year, [
         'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome,
-        'is_pension_contribution' => false,
+        'kind' => ExpenseKind::Tax,
         'rate' => 10.00,
         'amount' => null,
     ]);
@@ -199,7 +200,7 @@ it('conguaglio contributivo: definitivo meno i minimi già versati', function ()
     $year = aYear(2026);
     $contribution = anExpense($year, [
         'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome,
-        'is_pension_contribution' => true,
+        'kind' => ExpenseKind::Pension,
         'rate' => 10.00,
         'minimum' => 500.00,
         'amount' => null,
@@ -228,7 +229,7 @@ it('conguaglio: stima i minimi ancora aperti (da pagare ma non versati)', functi
     $year = aYear(2026);
     $contribution = anExpense($year, [
         'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome,
-        'is_pension_contribution' => true,
+        'kind' => ExpenseKind::Pension,
         'rate' => 10.00,
         'minimum' => 500.00,
         'amount' => null,
@@ -255,7 +256,7 @@ it('conguaglio: non sottrae il minimo non dovuto (resta nel saldo)', function ()
     $year = aYear(2026);
     $contribution = anExpense($year, [
         'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome,
-        'is_pension_contribution' => true,
+        'kind' => ExpenseKind::Pension,
         'rate' => 10.00,
         'minimum' => 500.00,
         'amount' => null,

@@ -44,6 +44,11 @@ class User extends Authenticatable implements PasskeyUser
         return $this->hasMany(ExpenseItem::class);
     }
 
+    public function expenseFamilies(): HasMany
+    {
+        return $this->hasMany(ExpenseFamily::class);
+    }
+
     public function recurringDeadlines(): HasMany
     {
         return $this->hasMany(RecurringDeadline::class);

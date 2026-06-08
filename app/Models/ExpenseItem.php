@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\BelongsToUser;
 use App\Enums\ExpenseCalculationType;
+use App\Enums\ExpenseKind;
 use Database\Factories\ExpenseItemFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -19,7 +20,7 @@ class ExpenseItem extends Model
         'user_id',
         'name',
         'calculation_type',
-        'is_pension_contribution',
+        'kind',
         'default_rate',
         'default_minimum',
         'default_maximum',
@@ -32,7 +33,7 @@ class ExpenseItem extends Model
     {
         return [
             'calculation_type' => ExpenseCalculationType::class,
-            'is_pension_contribution' => 'boolean',
+            'kind' => ExpenseKind::class,
             'default_rate' => 'decimal:2',
             'default_minimum' => 'decimal:2',
             'default_maximum' => 'decimal:2',

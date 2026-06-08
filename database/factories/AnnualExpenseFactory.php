@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\ExpenseCalculationType;
+use App\Enums\ExpenseKind;
 use App\Models\AnnualExpense;
 use App\Models\User;
 use App\Models\Year;
@@ -27,6 +28,7 @@ class AnnualExpenseFactory extends Factory
             'expense_item_id' => null,
             'name' => fake()->unique()->words(2, true),
             'calculation_type' => ExpenseCalculationType::FixedAnnual,
+            'kind' => ExpenseKind::Fixed,
             'rate' => null,
             'minimum' => null,
             'maximum' => null,
@@ -57,6 +59,7 @@ class AnnualExpenseFactory extends Factory
         return $this->state(fn () => [
             'name' => 'Imposta sostitutiva',
             'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome,
+            'kind' => ExpenseKind::Tax,
             'rate' => 5.00,
             'amount' => null,
             'previous_year_credit' => $previousYearCredit,

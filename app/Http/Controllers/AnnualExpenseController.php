@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Concerns\FlashesToast;
+use App\Enums\ExpenseKind;
 use App\Enums\PaymentStatus;
 use App\Http\Requests\StoreAnnualExpenseRequest;
 use App\Http\Requests\UpdateAnnualExpenseRequest;
@@ -33,7 +34,7 @@ class AnnualExpenseController extends Controller
         $data = $request->validated();
         $year = Year::findOrFail($data['year_id']);
 
-        $this->expenses->create($year, $data['name'], (float) $data['amount']);
+        $this->expenses->create($year, $data['name'], (float) $data['amount'], ExpenseKind::from($data['kind']));
 
         $this->flashSuccess('Spesa aggiunta.');
 

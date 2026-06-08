@@ -20,7 +20,7 @@ class YearFormulaBuilder
      */
     public function for(AnnualExpense $expense, YearFigures $figures, array $amounts): array
     {
-        $bases = $expense->is_pension_contribution ? $figures->grossBases : $figures->netBases;
+        $bases = $expense->isPension() ? $figures->grossBases : $figures->netBases;
         [$baseLabel, $base] = $this->baseFor($expense, $bases);
 
         $maximum = $expense->maximum !== null ? (float) $expense->maximum : null;
@@ -55,7 +55,7 @@ class YearFormulaBuilder
     {
         return match ($expense->calculation_type) {
             ExpenseCalculationType::PercentageOfIrpefIncome => [
-                $expense->is_pension_contribution ? 'Reddito IRPEF' : 'Reddito IRPEF netto',
+                $expense->isPension() ? 'Reddito IRPEF' : 'Reddito IRPEF netto',
                 $bases->irpefIncome,
             ],
             ExpenseCalculationType::PercentageOfIvaRevenue => ['Volume affari IVA', $bases->vatTurnover],

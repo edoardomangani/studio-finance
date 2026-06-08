@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\AnnualExpense;
 use App\Models\Deadline;
+use App\Models\ExpenseFamily;
 use App\Models\Invoice;
 use App\Models\Payment;
 use App\Models\User;
@@ -157,8 +158,9 @@ class YearService
         $amounts = $this->amountsLoader->load($year);
         $invoices = $amounts->invoices;
 
+        $familyNames = ExpenseFamily::namesByKind();
         $months = $this->months($invoices, $amounts->expenses, $coefficient);
-        $expenseRows = $this->expenseRows($amounts, $months);
+        $expenseRows = $this->expenseRows($amounts, $months, $familyNames);
 
         $nav = $this->navYears();
 
@@ -194,6 +196,8 @@ class YearService
             'years_nav' => $nav
                 ->map(fn (Year $y): array => ['year' => $y->year, 'pre_opened' => $y->pre_opened])
                 ->all(),
+            // Mappa kind => nome famiglia (rinominabili): alimenta i picker famiglia.
+            'families' => $familyNames,
         ];
     }
 
@@ -301,14 +305,15 @@ class YearService
      * somma dei mesi, sovrascritto qui).
      *
      * @param  array<int, array<string, mixed>>  $months
+     * @param  array<string, string>  $familyNames  mappa kind => nome famiglia
      * @return array<int, array<string, mixed>>
      */
-    private function expenseRows(YearAmounts $amounts, array $months): array
+    private function expenseRows(YearAmounts $amounts, array $months, array $familyNames): array
     {
         $expected = $this->expectedByExpense($months);
 
         return $amounts->expenses
-            ->map(function (AnnualExpense $e) use ($expected, $amounts): array {
+            ->map(function (AnnualExpense $e) use ($expected, $amounts, $familyNames): array {
                 // I derivati (definitive, paid, due) vengono dal loader; expected
                 // dalla somma dei mesi, che è una preoccupazione della vista anno.
                 $row = $amounts->expenseAmounts[$e->id];
@@ -323,8 +328,9 @@ class YearService
                     'minimum' => $e->minimum !== null ? (float) $e->minimum : null,
                     'maximum' => $e->maximum !== null ? (float) $e->maximum : null,
                     'amount' => $e->amount !== null ? (float) $e->amount : null,
-                    'is_pension_contribution' => $e->is_pension_contribution,
-                    'is_imposta_sostitutiva' => YearExpenseAmounts::isImpostaSostitutiva($e),
+                    'kind' => $e->kind->value,
+                    'family_name' => $familyNames[$e->kind->value] ?? $e->kind->label(),
+                    'is_imposta_sostitutiva' => $e->isImpostaSostitutiva(),
                     'previous_year_credit' => $e->previous_year_credit !== null ? (float) $e->previous_year_credit : null,
                     // una-tantum (creata a mano, senza template): eliminabile.
                     'is_custom' => $e->expense_item_id === null,

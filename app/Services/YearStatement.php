@@ -101,7 +101,7 @@ class YearStatement
      */
     public function expenseAmounts(AnnualExpense $expense, float $expected, RevenueBases $grossBases, RevenueBases $netBases, Collection $payments, int $monthsElapsed, float $deductions = 0.0, int $decimals = 2): array
     {
-        $bases = $expense->is_pension_contribution ? $grossBases : $netBases;
+        $bases = $expense->isPension() ? $grossBases : $netBases;
         $calculated = round($this->expenseCalculator->expectedAmount($expense, $bases, applyLimits: true), $decimals);
         // Maturato a oggi: stesso calcolo income-based ma SENZA minimo (il minimo
         // è un pavimento annuo, non matura nel tempo — KPI.md).
@@ -126,14 +126,14 @@ class YearStatement
 
     /**
      * Contributi previdenziali pagati nell'anno: somma dei pagamenti per cassa
-     * collegati a spese con is_pension_contribution.
+     * collegati a spese di tipo previdenza.
      *
      * @param  Collection<int, Payment>  $cashPayments
      */
     public function pensionContributionsPaid(Collection $cashPayments): float
     {
         return round((float) $cashPayments
-            ->filter(fn (Payment $payment): bool => (bool) $payment->annualExpense?->is_pension_contribution)
+            ->filter(fn (Payment $payment): bool => (bool) $payment->annualExpense?->isPension())
             ->sum('amount'), 2);
     }
 

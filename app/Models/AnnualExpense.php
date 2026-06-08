@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Concerns\BelongsToUser;
 use App\Enums\ExpenseCalculationType;
+use App\Enums\ExpenseKind;
 use Database\Factories\AnnualExpenseFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -22,7 +23,7 @@ class AnnualExpense extends Model
         'expense_item_id',
         'name',
         'calculation_type',
-        'is_pension_contribution',
+        'kind',
         'rate',
         'minimum',
         'maximum',
@@ -36,7 +37,7 @@ class AnnualExpense extends Model
     {
         return [
             'calculation_type' => ExpenseCalculationType::class,
-            'is_pension_contribution' => 'boolean',
+            'kind' => ExpenseKind::class,
             'rate' => 'decimal:2',
             'minimum' => 'decimal:2',
             'maximum' => 'decimal:2',
@@ -64,6 +65,22 @@ class AnnualExpense extends Model
     public function deadlines(): HasMany
     {
         return $this->hasMany(Deadline::class);
+    }
+
+    /**
+     * Contributo previdenziale (Inarcassa): reddito lordo + minimale + conguaglio.
+     */
+    public function isPension(): bool
+    {
+        return $this->kind === ExpenseKind::Pension;
+    }
+
+    /**
+     * Imposta sostitutiva: scala ritenute bancarie + credito anno precedente.
+     */
+    public function isImpostaSostitutiva(): bool
+    {
+        return $this->kind === ExpenseKind::Tax;
     }
 
     /**

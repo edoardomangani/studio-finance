@@ -103,7 +103,7 @@ class DeadlineExpectation
         }
 
         $previousIs = $previous->expenses
-            ->first(fn (AnnualExpense $e): bool => YearExpenseAmounts::isImpostaSostitutiva($e));
+            ->first(fn (AnnualExpense $e): bool => $e->isImpostaSostitutiva());
 
         if ($previousIs === null) {
             return null;

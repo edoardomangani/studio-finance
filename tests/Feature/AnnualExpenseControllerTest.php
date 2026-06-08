@@ -2,6 +2,7 @@
 
 use App\Actions\Studiofinance\OpenYear;
 use App\Actions\Studiofinance\RegisterManualPayment;
+use App\Enums\ExpenseKind;
 use App\Models\AnnualExpense;
 use App\Models\User;
 use App\Models\Year;
@@ -25,7 +26,7 @@ it('modifica i valori di una spesa percentuale', function () {
     userWithYearForExpenses();
     $expense = AnnualExpense::query()
         ->where('calculation_type', 'percentage_of_irpef_income')
-        ->where('is_pension_contribution', false)
+        ->where('kind', 'tax')
         ->firstOrFail();
 
     $this->from(route('years.show', 2026))
@@ -62,7 +63,7 @@ it('imposta e azzera l override manuale di una spesa', function () {
     userWithYearForExpenses();
     $expense = AnnualExpense::query()
         ->where('calculation_type', 'percentage_of_irpef_income')
-        ->where('is_pension_contribution', false)
+        ->where('kind', 'tax')
         ->firstOrFail();
 
     // Forza l'importo: il definitivo deve seguire l'override, non il calcolato.
@@ -118,6 +119,7 @@ it('crea una spesa una-tantum per l anno', function () {
             'year_id' => $year->id,
             'name' => 'Contributo straordinario',
             'amount' => '300',
+            'kind' => 'fixed',
         ])->assertRedirect(route('years.show', 2026));
 
     $expense = AnnualExpense::query()->where('name', 'Contributo straordinario')->firstOrFail();
@@ -130,7 +132,7 @@ it('crea una spesa una-tantum per l anno', function () {
 it('elimina una spesa una-tantum senza pagamenti', function () {
     userWithYearForExpenses();
     $year = Year::where('year', 2026)->firstOrFail();
-    $expense = app(AnnualExpenseService::class)->create($year, 'Una tantum', 100);
+    $expense = app(AnnualExpenseService::class)->create($year, 'Una tantum', 100, ExpenseKind::Fixed);
 
     $this->from(route('years.show', 2026))
         ->delete(route('annual-expenses.destroy', $expense))
@@ -152,7 +154,7 @@ it('vieta l eliminazione di una voce da template', function () {
 it('vieta l eliminazione di una una-tantum con pagamenti', function () {
     userWithYearForExpenses();
     $year = Year::where('year', 2026)->firstOrFail();
-    $expense = app(AnnualExpenseService::class)->create($year, 'Una tantum pagata', 100);
+    $expense = app(AnnualExpenseService::class)->create($year, 'Una tantum pagata', 100, ExpenseKind::Fixed);
     app(RegisterManualPayment::class)($expense, ['amount' => '100', 'paid_at' => '2026-04-10', 'description' => null]);
 
     $this->delete(route('annual-expenses.destroy', $expense))->assertForbidden();

@@ -13,14 +13,27 @@ import FormField from '@/components/forms/FormField.vue';
 import ResponsiveDialog from '@/components/ResponsiveDialog.vue';
 import { FieldGroup } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { EXPENSE_KIND_META } from '@/lib/expenseKind';
+import type { ExpenseKind } from '@/types';
 
-const props = defineProps<{ yearId: number }>();
+const props = defineProps<{ yearId: number; families: Record<ExpenseKind, string> }>();
 const open = defineModel<boolean>('open', { default: false });
 
-const form = useForm<{ year_id: number; name: string; amount: string }>({
+// La una-tantum è un importo fisso: famiglia tra costi fissi/previdenza/bolli
+// (non Imposte: l'imposta sostitutiva è unica e arriva dai template). Etichetta
+// = nome (rinominabile) della famiglia dell'utente, fallback al default del tipo.
+const FAMILY_OPTIONS: ExpenseKind[] = ['fixed', 'pension', 'stamp_duty'];
+
+function familyLabel(kind: ExpenseKind): string {
+    return props.families[kind] ?? EXPENSE_KIND_META[kind].label;
+}
+
+const form = useForm<{ year_id: number; name: string; amount: string; kind: ExpenseKind }>({
     year_id: props.yearId,
     name: '',
     amount: '',
+    kind: 'fixed',
 });
 
 watch(open, (isOpen) => {
@@ -29,7 +42,7 @@ watch(open, (isOpen) => {
     }
 
     form.clearErrors();
-    form.defaults({ year_id: props.yearId, name: '', amount: '' });
+    form.defaults({ year_id: props.yearId, name: '', amount: '', kind: 'fixed' });
     form.reset();
 });
 
@@ -73,6 +86,20 @@ function submit(): void {
                         class="tabular"
                     />
                     <template v-if="form.errors.amount" #error>{{ form.errors.amount }}</template>
+                </FormField>
+
+                <FormField label="Famiglia" for="annual-expense-kind" required>
+                    <Select v-model="form.kind">
+                        <SelectTrigger id="annual-expense-kind" class="w-full">
+                            <SelectValue placeholder="Seleziona…" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem v-for="k in FAMILY_OPTIONS" :key="k" :value="k">
+                                {{ familyLabel(k) }}
+                            </SelectItem>
+                        </SelectContent>
+                    </Select>
+                    <template v-if="form.errors.kind" #error>{{ form.errors.kind }}</template>
                 </FormField>
             </FieldGroup>
         </form>

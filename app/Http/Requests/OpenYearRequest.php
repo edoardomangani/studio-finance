@@ -4,6 +4,7 @@ namespace App\Http\Requests;
 
 use App\Enums\DeadlineKind;
 use App\Enums\ExpenseCalculationType;
+use App\Enums\ExpenseKind;
 use App\Enums\ExpenseYearOffset;
 use App\Enums\QuotaType;
 use App\Models\ExpenseItem;
@@ -52,7 +53,7 @@ class OpenYearRequest extends FormRequest
             ],
             'expenses.*.name' => ['required', 'string', 'max:255'],
             'expenses.*.calculation_type' => ['required', Rule::enum(ExpenseCalculationType::class)],
-            'expenses.*.is_pension_contribution' => ['boolean'],
+            'expenses.*.kind' => ['required', Rule::enum(ExpenseKind::class)],
             'expenses.*.rate' => ['nullable', 'numeric', 'between:0,100'],
             'expenses.*.minimum' => ['nullable', 'numeric', 'min:0', 'max:9999999.99'],
             'expenses.*.maximum' => ['nullable', 'numeric', 'min:0', 'max:9999999.99'],

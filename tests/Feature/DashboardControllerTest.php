@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\ExpenseCalculationType;
+use App\Enums\ExpenseKind;
 use App\Models\AnnualExpense;
 use App\Models\Invoice;
 use App\Models\User;
@@ -36,12 +37,12 @@ it('assembla il payload della dashboard per l anno in corso', function () {
     AnnualExpense::factory()->create([
         'user_id' => $user->id, 'year_id' => $year->id,
         'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome,
-        'is_pension_contribution' => false, 'rate' => 5.00, 'amount' => null,
+        'kind' => ExpenseKind::Tax, 'rate' => 5.00, 'amount' => null,
     ]);
     AnnualExpense::factory()->create([
         'user_id' => $user->id, 'year_id' => $year->id,
         'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome,
-        'is_pension_contribution' => true, 'rate' => 10.00, 'minimum' => 2000.00, 'amount' => null,
+        'kind' => ExpenseKind::Pension, 'rate' => 10.00, 'minimum' => 2000.00, 'amount' => null,
     ]);
     AnnualExpense::factory()->create([
         'user_id' => $user->id, 'year_id' => $year->id,

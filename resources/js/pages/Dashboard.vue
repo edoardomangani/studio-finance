@@ -19,6 +19,7 @@ import {
     TableEmpty,
     TableHead,
 } from '@/components/ui/table';
+import { EXPENSE_KIND_META } from '@/lib/expenseKind';
 import { formatDateIT, formatEUR } from '@/lib/format';
 import DashboardHero from '@/pages/dashboard/DashboardHero.vue';
 import { index as deadlinesIndex } from '@/routes/deadlines';
@@ -45,6 +46,16 @@ const monthName = computed(() => (data.value ? MONTHS[data.value.calendar_month 
 // interattiva) vive in [[StackedBar]].
 const accrualTotal = computed(() =>
     data.value ? data.value.month_expenses.reduce((sum, e) => sum + e.amount, 0) : 0,
+);
+
+// Spese del mese → segmenti barra: colore fisso per famiglia, nome dell'utente.
+const monthExpenseItems = computed(() =>
+    (data.value?.month_expenses ?? []).map((e) => ({
+        id: e.kind,
+        label: e.label,
+        amount: e.amount,
+        color: EXPENSE_KIND_META[e.kind].color,
+    })),
 );
 </script>
 
@@ -91,7 +102,7 @@ const accrualTotal = computed(() =>
                         <h2 class="kicker text-muted-foreground">Spese del mese · {{ monthName }} {{ data.calendar_year }}</h2>
                         <span class="tabular text-13 font-medium text-foreground">{{ formatEUR(accrualTotal) }}</span>
                     </header>
-                    <StackedBar :items="data.month_expenses" class="flex-1" />
+                    <StackedBar :items="monthExpenseItems" class="flex-1" />
                 </section>
 
                 <section class="flex flex-col gap-2">

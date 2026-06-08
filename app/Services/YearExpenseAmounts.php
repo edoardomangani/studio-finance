@@ -2,7 +2,6 @@
 
 namespace App\Services;
 
-use App\Enums\ExpenseCalculationType;
 use App\Models\AnnualExpense;
 use App\Models\Invoice;
 use App\Models\Payment;
@@ -81,7 +80,7 @@ class YearExpenseAmounts
             $payments,
             $monthsElapsed,
             $this->expenseDeductions($expense, $figures->withholdings),
-            self::isImpostaSostitutiva($expense) ? 0 : 2,
+            $expense->isImpostaSostitutiva() ? 0 : 2,
         );
     }
 
@@ -91,20 +90,11 @@ class YearExpenseAmounts
      */
     public function expenseDeductions(AnnualExpense $expense, float $withholdings): float
     {
-        if (! self::isImpostaSostitutiva($expense)) {
+        if (! $expense->isImpostaSostitutiva()) {
             return 0.0;
         }
 
         return round($withholdings + (float) ($expense->previous_year_credit ?? 0), 2);
-    }
-
-    /**
-     * L'imposta sostitutiva: voce % su reddito IRPEF non previdenziale.
-     */
-    public static function isImpostaSostitutiva(AnnualExpense $expense): bool
-    {
-        return ! $expense->is_pension_contribution
-            && $expense->calculation_type === ExpenseCalculationType::PercentageOfIrpefIncome;
     }
 
     /**

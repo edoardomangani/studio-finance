@@ -14,6 +14,9 @@ export type ExpenseCalculationType =
     | 'fixed_annual'
     | 'sum_of_bolli';
 
+/** Tipo fiscale ("famiglia") di una voce di spesa. */
+export type ExpenseKind = 'tax' | 'pension' | 'stamp_duty' | 'fixed';
+
 export type DeadlineKind = 'payment' | 'fulfillment';
 export type DeadlineStatus = 'open' | 'completed' | 'not_due';
 export type PaymentStatus = 'planned' | 'paid' | 'not_due';
@@ -32,6 +35,8 @@ export type ExpenseItem = {
     name: string;
     calculation_type: ExpenseCalculationType;
     calculation_type_label: string;
+    kind: ExpenseKind;
+    family_name: string;
     default_rate: number | null;
     default_minimum: number | null;
     default_maximum: number | null;
@@ -191,6 +196,7 @@ export type YearPlanExpense = {
     expense_item_id: number | null;
     name: string;
     calculation_type: ExpenseCalculationType;
+    kind: ExpenseKind;
     rate: number | null;
     minimum: number | null;
     maximum: number | null;
@@ -207,6 +213,7 @@ export type YearWizardExpense = {
     expense_item_id: number | null;
     name: string;
     calculation_type: ExpenseCalculationType;
+    kind: ExpenseKind;
     rate: number | string;
     minimum: number | string;
     maximum: number | string;
@@ -272,7 +279,8 @@ export type YearShowExpense = {
     minimum: number | null;
     maximum: number | null;
     amount: number | null;
-    is_pension_contribution: boolean;
+    kind: ExpenseKind;
+    family_name: string;
     is_imposta_sostitutiva: boolean;
     previous_year_credit: number | null;
     /** una-tantum (creata a mano, senza template): eliminabile. */
@@ -359,6 +367,8 @@ export type YearShow = {
     payments: PaymentListItem[];
     meta: YearMeta;
     years_nav: YearNavItem[];
+    /** Mappa kind → nome famiglia (rinominabili), per i picker. */
+    families: Record<ExpenseKind, string>;
 };
 
 /* ── Dashboard generale (Fase 9.b) ─────────────────────────────────────── */
@@ -390,7 +400,7 @@ export type DashboardYear = {
 };
 
 /** Una voce di spesa del mese (accantonamento del mese, per singola spesa). */
-export type DashboardMonthExpense = { id: number; label: string; amount: number };
+export type DashboardMonthExpense = { kind: ExpenseKind; label: string; amount: number };
 
 /** Scadenza aperta nella lista dashboard (prossime per data). */
 export type DashboardDeadline = {

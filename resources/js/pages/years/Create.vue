@@ -97,6 +97,7 @@ function hydrate(loaded: YearPlan): void {
         expense_item_id: e.expense_item_id,
         name: e.name,
         calculation_type: e.calculation_type,
+        kind: e.kind,
         rate: e.rate ?? '',
         minimum: e.minimum ?? '',
         maximum: e.maximum ?? '',

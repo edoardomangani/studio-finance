@@ -57,21 +57,21 @@ const progressPct = computed<number>(() => Math.min(100, (props.year.months_elap
             </div>
         </section>
 
-        <!-- Da coprire · tutti gli anni (pannello centrale, più largo) -->
+        <!-- Da coprire (pannello centrale, più largo) -->
         <section class="flex flex-col px-5 py-3.5">
             <header class="flex h-7 items-center">
-                <h3 class="kicker text-muted-foreground">Da coprire · tutti gli anni</h3>
+                <h3 class="kicker text-muted-foreground">Da coprire</h3>
             </header>
             <div class="mt-3 flex flex-1 items-stretch gap-4">
                 <div class="flex flex-1 flex-col">
-                    <p class="text-13 text-muted-foreground">Spese da pagare · a oggi</p>
+                    <p class="text-13 text-muted-foreground">Spese da pagare a oggi</p>
                     <p class="tabular mt-1.5 text-2xl font-medium leading-none tracking-tight text-foreground">{{ formatEUR(toCover.expenses_due_to_date) }}</p>
                     <p class="mt-1 text-[11px] text-muted-foreground/80">Maturate, non ancora pagate</p>
                     <p class="mt-auto pt-3 text-xs text-muted-foreground">Pagato a oggi <span class="tabular text-foreground font-medium">{{ formatEUR(toCover.paid_to_date) }}</span></p>
                 </div>
                 <div class="w-px self-stretch bg-border-soft" />
                 <div class="flex flex-1 flex-col">
-                    <p class="text-13 text-muted-foreground">Scadenze da pagare · tutte</p>
+                    <p class="text-13 text-muted-foreground">Scadenze da pagare</p>
                     <p class="tabular mt-1.5 text-2xl font-medium leading-none tracking-tight text-foreground">{{ formatEUR(toCover.deadlines_due) }}</p>
                     <p class="mt-1 text-[11px] text-muted-foreground/80">Importi delle scadenze aperte</p>
                     <div class="mt-auto pt-3">

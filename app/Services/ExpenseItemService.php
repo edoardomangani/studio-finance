@@ -3,6 +3,8 @@
 namespace App\Services;
 
 use App\Enums\ExpenseCalculationType;
+use App\Enums\ExpenseKind;
+use App\Models\ExpenseFamily;
 use App\Models\ExpenseItem;
 
 /**
@@ -18,11 +20,14 @@ class ExpenseItemService
      */
     public function list(): array
     {
+        $familyNames = ExpenseFamily::namesByKind();
+
         return ExpenseItem::query()
             ->select([
                 'id',
                 'name',
                 'calculation_type',
+                'kind',
                 'default_rate',
                 'default_minimum',
                 'default_maximum',
@@ -33,7 +38,7 @@ class ExpenseItemService
             ->orderBy('position')
             ->orderBy('id')
             ->get()
-            ->map(fn (ExpenseItem $item) => $this->toListItem($item))
+            ->map(fn (ExpenseItem $item) => $this->toListItem($item, $familyNames))
             ->values()
             ->all();
     }
@@ -46,6 +51,22 @@ class ExpenseItemService
         return array_map(
             fn (ExpenseCalculationType $t) => ['value' => $t->value, 'label' => $t->label()],
             ExpenseCalculationType::cases(),
+        );
+    }
+
+    /**
+     * Opzioni famiglia per il form template: i 4 tipi, etichetta = nome
+     * (rinominabile) della famiglia dell'utente.
+     *
+     * @return list<array{value: string, label: string}>
+     */
+    public function kindOptions(): array
+    {
+        $familyNames = ExpenseFamily::namesByKind();
+
+        return array_map(
+            fn (ExpenseKind $k) => ['value' => $k->value, 'label' => $familyNames[$k->value] ?? $k->label()],
+            ExpenseKind::cases(),
         );
     }
 
@@ -73,15 +94,18 @@ class ExpenseItemService
     }
 
     /**
+     * @param  array<string, string>  $familyNames  mappa kind => nome famiglia
      * @return array<string, mixed>
      */
-    private function toListItem(ExpenseItem $item): array
+    private function toListItem(ExpenseItem $item, array $familyNames): array
     {
         return [
             'id' => $item->id,
             'name' => $item->name,
             'calculation_type' => $item->calculation_type->value,
             'calculation_type_label' => $item->calculation_type->label(),
+            'kind' => $item->kind->value,
+            'family_name' => $familyNames[$item->kind->value] ?? $item->kind->label(),
             // decimal:2 Eloquent restituisce string: castiamo a float in modo
             // che il frontend riceva tipi consistenti `number | null`.
             'default_rate' => $item->default_rate !== null ? (float) $item->default_rate : null,

@@ -3,6 +3,7 @@
 namespace Database\Factories;
 
 use App\Enums\ExpenseCalculationType;
+use App\Enums\ExpenseKind;
 use App\Models\ExpenseItem;
 use App\Models\User;
 use Illuminate\Database\Eloquent\Factories\Factory;
@@ -21,6 +22,7 @@ class ExpenseItemFactory extends Factory
             'user_id' => User::factory(),
             'name' => fake()->unique()->words(2, true),
             'calculation_type' => ExpenseCalculationType::FixedAnnual,
+            'kind' => ExpenseKind::Fixed,
             'default_rate' => null,
             'default_minimum' => null,
             'default_maximum' => null,

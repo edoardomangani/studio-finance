@@ -3,6 +3,7 @@
 namespace App\Concerns;
 
 use App\Enums\ExpenseCalculationType;
+use App\Enums\ExpenseKind;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -27,6 +28,7 @@ trait ExpenseItemValidationRules
         return [
             'name' => ['required', 'string', 'max:255'],
             'calculation_type' => ['required', Rule::enum(ExpenseCalculationType::class)],
+            'kind' => ['required', Rule::enum(ExpenseKind::class)],
             'default_rate' => ['nullable', 'numeric', 'between:0,100'],
             'default_minimum' => ['nullable', 'numeric', 'min:0'],
             'default_maximum' => ['nullable', 'numeric', 'min:0', 'gte:default_minimum'],

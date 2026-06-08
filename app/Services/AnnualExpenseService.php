@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\ExpenseCalculationType;
+use App\Enums\ExpenseKind;
 use App\Models\AnnualExpense;
 use App\Models\Year;
 
@@ -20,12 +21,12 @@ class AnnualExpenseService
      * (`expense_item_id` null) né scadenze generate. Si paga con un pagamento
      * manuale o una scadenza ad-hoc.
      */
-    public function create(Year $year, string $name, float $amount): AnnualExpense
+    public function create(Year $year, string $name, float $amount, ExpenseKind $kind): AnnualExpense
     {
         return $year->annualExpenses()->create([
             'name' => $name,
             'calculation_type' => ExpenseCalculationType::FixedAnnual,
-            'is_pension_contribution' => false,
+            'kind' => $kind,
             'amount' => $amount,
             'expense_item_id' => null,
         ]);

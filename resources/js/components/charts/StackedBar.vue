@@ -1,47 +1,35 @@
 <script setup lang="ts">
 /**
- * Barra impilata + legenda per una composizione di importi (es. spese del mese):
- * un segmento per voce, larghezza = quota sul totale, rampa monocromatica petrol
- * (210°) dal scuro (voce più grande) al chiaro. Interattiva come il grafico
- * mensile: hover → valore (tooltip), click → fissa la voce evidenziata (le altre
- * sbiadiscono), cross-highlight barra ↔ legenda. Root con `justify-between`: barra
- * in alto, legenda in basso quando il box viene allungato (flex-1 dal chiamante).
+ * Barra impilata + legenda per una composizione di importi (es. spese del mese
+ * per famiglia): un segmento per voce, larghezza = quota sul totale, colore dato
+ * dal chiamante. Interattiva come il grafico mensile: hover → valore (tooltip),
+ * click → fissa la voce evidenziata (le altre sbiadiscono), cross-highlight barra
+ * ↔ legenda. Root con `justify-between`: barra in alto, legenda in basso quando
+ * il box viene allungato (flex-1 dal chiamante).
  */
 import { computed, ref } from 'vue';
 import { formatEUR } from '@/lib/format';
 
-type StackItem = { id: number; label: string; amount: number };
+type StackItem = { id: string | number; label: string; amount: number; color: string };
 
 const props = defineProps<{ items: StackItem[] }>();
-
-// Rampa petrol: distingue le quote senza arcobaleno, coerente con l'accent. Il
-// separatore (border-card) chiarisce comunque dove finisce ogni segmento.
-function segmentColor(index: number, count: number): string {
-    if (count <= 1) {
-        return 'oklch(42% 0.06 210)';
-    }
-
-    const t = index / (count - 1);
-
-    return `oklch(${(36 + t * 44).toFixed(0)}% ${(0.06 - t * 0.04).toFixed(3)} 210)`;
-}
 
 const total = computed(() => props.items.reduce((sum, item) => sum + item.amount, 0));
 
 const segments = computed(() =>
-    props.items.map((item, index) => ({
+    props.items.map((item) => ({
         ...item,
-        color: segmentColor(index, props.items.length),
         pct: total.value > 0 ? (item.amount / total.value) * 100 : 0,
     })),
 );
 
 // Click fissa la voce, hover la mostra al volo (l'hover prevale sul click).
-const selected = ref<number | null>(null);
-const hovered = ref<number | null>(null);
-const active = computed<number | null>(() => hovered.value ?? selected.value);
+type ItemId = string | number;
+const selected = ref<ItemId | null>(null);
+const hovered = ref<ItemId | null>(null);
+const active = computed<ItemId | null>(() => hovered.value ?? selected.value);
 
-function toggle(id: number): void {
+function toggle(id: ItemId): void {
     selected.value = selected.value === id ? null : id;
 }
 </script>
