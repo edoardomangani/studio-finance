@@ -3,6 +3,26 @@
  * importati dove servono (Onboarding, Settings, ecc.).
  */
 
+/** Riga uniforme della vista Archivio (qualsiasi entità soft-deletata). */
+export type ArchiveRow = {
+    id: number;
+    name: string;
+    detail: string | null;
+    amount: number | null;
+    archived_at: string | null;
+};
+
+/** Tipo (segmento URL) di un'entità archiviabile. */
+export type ArchiveType =
+    | 'clients'
+    | 'invoices'
+    | 'expense-items'
+    | 'recurring-deadlines'
+    | 'payments';
+
+/** Payload della pagina Archivio: righe cestinate per tipo di entità. */
+export type ArchiveData = Record<ArchiveType, ArchiveRow[]>;
+
 export type ProfessionalProfile = {
     profitability_coefficient: string | number;
     business_start_year: number;

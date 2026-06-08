@@ -14,6 +14,7 @@
 import { Link } from '@inertiajs/vue3';
 import {
     PhArrowLeft,
+    PhArchive,
     PhBookOpen,
     PhCalendarBlank,
     PhCaretLeft,
@@ -46,6 +47,7 @@ import {
 } from '@/components/ui/sidebar';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { dashboard } from '@/routes';
+import { index as archivioIndex } from '@/routes/archivio';
 import { index as clientsIndex } from '@/routes/clients';
 import { index as deadlinesIndex } from '@/routes/deadlines';
 import { index as invoicesIndex } from '@/routes/invoices';
@@ -107,6 +109,7 @@ const mainSections: NavSection[] = [
                 icon: PhGearSix,
                 href: expenseItemsIndex(),
             },
+            { label: 'Archivio', icon: PhArchive, href: archivioIndex() },
             // La route design-system esiste solo in dev (vedi routes/web.php)
             ...(import.meta.env.DEV
                 ? [{ label: 'Design system', icon: PhBookOpen, href: '/design-system' }]

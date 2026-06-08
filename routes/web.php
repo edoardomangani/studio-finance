@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AnnualExpenseController;
+use App\Http\Controllers\ArchivioController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeadlineController;
@@ -146,6 +147,16 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->middleware('throttle:60,1');
         Route::delete('payments/{payment}', [PaymentController::class, 'destroy'])
             ->name('payments.destroy')
+            ->middleware('throttle:60,1');
+
+        // Archivio (F11): record archiviati (soft delete) di tutte le entità,
+        // con ripristino. Il `type` è validato da una whitelist nel service.
+        Route::get('archivio', [ArchivioController::class, 'index'])
+            ->name('archivio.index')
+            ->middleware('throttle:60,1');
+        Route::post('archivio/{type}/{id}/restore', [ArchivioController::class, 'restore'])
+            ->name('archivio.restore')
+            ->whereNumber('id')
             ->middleware('throttle:60,1');
 
         // Design system page: showroom dei componenti, accessibile solo in dev.
