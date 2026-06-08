@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /**
  * Banda KPI dell'anno (competenza) a due famiglie:
- *  - Reddito: Fatturato (eroe) · Reddito netto · Reddito IRPEF (fiscale).
+ *  - Reddito: Fatturato (eroe) · Reddito netto · Netto bancario (+ /mese).
  *  - Imposte e contributi: eroe = Spese da pagare (a oggi o dell'anno), barra di
  *    copertura, sotto Totale spese e Pagato, toggle "A oggi · Anno".
  *
@@ -21,7 +21,7 @@ const props = defineProps<{ year: YearShow }>();
 
 const isPast = computed<boolean>(() => props.year.meta.time_state === 'past');
 
-// Media mensile del reddito IRPEF: ÷ mesi trascorsi (anno in corso), ÷12 (chiuso).
+// Media mensile del netto bancario: ÷ mesi trascorsi (anno in corso), ÷12 (chiuso).
 const monthsElapsed = computed<number>(() => {
     const state = props.year.meta.time_state;
 
@@ -48,8 +48,8 @@ const income = computed(() => {
     return {
         fatturato: t.invoice_total,
         netto: isPast.value ? t.net : t.net_to_date,
-        irpef: t.irpef_income_net,
-        irpefMonthly: monthsElapsed.value > 0 ? t.irpef_income_net / monthsElapsed.value : 0,
+        bankIncome: t.bank_income,
+        bankMonthly: monthsElapsed.value > 0 ? t.bank_income / monthsElapsed.value : 0,
     };
 });
 
@@ -91,9 +91,9 @@ const tax = computed(() => {
                     <span class="tabular text-foreground font-medium">{{ formatEUR(income.netto) }}</span>
                 </div>
                 <div class="flex items-baseline justify-between gap-3">
-                    <span class="whitespace-nowrap text-muted-foreground">Reddito IRPEF</span>
+                    <span class="whitespace-nowrap text-muted-foreground">Netto bancario</span>
                     <span class="tabular text-foreground font-medium">
-                        {{ formatEUR(income.irpef) }}<span class="text-muted-foreground font-normal"> · {{ formatEUR(income.irpefMonthly) }}/mese</span>
+                        {{ formatEUR(income.bankIncome) }}<span class="text-muted-foreground font-normal"> · {{ formatEUR(income.bankMonthly) }}/mese</span>
                     </span>
                 </div>
             </div>

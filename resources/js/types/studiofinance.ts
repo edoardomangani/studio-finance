@@ -181,14 +181,31 @@ export type Invoice = {
     client: ClientForPicker;
 };
 
-/** Riga della lista anni (years/Compare.vue). */
+/** Riga della tabella confronto anni (years/Compare.vue), KPI a due focus. */
 export type YearListItem = {
     id: number;
     year: number;
     profitability_coefficient: number;
     pre_opened: boolean;
+    /** past = chiuso, current = in corso (importi stima), future = pre-aperto. */
+    time_state: 'past' | 'current' | 'future';
     expenses_count: number;
     deadlines_count: number;
+    // Focus Personale.
+    invoice_total: number;
+    expenses: number;
+    net: number;
+    paid: number;
+    due: number;
+    // Focus UNICO (dichiarazione).
+    vat_turnover: number;
+    irpef_income_net: number;
+    pension_contributions_paid: number;
+    imposta_sostitutiva: number;
+    withholdings: number;
+    previous_year_credit: number;
+    bank_income: number;
+    bank_income_monthly: number;
 };
 
 /** Voce di spesa nel piano di apertura anno (copia editabile del template). */
@@ -390,13 +407,13 @@ export type DashboardToCover = {
     open_deadlines_count: number;
 };
 
-/** Pannello anno: cumulato, mesi trascorsi (progress), proiezione, IRPEF. */
+/** Pannello anno: cumulato, mesi trascorsi (progress), proiezione, netto bancario. */
 export type DashboardYear = {
     year: number;
     invoice_total: number;
     months_elapsed: number;
     projection: number;
-    irpef_income_net: number;
+    bank_income: number;
 };
 
 /** Una voce di spesa del mese (accantonamento del mese, per singola spesa). */

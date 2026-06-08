@@ -4,7 +4,7 @@
  *  - Questo mese: stipendio (netto) + copertura fatturato/spese + delta YoY.
  *  - Da coprire (tutti gli anni, pannello centrale più largo): Spese da pagare a
  *    oggi (competenza) e Scadenze da pagare (cassa), affiancate.
- *  - Anno: cumulato + sparkline del netto + proiezione + reddito IRPEF.
+ *  - Anno: cumulato + progress mesi + proiezione + netto bancario (+ /mese).
  * Layout come la banda KPI dell'anno: kicker + titolo/importo in alto, elemento
  * di fondo ancorato in basso (mt-auto) → footer allineati tra i pannelli.
  */
@@ -101,9 +101,9 @@ const progressPct = computed<number>(() => Math.min(100, (props.year.months_elap
                     <span>Proiez. <span class="tabular text-foreground font-medium">{{ formatEUR(year.projection) }}</span></span>
                 </div>
                 <div class="flex items-baseline justify-between gap-3 text-xs">
-                    <span class="text-muted-foreground">Reddito IRPEF</span>
+                    <span class="text-muted-foreground">Netto bancario</span>
                     <span class="tabular text-foreground">
-                        <span class="font-medium">{{ formatEUR(year.irpef_income_net) }}</span><span class="text-muted-foreground"> · {{ formatEUR(year.irpef_income_net / (year.months_elapsed || 12)) }}/mese</span>
+                        <span class="font-medium">{{ formatEUR(year.bank_income) }}</span><span class="text-muted-foreground"> · {{ formatEUR(year.bank_income / (year.months_elapsed || 12)) }}/mese</span>
                     </span>
                 </div>
             </div>

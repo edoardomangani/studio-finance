@@ -52,7 +52,17 @@ it('mostra il confronto pluriennale', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->component('years/Compare')
             ->has('years', 1)
-            ->where('years.0.year', 2025));
+            ->where('years.0.year', 2025)
+            ->where('years.0.time_state', 'past')
+            // Focus Personale + UNICO: i KPI di confronto.
+            ->has('years.0.invoice_total')
+            ->has('years.0.net')
+            ->has('years.0.due')
+            ->has('years.0.vat_turnover')
+            ->has('years.0.irpef_income_net')
+            ->has('years.0.imposta_sostitutiva')
+            ->has('years.0.previous_year_credit')
+            ->has('years.0.bank_income'));
 });
 
 it('atterra sull anno corrente entrando nella sezione', function () {

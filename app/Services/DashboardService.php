@@ -154,7 +154,7 @@ class DashboardService
 
     /**
      * Pannello Anno: cumulato, mesi trascorsi (progress), proiezione semplice
-     * (YTD / mesi × 12), reddito IRPEF.
+     * (YTD / mesi × 12), netto bancario (lo "stipendio" che le banche leggono).
      *
      * @return array<string, mixed>
      */
@@ -168,8 +168,22 @@ class DashboardService
             'invoice_total' => $invoiceTotal,
             'months_elapsed' => $monthsElapsed,
             'projection' => $monthsElapsed > 0 ? round($invoiceTotal / $monthsElapsed * 12, 0) : 0.0,
-            'irpef_income_net' => $amounts->figures->irpefIncomeNet,
+            'bank_income' => $this->bankIncome($amounts),
         ];
+    }
+
+    /**
+     * Netto bancario d'anno: reddito IRPEF netto − imposta sostitutiva (calcolata),
+     * cioè `volume d'affari × coeff − contributi − imposta`. È il netto post-imposta
+     * che le banche usano come stipendio. Mid-anno è una stima (l'IS matura coi ricavi).
+     */
+    private function bankIncome(YearAmounts $amounts): float
+    {
+        $impostaSostitutiva = $amounts->expenses
+            ->filter(fn (AnnualExpense $e): bool => $e->isImpostaSostitutiva())
+            ->sum(fn (AnnualExpense $e): float => (float) ($amounts->expenseAmounts[$e->id]['calculated'] ?? 0));
+
+        return round($amounts->figures->irpefIncomeNet - $impostaSostitutiva, 2);
     }
 
     /**

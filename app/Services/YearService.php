@@ -35,25 +35,57 @@ class YearService
     ) {}
 
     /**
-     * Anni dell'utente in ordine DESC, con i conteggi di spese e scadenze.
-     * Niente paginazione: i volumi attesi sono pochi anni.
+     * Anni dell'utente in ordine DESC, con i conteggi e i KPI dei due focus
+     * della tabella confronto (Personale e UNICO/fiscale). Ogni anno è caricato
+     * una volta dal loader condiviso (cache); i volumi attesi sono pochi anni.
      *
      * @return array<int, array<string, mixed>>
      */
     public function list(): array
     {
+        $calendar = (int) Carbon::now()->year;
+        $familyNames = ExpenseFamily::namesByKind();
+
         return Year::query()
             ->withCount(['annualExpenses', 'deadlines'])
             ->orderByDesc('year')
             ->get()
-            ->map(fn (Year $year): array => [
-                'id' => $year->id,
-                'year' => $year->year,
-                'profitability_coefficient' => (float) $year->profitability_coefficient,
-                'pre_opened' => $year->pre_opened,
-                'expenses_count' => $year->annual_expenses_count,
-                'deadlines_count' => $year->deadlines_count,
-            ])
+            ->map(function (Year $year) use ($calendar, $familyNames): array {
+                $coefficient = (float) $year->profitability_coefficient;
+                $amounts = $this->amountsLoader->load($year);
+                $months = $this->months($amounts->invoices, $amounts->expenses, $coefficient);
+                $totals = $this->yearStatement->totals($amounts->figures, $this->expenseRows($amounts, $months, $familyNames));
+
+                $timeState = $year->year < $calendar ? 'past' : ($year->year > $calendar ? 'future' : 'current');
+                // Anno in corso: importi maturati "a oggi" (stima). Chiuso: definitivi.
+                $current = $timeState === 'current';
+
+                return [
+                    'id' => $year->id,
+                    'year' => $year->year,
+                    'profitability_coefficient' => $coefficient,
+                    'pre_opened' => $year->pre_opened,
+                    'time_state' => $timeState,
+                    'expenses_count' => $year->annual_expenses_count,
+                    'deadlines_count' => $year->deadlines_count,
+                    // Focus Personale.
+                    'invoice_total' => $totals['invoice_total'],
+                    'expenses' => $current ? $totals['expenses_amount_to_date'] : $totals['expenses_definitive'],
+                    'net' => $current ? $totals['net_to_date'] : $totals['net'],
+                    'paid' => $totals['expenses_paid'],
+                    'due' => $current ? $totals['expenses_due_to_date'] : $totals['expenses_due'],
+                    // Focus UNICO (dichiarazione). Imposta = reddito IRPEF netto − netto bancario.
+                    'vat_turnover' => $totals['vat_turnover'],
+                    'irpef_income_net' => $totals['irpef_income_net'],
+                    'pension_contributions_paid' => $totals['pension_contributions_paid'],
+                    'imposta_sostitutiva' => round($totals['irpef_income_net'] - $totals['bank_income'], 2),
+                    'withholdings' => $totals['withholdings'],
+                    'previous_year_credit' => $totals['previous_year_credit'],
+                    'bank_income' => $totals['bank_income'],
+                    // Mensile: ÷ mesi trascorsi (in corso, stima), ÷12 (chiuso).
+                    'bank_income_monthly' => round($totals['bank_income'] / ($amounts->monthsElapsed ?: 12), 2),
+                ];
+            })
             ->all();
     }
 

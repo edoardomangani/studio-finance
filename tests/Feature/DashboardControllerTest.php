@@ -68,6 +68,8 @@ it('assembla il payload della dashboard per l anno in corso', function () {
             ->has('dashboard.this_month.yoy_percent')             // null senza anno N-1
             ->has('dashboard.year.invoice_total')                 // cumulato anno
             ->where('dashboard.year.months_elapsed', 6)
+            ->has('dashboard.year.bank_income')                   // netto bancario (no più IRPEF)
+            ->missing('dashboard.year.irpef_income_net')
             ->has('dashboard.month_expenses', 3)                 // una riga per voce di spesa
             ->has('dashboard.month_expenses.0.label')
             ->has('dashboard.month_expenses.0.amount')

@@ -2,14 +2,15 @@
 /**
  * Years — Compare page (confronto pluriennale).
  *
- * Vista "report" secondaria della sezione Anni: una riga per anno, con
- * coefficiente e conteggi di spese/scadenze. L'ingresso della sezione atterra
- * invece sull'anno corrente (cockpit); qui si arriva dal link "Confronto anni"
- * della vista anno o quando non esiste ancora alcun anno (empty state). Gli
- * anni "pre-aperti" portano un badge dedicato. Riga cliccabile → vista anno.
+ * Tabella di confronto: una riga per anno. Un ToggleGroup scambia il set di KPI
+ * (mai mischiati): focus **Personale** (5 colonne, cosa entra/resta) o **UNICO**
+ * (7 colonne fiscali della dichiarazione). L'anno in corso porta importi "a oggi"
+ * (stima) segnalati dal badge di stato; i pre-aperti hanno un badge dedicato.
+ * Riga cliccabile → vista anno.
  */
 import { Head, Link, router, setLayoutProps } from '@inertiajs/vue3';
 import { PhPlus } from '@phosphor-icons/vue';
+import { computed, ref } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -21,7 +22,8 @@ import {
     TableEmpty,
     TableHead,
 } from '@/components/ui/table';
-import { formatPercent } from '@/lib/format';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { formatEUR } from '@/lib/format';
 import {
     create as yearCreate,
     index as yearsIndex,
@@ -39,8 +41,59 @@ setLayoutProps({
         { label: 'Anni', href: yearsIndex().url },
         { label: 'Confronto' },
     ],
-    subbar: false,
+    subbar: true,
 });
+
+type Focus = 'personale' | 'unico';
+type Column = { key: keyof YearListItem; label: string };
+
+const focus = ref<Focus>('personale');
+
+function setFocus(value: unknown): void {
+    if (value === 'personale' || value === 'unico') {
+        focus.value = value;
+    }
+}
+
+const personaleColumns: Column[] = [
+    { key: 'invoice_total', label: 'Fatturato' },
+    { key: 'expenses', label: 'Spese' },
+    { key: 'net', label: 'Netto' },
+    { key: 'paid', label: 'Pagato' },
+    { key: 'due', label: 'Da pagare' },
+];
+
+const unicoColumns: Column[] = [
+    { key: 'vat_turnover', label: "Volume d'affari" },
+    { key: 'irpef_income_net', label: 'Reddito IRPEF' },
+    { key: 'pension_contributions_paid', label: 'Contributi pagati' },
+    { key: 'imposta_sostitutiva', label: 'Imposta sost.' },
+    { key: 'withholdings', label: 'Ritenute' },
+    { key: 'previous_year_credit', label: 'Credito IS N-1' },
+    { key: 'bank_income', label: 'Netto bancario' },
+    { key: 'bank_income_monthly', label: 'Netto banc. /mese' },
+];
+
+const columns = computed<Column[]>(() =>
+    focus.value === 'personale' ? personaleColumns : unicoColumns,
+);
+
+// Anno + colonne del focus + Stato.
+const colspan = computed<number>(() => columns.value.length + 2);
+
+type Status = { label: string; variant: 'secondary' | 'warning'; muted?: boolean };
+
+function status(year: YearListItem): Status {
+    if (year.pre_opened) {
+        return { label: 'Pre-aperto', variant: 'secondary' };
+    }
+    if (year.time_state === 'current') {
+        return { label: 'In corso', variant: 'warning' };
+    }
+
+    // Chiuso: neutro, badge "fantasma" (sage spento).
+    return { label: 'Chiuso', variant: 'secondary', muted: true };
+}
 
 function openYear(year: YearListItem): void {
     router.visit(yearShow(year.year).url);
@@ -59,17 +112,32 @@ function openYear(year: YearListItem): void {
         </Button>
     </Teleport>
 
-    <!-- Desktop (md+): tabella densa. -->
+    <!-- Niente ricerca qui: il toggle KPI prende lo slot più a sinistra del subbar. -->
+    <Teleport to="#page-topbar-search" defer>
+        <ToggleGroup
+            :model-value="focus"
+            type="single"
+            variant="boxed"
+            size="sm"
+            aria-label="Focus KPI"
+            @update:model-value="setFocus"
+        >
+            <ToggleGroupItem value="personale" aria-label="Importi personali">Personale</ToggleGroupItem>
+            <ToggleGroupItem value="unico" aria-label="Importi UNICO">UNICO</ToggleGroupItem>
+        </ToggleGroup>
+    </Teleport>
+
+    <!-- Desktop (md+): tabella densa, colonne del focus attivo. -->
     <DataTable class="hidden md:table">
         <DataTableHeader :has-actions="false">
-            <TableHead class="w-[120px]">Anno</TableHead>
-            <TableHead class="w-[140px] text-right">Coefficiente</TableHead>
-            <TableHead class="text-right">Voci di spesa</TableHead>
-            <TableHead class="text-right">Scadenze</TableHead>
-            <TableHead class="w-[140px]">Stato</TableHead>
+            <TableHead class="w-[100px]">Anno</TableHead>
+            <TableHead v-for="col in columns" :key="col.key" class="text-right">
+                {{ col.label }}
+            </TableHead>
+            <TableHead class="w-[120px]">Stato</TableHead>
         </DataTableHeader>
         <DataTableBody>
-            <TableEmpty v-if="props.years.length === 0" :colspan="5">
+            <TableEmpty v-if="props.years.length === 0" :colspan="colspan">
                 Nessun anno aperto. Aprine uno dal pulsante in alto.
             </TableEmpty>
             <DataTableRow
@@ -90,20 +158,20 @@ function openYear(year: YearListItem): void {
                         {{ year.year }}
                     </Link>
                 </TableCell>
-                <TableCell class="tabular text-right text-muted-foreground">
-                    {{ formatPercent(year.profitability_coefficient) }}
-                </TableCell>
-                <TableCell class="tabular text-right text-muted-foreground">
-                    {{ year.expenses_count }}
-                </TableCell>
-                <TableCell class="tabular text-right text-muted-foreground">
-                    {{ year.deadlines_count }}
+                <TableCell
+                    v-for="col in columns"
+                    :key="col.key"
+                    class="tabular text-right text-foreground"
+                >
+                    {{ formatEUR(year[col.key] as number) }}
                 </TableCell>
                 <TableCell>
-                    <Badge v-if="year.pre_opened" variant="secondary"
-                        >Pre-aperto</Badge
+                    <Badge
+                        :variant="status(year).variant"
+                        :class="status(year).muted ? 'bg-transparent text-muted-foreground' : ''"
                     >
-                    <span v-else class="text-muted-foreground">—</span>
+                        {{ status(year).label }}
+                    </Badge>
                 </TableCell>
             </DataTableRow>
         </DataTableBody>
@@ -124,38 +192,22 @@ function openYear(year: YearListItem): void {
                     class="block rounded-lg border border-border bg-card p-3 transition-colors outline-none hover:bg-muted/40 focus-visible:ring-1 focus-visible:ring-accent-line"
                 >
                     <div class="flex items-baseline justify-between">
-                        <span
-                            class="tabular text-base font-medium text-foreground"
-                            >{{ year.year }}</span
+                        <span class="tabular text-base font-medium text-foreground">{{ year.year }}</span>
+                        <Badge
+                            :variant="status(year).variant"
+                            :class="status(year).muted ? 'bg-transparent text-muted-foreground' : ''"
                         >
-                        <Badge v-if="year.pre_opened" variant="secondary"
-                            >Pre-aperto</Badge
-                        >
+                            {{ status(year).label }}
+                        </Badge>
                     </div>
-                    <dl
-                        class="mt-2 flex flex-wrap gap-x-5 gap-y-1 text-13 text-muted-foreground"
-                    >
-                        <div class="flex items-baseline gap-1.5">
-                            <dt>Coefficiente</dt>
-                            <dd class="tabular text-foreground">
-                                {{
-                                    formatPercent(
-                                        year.profitability_coefficient,
-                                    )
-                                }}
-                            </dd>
-                        </div>
-                        <div class="flex items-baseline gap-1.5">
-                            <dt>Voci</dt>
-                            <dd class="tabular text-foreground">
-                                {{ year.expenses_count }}
-                            </dd>
-                        </div>
-                        <div class="flex items-baseline gap-1.5">
-                            <dt>Scadenze</dt>
-                            <dd class="tabular text-foreground">
-                                {{ year.deadlines_count }}
-                            </dd>
+                    <dl class="mt-2 grid grid-cols-2 gap-x-5 gap-y-1.5 text-13 text-muted-foreground">
+                        <div
+                            v-for="col in columns"
+                            :key="col.key"
+                            class="flex items-baseline justify-between gap-1.5"
+                        >
+                            <dt>{{ col.label }}</dt>
+                            <dd class="tabular text-foreground">{{ formatEUR(year[col.key] as number) }}</dd>
                         </div>
                     </dl>
                 </Link>
