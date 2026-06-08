@@ -11,7 +11,7 @@
  */
 import { Head, Link, router, setLayoutProps } from '@inertiajs/vue3';
 import { PhArrowsLeftRight, PhPlus } from '@phosphor-icons/vue';
-import { ref } from 'vue';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -59,17 +59,25 @@ const TABS = [
     { value: 'expenses', label: 'Spese' },
 ];
 
-// Tab corrente sincronizzato con l'URL (?tab=…) per link e back coerenti,
-// senza nuova visita Inertia (solo replaceState).
-const initialTab = new URLSearchParams(window.location.search).get('tab');
-const activeTab = ref(
-    TABS.some((t) => t.value === initialTab)
-        ? (initialTab as string)
-        : 'overview',
-);
+// Tab corrente sincronizzato con l'URL (?tab=…): switch istantaneo lato client
+// (i dati di tutti i tab sono già in props), senza visita Inertia. pushState
+// (non replace) così il back del browser torna al tab precedente; un listener
+// popstate risincronizza il tab quando si naviga avanti/indietro.
+function tabFromUrl(): string {
+    const tab = new URLSearchParams(window.location.search).get('tab');
+
+    return TABS.some((t) => t.value === tab) ? (tab as string) : 'overview';
+}
+
+const activeTab = ref(tabFromUrl());
 
 function selectTab(value: string | number): void {
     const tab = String(value);
+
+    if (tab === activeTab.value) {
+        return;
+    }
+
     activeTab.value = tab;
     const url = new URL(window.location.href);
 
@@ -79,8 +87,16 @@ function selectTab(value: string | number): void {
         url.searchParams.set('tab', tab);
     }
 
-    window.history.replaceState(window.history.state, '', url);
+    // Mantengo lo state di Inertia per non rompere il suo back fra le pagine.
+    window.history.pushState(window.history.state, '', url);
 }
+
+function syncTabFromHistory(): void {
+    activeTab.value = tabFromUrl();
+}
+
+onMounted(() => window.addEventListener('popstate', syncTabFromHistory));
+onBeforeUnmount(() => window.removeEventListener('popstate', syncTabFromHistory));
 
 function switchYear(value: unknown): void {
     const raw = Array.isArray(value) ? value[0] : value;

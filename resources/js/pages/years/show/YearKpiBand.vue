@@ -75,17 +75,17 @@ const tax = computed(() => {
 <template>
     <div class="grid divide-y divide-border overflow-hidden rounded-lg border border-border bg-card md:grid-cols-[1fr_1.25fr] md:divide-x md:divide-y-0">
         <!-- Reddito -->
-        <section class="flex flex-col px-5 py-3.5">
-            <div class="flex flex-col gap-3">
+        <section class="flex flex-col px-5 py-3">
+            <div class="flex flex-col gap-2.5">
                 <header class="flex h-7 items-center">
                     <h3 class="kicker text-muted-foreground">Reddito{{ isPast ? '' : ' a oggi' }}</h3>
                 </header>
                 <div class="flex flex-col gap-1">
                     <p class="text-13 text-muted-foreground">Fatturato</p>
-                    <p class="tabular text-2xl font-medium leading-none tracking-tight text-foreground">{{ formatEUR(income.fatturato) }}</p>
+                    <p class="tabular text-xl font-medium leading-none tracking-tight text-foreground">{{ formatEUR(income.fatturato) }}</p>
                 </div>
             </div>
-            <div class="mt-auto flex flex-col gap-1.5 pt-5 text-13">
+            <div class="mt-auto flex flex-col gap-1.5 pt-4 text-13">
                 <div class="flex items-baseline justify-between gap-3">
                     <span class="whitespace-nowrap text-muted-foreground">Reddito netto effettivo</span>
                     <span class="tabular text-foreground font-medium">{{ formatEUR(income.netto) }}</span>
@@ -100,8 +100,8 @@ const tax = computed(() => {
         </section>
 
         <!-- Imposte e contributi -->
-        <section class="flex flex-col px-5 py-3.5">
-            <div class="flex flex-col gap-3">
+        <section class="flex flex-col px-5 py-3">
+            <div class="flex flex-col gap-2.5">
                 <header class="flex h-7 items-center justify-between gap-3">
                     <h3 class="kicker text-muted-foreground">Imposte e contributi</h3>
                     <ToggleGroup
@@ -119,11 +119,11 @@ const tax = computed(() => {
                 </header>
                 <div class="flex flex-col gap-1">
                     <p class="text-13 text-muted-foreground">{{ tax.dueLabel }}</p>
-                    <p v-if="tax.zero" class="text-2xl font-medium leading-none tracking-tight text-foreground">{{ isPast ? 'Saldato' : 'In pari' }}</p>
-                    <p v-else class="tabular text-2xl font-medium leading-none tracking-tight" :class="tax.negative ? 'text-success' : 'text-foreground'">{{ formatEUR(tax.due) }}</p>
+                    <p v-if="tax.zero" class="text-xl font-medium leading-none tracking-tight text-foreground">{{ isPast ? 'Saldato' : 'In pari' }}</p>
+                    <p v-else class="tabular text-xl font-medium leading-none tracking-tight" :class="tax.negative ? 'text-success' : 'text-foreground'">{{ formatEUR(tax.due) }}</p>
                 </div>
             </div>
-            <div class="mt-auto flex flex-col gap-2.5 pt-5">
+            <div class="mt-auto flex flex-col gap-2.5 pt-4">
                 <SplitBar :paid="tax.paid" :rest="tax.rest" :total="tax.total" />
                 <div class="flex flex-col gap-1.5 text-13">
                     <div class="flex items-baseline justify-between gap-3">

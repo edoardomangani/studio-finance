@@ -140,7 +140,9 @@ function openYear(year: YearListItem): void {
     <DataTable class="hidden md:table">
         <DataTableHeader :has-actions="false">
             <TableHead class="w-[100px]">Anno</TableHead>
-            <TableHead v-for="col in columns" :key="col.key" class="text-right">
+            <!-- whitespace-nowrap: le label fiscali (UNICO, 8 col) restano su una
+                 riga e, oltre il container, il box scrolla invece di comprimersi. -->
+            <TableHead v-for="col in columns" :key="col.key" class="whitespace-nowrap text-right">
                 {{ col.label }}
             </TableHead>
             <TableHead class="w-[120px]">Stato</TableHead>
