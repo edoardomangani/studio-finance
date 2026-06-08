@@ -22,7 +22,7 @@
  * submit globale chiama solo i form dirty.
  */
 import { Head, Link, setLayoutProps, useForm, usePage } from '@inertiajs/vue3';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import ProfessionalController from '@/actions/App/Http/Controllers/Settings/ProfessionalController';
 import SecurityController from '@/actions/App/Http/Controllers/Settings/SecurityController';
 import AppearanceTabs from '@/components/AppearanceTabs.vue';
@@ -32,6 +32,7 @@ import FormSection from '@/components/forms/FormSection.vue';
 import ManagePasskeys from '@/components/ManagePasskeys.vue';
 import ManageTwoFactor from '@/components/ManageTwoFactor.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
+import PropagateProfileDialog from '@/pages/settings/PropagateProfileDialog.vue';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Kbd } from '@/components/ui/kbd';
@@ -57,6 +58,8 @@ const props = defineProps<{
     passkeys?: unknown[];
     twoFactorEnabled?: boolean;
     requiresConfirmation?: boolean;
+    // Anni esistenti per la checklist di propagazione (F11).
+    professionalYears: { id: number; year: number; profitability_coefficient: number }[];
 }>();
 
 const page = usePage();
@@ -79,6 +82,20 @@ const professionalForm = useForm<{
         props.professionalProfile?.business_start_year ??
         new Date().getFullYear(),
 });
+
+// Propagazione (F11): baseline coefficiente/anno-inizio pre-modifica. Dopo un
+// salvataggio riuscito, se uno dei due cambia e ci sono anni, apre il dialog.
+const baselineCoefficient = ref<number | null>(
+    props.professionalProfile
+        ? Number(props.professionalProfile.profitability_coefficient)
+        : null,
+);
+const baselineStartYear = ref<number | null>(
+    props.professionalProfile?.business_start_year ?? null,
+);
+const propagateOpen = ref(false);
+const propagateCoefficient = ref(false);
+const propagateStartYear = ref(false);
 
 const securityForm = useForm({
     current_password: '',
@@ -111,6 +128,7 @@ function onSave(): void {
     if (props.professionalProfile && professionalForm.isDirty) {
         professionalForm.patch(ProfessionalController.update.url(), {
             preserveScroll: true,
+            onSuccess: maybeOpenPropagation,
         });
     }
 
@@ -125,6 +143,28 @@ function onSave(): void {
                     'current_password',
                 ),
         });
+    }
+}
+
+// Dopo il salvataggio del profilo: se coefficiente o anno-inizio sono cambiati
+// e ci sono anni esistenti, apre il dialog di propagazione. Aggiorna la baseline
+// così un secondo salvataggio senza ulteriori modifiche non lo riapre.
+function maybeOpenPropagation(): void {
+    const coef = Number(professionalForm.profitability_coefficient);
+    const start = professionalForm.business_start_year;
+
+    const coefChanged =
+        baselineCoefficient.value !== null && coef !== baselineCoefficient.value;
+    const startChanged =
+        baselineStartYear.value !== null && start !== baselineStartYear.value;
+
+    baselineCoefficient.value = coef;
+    baselineStartYear.value = start;
+
+    if ((coefChanged || startChanged) && props.professionalYears.length > 0) {
+        propagateCoefficient.value = coefChanged;
+        propagateStartYear.value = startChanged;
+        propagateOpen.value = true;
     }
 }
 
@@ -366,4 +406,13 @@ useShortcut(
             <DeleteUser />
         </div>
     </div>
+
+    <!-- Propagazione (F11): si apre dopo il salvataggio se coefficiente o
+         anno-inizio cambiano e ci sono anni esistenti. -->
+    <PropagateProfileDialog
+        v-model:open="propagateOpen"
+        :years="professionalYears"
+        :propagate-coefficient="propagateCoefficient"
+        :propagate-start-year="propagateStartYear"
+    />
 </template>

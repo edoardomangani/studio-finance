@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers\Settings;
 
+use App\Actions\Studiofinance\PropagateProfile;
 use App\Concerns\FlashesToast;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Settings\PropagateProfileRequest;
 use App\Http\Requests\Settings\UpdateProfessionalProfileRequest;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
@@ -11,10 +13,8 @@ use Illuminate\Support\Facades\DB;
 /**
  * Profilo professionale — modifica post-onboarding di nome, coefficiente di
  * redditività e anno di inizio attività. La UI vive in settings/Profile.vue
- * (tab "Profilo professionale"): qui solo l'update endpoint.
- *
- * La propagazione del coefficiente / anno-inizio agli Anni esistenti arriverà
- * in Fase 10 (F11 specifiche) con un dialog di conferma.
+ * (tab "Profilo professionale"): update endpoint + propagazione (F11) agli
+ * anni esistenti tramite dialog di conferma con checklist.
  */
 class ProfessionalController extends Controller
 {
@@ -50,6 +50,28 @@ class ProfessionalController extends Controller
         });
 
         $this->flashSuccess('Profilo professionale aggiornato.');
+
+        return to_route('profile.edit');
+    }
+
+    /**
+     * Propaga coefficiente e/o anno-inizio (già salvati sul profilo dall'update)
+     * agli anni selezionati nella checklist del dialog F11.
+     */
+    public function propagate(PropagateProfileRequest $request, PropagateProfile $action): RedirectResponse
+    {
+        $data = $request->validated();
+        $user = $request->user();
+        $user->loadMissing('professionalProfile');
+
+        $action->handle(
+            $user->professionalProfile,
+            $data['year_ids'],
+            $data['coefficient'],
+            $data['start_year'],
+        );
+
+        $this->flashSuccess('Modifiche propagate agli anni selezionati.');
 
         return to_route('profile.edit');
     }

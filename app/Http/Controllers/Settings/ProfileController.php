@@ -8,6 +8,7 @@ use App\Http\Requests\Settings\ProfileDeleteRequest;
 use App\Http\Requests\Settings\ProfileUpdateRequest;
 use App\Http\Requests\Settings\TwoFactorAuthenticationRequest;
 use App\Models\User;
+use App\Models\Year;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
@@ -32,6 +33,19 @@ class ProfileController extends Controller
             'mustVerifyEmail' => $user instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
             'professionalProfile' => $user->professionalProfile,
+            // Anni esistenti per la checklist di propagazione (F11). Scoped via
+            // BelongsToUser; vuoto se non onboarded.
+            'professionalYears' => $user->professionalProfile
+                ? Year::query()
+                    ->orderByDesc('year')
+                    ->get(['id', 'year', 'profitability_coefficient'])
+                    ->map(fn (Year $y): array => [
+                        'id' => $y->id,
+                        'year' => $y->year,
+                        'profitability_coefficient' => (float) $y->profitability_coefficient,
+                    ])
+                    ->all()
+                : [],
             ...$this->securityProps($user),
         ];
 
