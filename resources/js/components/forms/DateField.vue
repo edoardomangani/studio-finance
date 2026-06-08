@@ -87,9 +87,12 @@ const displayLabel = computed(() =>
             <!-- `placeholder` = data su cui il calendar centra il focus
                  all'apertura. Se c'è già una selezione, parto da lì invece
                  di "oggi" (UX standard datepicker). -->
+            <!-- `layout="month-and-year"`: l'intestazione diventa due dropdown
+                 (mese + anno) → salto d'anno immediato senza cliccare « N volte. -->
             <Calendar
                 :model-value="calendarValue"
                 :placeholder="calendarValue"
+                layout="month-and-year"
                 weekday-format="short"
                 locale="it-IT"
                 @update:model-value="onCalendarSelect"
