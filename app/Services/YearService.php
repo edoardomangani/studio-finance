@@ -48,6 +48,8 @@ class YearService
 
         return Year::query()
             ->withCount(['annualExpenses', 'deadlines'])
+            // Eager load così il loadMissing interno al loader è un no-op (−N query).
+            ->with(['annualExpenses' => fn ($q) => $q->orderBy('id')])
             ->orderByDesc('year')
             ->get()
             ->map(function (Year $year) use ($calendar, $familyNames): array {
@@ -74,11 +76,11 @@ class YearService
                     'net' => $current ? $totals['net_to_date'] : $totals['net'],
                     'paid' => $totals['expenses_paid'],
                     'due' => $current ? $totals['expenses_due_to_date'] : $totals['expenses_due'],
-                    // Focus UNICO (dichiarazione). Imposta = reddito IRPEF netto − netto bancario.
+                    // Focus UNICO (dichiarazione).
                     'vat_turnover' => $totals['vat_turnover'],
                     'irpef_income_net' => $totals['irpef_income_net'],
                     'pension_contributions_paid' => $totals['pension_contributions_paid'],
-                    'imposta_sostitutiva' => round($totals['irpef_income_net'] - $totals['bank_income'], 2),
+                    'imposta_sostitutiva' => $totals['imposta_sostitutiva'],
                     'withholdings' => $totals['withholdings'],
                     'previous_year_credit' => $totals['previous_year_credit'],
                     'bank_income' => $totals['bank_income'],

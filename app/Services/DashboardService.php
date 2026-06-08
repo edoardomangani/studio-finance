@@ -30,6 +30,7 @@ class DashboardService
         private readonly YearAmountsLoader $amountsLoader,
         private readonly RevenueCalculator $revenueCalculator,
         private readonly MonthlyStatement $monthlyStatement,
+        private readonly YearStatement $yearStatement,
         private readonly DeadlineContextBuilder $deadlineContextBuilder,
         private readonly DeadlineExpectation $deadlineExpectation,
     ) {}
@@ -168,22 +169,12 @@ class DashboardService
             'invoice_total' => $invoiceTotal,
             'months_elapsed' => $monthsElapsed,
             'projection' => $monthsElapsed > 0 ? round($invoiceTotal / $monthsElapsed * 12, 0) : 0.0,
-            'bank_income' => $this->bankIncome($amounts),
+            // Netto bancario d'anno (stima mid-anno): formula unica in YearStatement.
+            'bank_income' => $this->yearStatement->bankIncome(
+                $amounts->figures->irpefIncomeNet,
+                $this->yearStatement->impostaSostitutivaFromAmounts($amounts),
+            ),
         ];
-    }
-
-    /**
-     * Netto bancario d'anno: reddito IRPEF netto − imposta sostitutiva (calcolata),
-     * cioè `volume d'affari × coeff − contributi − imposta`. È il netto post-imposta
-     * che le banche usano come stipendio. Mid-anno è una stima (l'IS matura coi ricavi).
-     */
-    private function bankIncome(YearAmounts $amounts): float
-    {
-        $impostaSostitutiva = $amounts->expenses
-            ->filter(fn (AnnualExpense $e): bool => $e->isImpostaSostitutiva())
-            ->sum(fn (AnnualExpense $e): float => (float) ($amounts->expenseAmounts[$e->id]['calculated'] ?? 0));
-
-        return round($amounts->figures->irpefIncomeNet - $impostaSostitutiva, 2);
     }
 
     /**

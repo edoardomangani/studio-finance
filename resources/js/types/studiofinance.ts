@@ -342,6 +342,7 @@ export type YearTotals = {
     irpef_income_net: number;
     pension_contributions_paid: number;
     withholdings: number;
+    imposta_sostitutiva: number;
     previous_year_credit: number;
     invoice_total: number;
     expenses_expected: number;

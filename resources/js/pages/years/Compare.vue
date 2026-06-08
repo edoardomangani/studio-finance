@@ -4,7 +4,7 @@
  *
  * Tabella di confronto: una riga per anno. Un ToggleGroup scambia il set di KPI
  * (mai mischiati): focus **Personale** (5 colonne, cosa entra/resta) o **UNICO**
- * (7 colonne fiscali della dichiarazione). L'anno in corso porta importi "a oggi"
+ * (8 colonne fiscali della dichiarazione). L'anno in corso porta importi "a oggi"
  * (stima) segnalati dal badge di stato; i pre-aperti hanno un badge dedicato.
  * Riga cliccabile → vista anno.
  */
@@ -45,7 +45,11 @@ setLayoutProps({
 });
 
 type Focus = 'personale' | 'unico';
-type Column = { key: keyof YearListItem; label: string };
+// Solo le chiavi numeriche di YearListItem: i KPI formattati in EUR (niente cast).
+type NumericKey = {
+    [K in keyof YearListItem]: YearListItem[K] extends number ? K : never;
+}[keyof YearListItem];
+type Column = { key: NumericKey; label: string };
 
 const focus = ref<Focus>('personale');
 
@@ -83,7 +87,7 @@ const colspan = computed<number>(() => columns.value.length + 2);
 
 type Status = { label: string; variant: 'secondary' | 'warning'; muted?: boolean };
 
-function status(year: YearListItem): Status {
+function statusFor(year: YearListItem): Status {
     if (year.pre_opened) {
         return { label: 'Pre-aperto', variant: 'secondary' };
     }
@@ -94,6 +98,11 @@ function status(year: YearListItem): Status {
     // Chiuso: neutro, badge "fantasma" (sage spento).
     return { label: 'Chiuso', variant: 'secondary', muted: true };
 }
+
+// Stato precomputato per id: evita di richiamare statusFor 3× per riga nel template.
+const statuses = computed<Record<number, Status>>(() =>
+    Object.fromEntries(props.years.map((year) => [year.id, statusFor(year)])),
+);
 
 function openYear(year: YearListItem): void {
     router.visit(yearShow(year.year).url);
@@ -163,14 +172,14 @@ function openYear(year: YearListItem): void {
                     :key="col.key"
                     class="tabular text-right text-foreground"
                 >
-                    {{ formatEUR(year[col.key] as number) }}
+                    {{ formatEUR(year[col.key]) }}
                 </TableCell>
                 <TableCell>
                     <Badge
-                        :variant="status(year).variant"
-                        :class="status(year).muted ? 'bg-transparent text-muted-foreground' : ''"
+                        :variant="statuses[year.id].variant"
+                        :class="statuses[year.id].muted ? 'bg-transparent text-muted-foreground' : ''"
                     >
-                        {{ status(year).label }}
+                        {{ statuses[year.id].label }}
                     </Badge>
                 </TableCell>
             </DataTableRow>
@@ -194,10 +203,10 @@ function openYear(year: YearListItem): void {
                     <div class="flex items-baseline justify-between">
                         <span class="tabular text-base font-medium text-foreground">{{ year.year }}</span>
                         <Badge
-                            :variant="status(year).variant"
-                            :class="status(year).muted ? 'bg-transparent text-muted-foreground' : ''"
+                            :variant="statuses[year.id].variant"
+                            :class="statuses[year.id].muted ? 'bg-transparent text-muted-foreground' : ''"
                         >
-                            {{ status(year).label }}
+                            {{ statuses[year.id].label }}
                         </Badge>
                     </div>
                     <dl class="mt-2 grid grid-cols-2 gap-x-5 gap-y-1.5 text-13 text-muted-foreground">
@@ -207,7 +216,7 @@ function openYear(year: YearListItem): void {
                             class="flex items-baseline justify-between gap-1.5"
                         >
                             <dt>{{ col.label }}</dt>
-                            <dd class="tabular text-foreground">{{ formatEUR(year[col.key] as number) }}</dd>
+                            <dd class="tabular text-foreground">{{ formatEUR(year[col.key]) }}</dd>
                         </div>
                     </dl>
                 </Link>

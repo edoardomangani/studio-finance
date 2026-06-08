@@ -61,6 +61,7 @@ class YearStatement
         $definitive = $sum('definitive');
         $amountToDate = $sum('amount_to_date');
         $is = $this->impostaSostitutivaRow($expenseRows);
+        $impostaSostitutiva = (float) ($is['calculated'] ?? 0);
 
         return [
             'taxable_amount' => $figures->taxableAmount,
@@ -70,6 +71,7 @@ class YearStatement
             'irpef_income_net' => $figures->irpefIncomeNet,
             'pension_contributions_paid' => $figures->pensionContributionsPaid,
             'withholdings' => $figures->withholdings,
+            'imposta_sostitutiva' => $impostaSostitutiva,
             'previous_year_credit' => (float) ($is['previous_year_credit'] ?? 0),
             'invoice_total' => $figures->invoiceTotal,
             'expenses_expected' => $sum('expected'),
@@ -85,8 +87,31 @@ class YearStatement
             // Netto a oggi (anno in corso): fatturato − maturato a oggi. La banda
             // KPI usa questo in corso, `net` (− definitivo) sul consuntivo.
             'net_to_date' => round($figures->invoiceTotal - $amountToDate, 2),
-            'bank_income' => round($figures->irpefIncomeNet - (float) ($is['calculated'] ?? 0), 2),
+            'bank_income' => $this->bankIncome($figures->irpefIncomeNet, $impostaSostitutiva),
         ];
+    }
+
+    /**
+     * Netto bancario: reddito IRPEF netto − imposta sostitutiva calcolata, cioè
+     * `volume d'affari × coeff − contributi − imposta`. È il netto post-imposta
+     * che le banche leggono come stipendio (mutui/finanziamenti). Formula unica,
+     * riusata da `totals()` (righe) e dalla dashboard (da [[YearAmounts]]).
+     */
+    public function bankIncome(float $irpefIncomeNet, float $impostaSostitutiva): float
+    {
+        return round($irpefIncomeNet - $impostaSostitutiva, 2);
+    }
+
+    /**
+     * Imposta sostitutiva calcolata da [[YearAmounts]]: somma del `calculated`
+     * delle voci IS. Sorgente alternativa a `impostaSostitutivaRow` (che legge
+     * dalle righe già mappate), per i chiamanti che hanno solo gli amounts.
+     */
+    public function impostaSostitutivaFromAmounts(YearAmounts $amounts): float
+    {
+        return (float) $amounts->expenses
+            ->filter(fn (AnnualExpense $e): bool => $e->isImpostaSostitutiva())
+            ->sum(fn (AnnualExpense $e): float => (float) ($amounts->expenseAmounts[$e->id]['calculated'] ?? 0));
     }
 
     /**
