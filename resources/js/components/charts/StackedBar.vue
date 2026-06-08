@@ -36,7 +36,7 @@ function toggle(id: ItemId): void {
 
 <template>
     <div class="flex flex-col justify-between gap-4 rounded-lg border border-border bg-card p-4">
-        <div class="flex h-3.5 overflow-hidden rounded-sm">
+        <div class="flex h-3.5 overflow-hidden rounded-sm bg-muted">
             <div
                 v-for="segment in segments"
                 :key="segment.id"
@@ -50,6 +50,9 @@ function toggle(id: ItemId): void {
             />
         </div>
         <div class="flex flex-col gap-0.5">
+            <p v-if="!segments.length" class="px-1.5 py-1 text-13 text-muted-foreground">
+                Nessuna spesa nel mese.
+            </p>
             <button
                 v-for="segment in segments"
                 :key="segment.id"

@@ -11,7 +11,10 @@ use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\YearController;
 use Illuminate\Support\Facades\Route;
 
-Route::inertia('/', 'Welcome')->name('home');
+// Ingresso app: niente landing. Loggato → dashboard, altrimenti → login.
+Route::get('/', function () {
+    return redirect()->route(auth()->check() ? 'dashboard' : 'login');
+})->name('home');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Onboarding: NON protetto da EnsureOnboarded (loop). Il controller fa

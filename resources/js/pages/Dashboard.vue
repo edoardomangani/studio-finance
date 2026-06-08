@@ -97,7 +97,8 @@ const monthExpenseItems = computed(() =>
                  lista scadenze è il box "lungo", il box Spese si allunga (flex-1 +
                  justify-between) per allineare il fondo. -->
             <div class="grid items-stretch gap-4 md:grid-cols-[0.85fr_1.15fr]">
-                <section v-if="data.month_expenses.length" class="flex flex-col gap-2">
+                <!-- Sempre presente (anche a 0) per non far collassare la griglia. -->
+                <section class="flex flex-col gap-2">
                     <header class="flex items-baseline justify-between gap-3">
                         <h2 class="kicker text-muted-foreground">Spese del mese · {{ monthName }} {{ data.calendar_year }}</h2>
                         <span class="tabular text-13 font-medium text-foreground">{{ formatEUR(accrualTotal) }}</span>
