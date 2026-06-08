@@ -148,6 +148,8 @@ class InvoiceController extends Controller
 
         $this->flashSuccess('Fattura archiviata.');
 
-        return to_route('invoices.index');
+        // back(): la fattura è archiviabile dalla lista e dalla vista anno →
+        // si torna alla superficie di partenza.
+        return back();
     }
 }

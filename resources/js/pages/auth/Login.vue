@@ -64,7 +64,9 @@ function submit(): void {
                     autocomplete="email"
                     placeholder="nome@studio.it"
                 />
-                <template v-if="form.errors.email" #error>{{ form.errors.email }}</template>
+                <template v-if="form.errors.email" #error>{{
+                    form.errors.email
+                }}</template>
             </FormField>
 
             <FormField label="Password" for="password" required>
@@ -75,12 +77,18 @@ function submit(): void {
                     :tabindex="2"
                     autocomplete="current-password"
                 />
-                <template v-if="form.errors.password" #error>{{ form.errors.password }}</template>
+                <template v-if="form.errors.password" #error>{{
+                    form.errors.password
+                }}</template>
             </FormField>
 
             <div class="flex items-center justify-between">
                 <Label for="remember" class="flex items-center gap-2.5 text-13">
-                    <Checkbox id="remember" v-model="form.remember" :tabindex="3" />
+                    <Checkbox
+                        id="remember"
+                        v-model="form.remember"
+                        :tabindex="3"
+                    />
                     <span>Ricordami su questo dispositivo</span>
                 </Label>
                 <TextLink

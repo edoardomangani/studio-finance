@@ -101,6 +101,32 @@ class PaymentService
     }
 
     /**
+     * Aggiorna un pagamento manuale (spesa riassegnabile, importo/data/
+     * descrizione). Presuppone il guard del controller (solo manuale).
+     *
+     * @param  array{annual_expense_id: int, description?: ?string, amount: mixed, paid_at: mixed}  $data
+     */
+    public function update(Payment $payment, array $data): void
+    {
+        $payment->update([
+            'annual_expense_id' => $data['annual_expense_id'],
+            'description' => $data['description'] ?? null,
+            'amount' => $data['amount'],
+            'paid_at' => $data['paid_at'],
+        ]);
+    }
+
+    /**
+     * Elimina (soft delete) un pagamento manuale. Presuppone il guard del
+     * controller (solo manuale): un pagamento da scadenza si gestisce dalla
+     * scadenza.
+     */
+    public function delete(Payment $payment): void
+    {
+        $payment->delete();
+    }
+
+    /**
      * @return array<string, mixed>
      */
     private function toListItem(Payment $payment): array

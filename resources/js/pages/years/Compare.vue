@@ -1,27 +1,32 @@
 <script setup lang="ts">
 /**
- * Years — Index page.
+ * Years — Compare page (confronto pluriennale).
  *
- * Vista pluriennale densa: una riga per anno aperto, con coefficiente e
- * conteggi di spese/scadenze. Gli anni "pre-aperti" (creati implicitamente
- * dal cross-year) portano un badge dedicato e zero scadenze finché non
- * vengono aperti formalmente. Riga cliccabile → vista anno.
+ * Vista "report" secondaria della sezione Anni: una riga per anno, con
+ * coefficiente e conteggi di spese/scadenze. L'ingresso della sezione atterra
+ * invece sull'anno corrente (cockpit); qui si arriva dal link "Confronto anni"
+ * della vista anno o quando non esiste ancora alcun anno (empty state). Gli
+ * anni "pre-aperti" portano un badge dedicato. Riga cliccabile → vista anno.
  */
 import { Head, Link, router, setLayoutProps } from '@inertiajs/vue3';
 import { PhPlus } from '@phosphor-icons/vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
-    Table,
-    TableBody,
+    DataTable,
+    DataTableBody,
+    DataTableHeader,
+    DataTableRow,
     TableCell,
     TableEmpty,
     TableHead,
-    TableHeader,
-    TableRow,
 } from '@/components/ui/table';
 import { formatPercent } from '@/lib/format';
-import { create as yearCreate, show as yearShow } from '@/routes/years';
+import {
+    create as yearCreate,
+    index as yearsIndex,
+    show as yearShow,
+} from '@/routes/years';
 import type { YearListItem } from '@/types';
 
 const props = defineProps<{
@@ -29,8 +34,11 @@ const props = defineProps<{
 }>();
 
 setLayoutProps({
-    pageTitle: 'Anni',
-    pageCrumbs: [{ label: 'Anni' }],
+    pageTitle: 'Confronto anni',
+    pageCrumbs: [
+        { label: 'Anni', href: yearsIndex().url },
+        { label: 'Confronto' },
+    ],
     subbar: false,
 });
 
@@ -40,7 +48,7 @@ function openYear(year: YearListItem): void {
 </script>
 
 <template>
-    <Head title="Anni" />
+    <Head title="Confronto anni" />
 
     <Teleport to="#page-topbar-actions" defer>
         <Button as-child size="sm">
@@ -52,25 +60,23 @@ function openYear(year: YearListItem): void {
     </Teleport>
 
     <!-- Desktop (md+): tabella densa. -->
-    <Table boxed class="hidden md:table">
-        <TableHeader>
-            <TableRow>
-                <TableHead class="w-[120px]">Anno</TableHead>
-                <TableHead class="w-[140px] text-right">Coefficiente</TableHead>
-                <TableHead class="text-right">Voci di spesa</TableHead>
-                <TableHead class="text-right">Scadenze</TableHead>
-                <TableHead class="w-[140px]">Stato</TableHead>
-            </TableRow>
-        </TableHeader>
-        <TableBody>
+    <DataTable class="hidden md:table">
+        <DataTableHeader :has-actions="false">
+            <TableHead class="w-[120px]">Anno</TableHead>
+            <TableHead class="w-[140px] text-right">Coefficiente</TableHead>
+            <TableHead class="text-right">Voci di spesa</TableHead>
+            <TableHead class="text-right">Scadenze</TableHead>
+            <TableHead class="w-[140px]">Stato</TableHead>
+        </DataTableHeader>
+        <DataTableBody>
             <TableEmpty v-if="props.years.length === 0" :colspan="5">
                 Nessun anno aperto. Aprine uno dal pulsante in alto.
             </TableEmpty>
-            <TableRow
+            <DataTableRow
                 v-for="year in props.years"
                 v-else
                 :key="year.id"
-                class="cursor-pointer transition-colors hover:bg-muted/40"
+                interactive
                 @click="openYear(year)"
             >
                 <TableCell
@@ -99,9 +105,9 @@ function openYear(year: YearListItem): void {
                     >
                     <span v-else class="text-muted-foreground">—</span>
                 </TableCell>
-            </TableRow>
-        </TableBody>
-    </Table>
+            </DataTableRow>
+        </DataTableBody>
+    </DataTable>
 
     <!-- Mobile (< md): card-stack, ogni card è un Link a piena area touch. -->
     <div class="md:hidden">

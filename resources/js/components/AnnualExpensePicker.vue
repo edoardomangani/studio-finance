@@ -86,10 +86,15 @@ function handleUpdate(value: unknown): void {
                         {{ selected?.name ?? 'Cerca spesa…' }}
                     </span>
                     <div class="flex items-center">
-                        <span v-if="selected" class="ml-2 tabular text-xs text-muted-foreground">
+                        <span
+                            v-if="selected"
+                            class="tabular ml-2 text-xs text-muted-foreground"
+                        >
                             {{ selected.year }}
                         </span>
-                        <PhArrowRight class="ml-2 size-3.5 rotate-90 opacity-50" />
+                        <PhArrowRight
+                            class="ml-2 size-3.5 rotate-90 opacity-50"
+                        />
                     </div>
                 </Button>
             </ComboboxTrigger>
@@ -115,7 +120,9 @@ function handleUpdate(value: unknown): void {
                 >
                     <span>{{ e.name }}</span>
                     <div class="flex items-center gap-2">
-                        <span class="tabular text-xs text-muted-foreground">{{ e.year }}</span>
+                        <span class="tabular text-xs text-muted-foreground">{{
+                            e.year
+                        }}</span>
                         <ComboboxItemIndicator>
                             <PhCheck class="size-3.5" />
                         </ComboboxItemIndicator>
@@ -125,7 +132,10 @@ function handleUpdate(value: unknown): void {
         </ComboboxList>
     </Combobox>
 
-    <p v-if="annualExpenses.length === 0" class="mt-1 text-xs text-muted-foreground">
+    <p
+        v-if="annualExpenses.length === 0"
+        class="mt-1 text-xs text-muted-foreground"
+    >
         Nessuna spesa annuale. Apri un anno per generarle.
     </p>
 </template>

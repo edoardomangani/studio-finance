@@ -77,8 +77,12 @@
     --color-surface-2: var(--surface-2);
     --color-border-soft: var(--border-soft);
     --color-ink-soft: var(--ink-soft);
-    --color-accent-strong: var(--accent-strong); /* petrol scuro/spento, calmo (UI: focus, item attivo, button) */
-    --color-accent-vivid: var(--accent-vivid); /* petrol medio/vivace (decoro testuale: FIN logo, link inline, emphasis) */
+    --color-accent-strong: var(
+        --accent-strong
+    ); /* petrol scuro/spento, calmo (UI: focus, item attivo, button) */
+    --color-accent-vivid: var(
+        --accent-vivid
+    ); /* petrol medio/vivace (decoro testuale: FIN logo, link inline, emphasis) */
     --color-accent-line: var(--accent-line); /* border focus */
 
     --color-success: var(--success);
@@ -135,7 +139,9 @@
     --c-bg: oklch(98.5% 0.001 286); /* zinc-50 — canvas */
     --c-bg-2: oklch(96.7% 0.002 286); /* zinc-100 — muted bg */
     --c-bg-3: oklch(96.7% 0.002 286); /* sidebar nav bg */
-    --c-surface: oklch(100% 0 0); /* card / popover — white puro per stacco da canvas */
+    --c-surface: oklch(
+        100% 0 0
+    ); /* card / popover — white puro per stacco da canvas */
     --c-line: oklch(91.9% 0.004 286); /* zinc-200 — border standard */
     --c-line-2: oklch(94% 0.003 286); /* border-soft / hover */
     --c-ink: oklch(21% 0.006 286); /* zinc-900 — testo primary */
@@ -218,7 +224,9 @@
          button "accent" se serve. Calmo, da DESIGN.md. */
     --accent-vivid: oklch(52% 0.105 210);
     --accent-strong: oklch(32% 0.06 210);
-    --accent: oklch(32% 0.06 210 / 10%); /* accent-soft = fill morbido (hover/selected) */
+    --accent: oklch(
+        32% 0.06 210 / 10%
+    ); /* accent-soft = fill morbido (hover/selected) */
     --accent-foreground: oklch(32% 0.06 210); /* testo su accent-soft */
     --accent-line: oklch(32% 0.06 210 / 28%); /* border focus / underline */
 
@@ -314,13 +322,19 @@
     --muted-foreground: oklch(70.4% 0.012 286);
 
     --field-foreground: oklch(98.5% 0.001 286);
-    --placeholder-foreground: oklch(45% 0.014 286); /* zinc-600 dark, leggibile */
+    --placeholder-foreground: oklch(
+        45% 0.014 286
+    ); /* zinc-600 dark, leggibile */
     --field-font-size: 0.8125rem;
     --placeholder-font-size: 0.8125rem;
-    --input-border-focus: oklch(66% 0.075 210); /* petrol dark = accent-strong dark */
+    --input-border-focus: oklch(
+        66% 0.075 210
+    ); /* petrol dark = accent-strong dark */
     --input-border-invalid: oklch(70% 0.175 25);
 
-    --accent-vivid: oklch(74% 0.115 210); /* più chiaro/saturato in dark per leggibilità */
+    --accent-vivid: oklch(
+        74% 0.115 210
+    ); /* più chiaro/saturato in dark per leggibilità */
     --accent-strong: oklch(66% 0.075 210);
     --accent: oklch(66% 0.075 210 / 18%);
     --accent-foreground: oklch(66% 0.075 210);
@@ -341,7 +355,9 @@
     --chart-4: oklch(70% 0.175 25);
     --chart-5: oklch(65% 0.014 286);
 
-    --sidebar: oklch(18% 0.005 286); /* leggermente più chiara del canvas zinc-950 */
+    --sidebar: oklch(
+        18% 0.005 286
+    ); /* leggermente più chiara del canvas zinc-950 */
     --sidebar-foreground: oklch(70.4% 0.012 286);
     --sidebar-primary: oklch(66% 0.075 210);
     --sidebar-primary-foreground: oklch(14.5% 0.003 286);
@@ -469,6 +485,7 @@
 
     .tabular {
         font-variant-numeric: tabular-nums;
+        
     }
 
     .code-pill {

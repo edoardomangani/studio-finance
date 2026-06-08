@@ -279,7 +279,9 @@ watch(
                                         />
                                     </InputOTPGroup>
                                 </InputOTP>
-                                <InputError :message="confirmForm.errors.code" />
+                                <InputError
+                                    :message="confirmForm.errors.code"
+                                />
                             </div>
 
                             <div class="flex w-full items-center gap-5">
@@ -295,7 +297,10 @@ watch(
                                 <Button
                                     type="submit"
                                     class="w-auto flex-1"
-                                    :disabled="confirmForm.processing || confirmForm.code.length < 6"
+                                    :disabled="
+                                        confirmForm.processing ||
+                                        confirmForm.code.length < 6
+                                    "
                                 >
                                     Confirm
                                 </Button>

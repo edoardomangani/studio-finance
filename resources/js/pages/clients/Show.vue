@@ -12,20 +12,20 @@ import { Head, Link, router, setLayoutProps, useForm } from '@inertiajs/vue3';
 import { PhArchive, PhPencil, PhPlus } from '@phosphor-icons/vue';
 import { computed, ref } from 'vue';
 import ClientController from '@/actions/App/Http/Controllers/ClientController';
-import ClientFormDialog from '@/pages/clients/ClientFormDialog.vue';
 import FormSection from '@/components/forms/FormSection.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/dialog';
 import {
-    Table,
-    TableBody,
+    DataTable,
+    DataTableBody,
+    DataTableHeader,
+    DataTableRow,
     TableCell,
     TableHead,
-    TableHeader,
-    TableRow,
 } from '@/components/ui/table';
 import { formatDateIT, formatEUR } from '@/lib/format';
+import ClientFormDialog from '@/pages/clients/ClientFormDialog.vue';
 import { index as clientsIndex } from '@/routes/clients';
 import {
     create as invoicesCreate,
@@ -160,22 +160,18 @@ const createInvoiceUrl = computed(
                 </Button>
             </template>
 
-            <Table v-if="invoices.length > 0" boxed>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead class="w-[110px]">Data</TableHead>
-                        <TableHead class="w-[130px]">Numero</TableHead>
-                        <TableHead class="text-right">Totale</TableHead>
-                        <TableHead class="w-[100px] text-right"
-                            >Ritenuta</TableHead
-                        >
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    <TableRow
+            <DataTable v-if="invoices.length > 0">
+                <DataTableHeader :has-actions="false">
+                    <TableHead class="w-[110px]">Data</TableHead>
+                    <TableHead class="w-[130px]">Numero</TableHead>
+                    <TableHead class="text-right">Totale</TableHead>
+                    <TableHead class="w-[100px] text-right">Ritenuta</TableHead>
+                </DataTableHeader>
+                <DataTableBody>
+                    <DataTableRow
                         v-for="invoice in invoices"
                         :key="invoice.id"
-                        class="cursor-pointer transition-colors hover:bg-muted/40"
+                        interactive
                         @click="openInvoice(invoice)"
                     >
                         <TableCell class="tabular text-muted-foreground">
@@ -203,9 +199,9 @@ const createInvoiceUrl = computed(
                             </Badge>
                             <span v-else class="text-muted-foreground">—</span>
                         </TableCell>
-                    </TableRow>
-                </TableBody>
-            </Table>
+                    </DataTableRow>
+                </DataTableBody>
+            </DataTable>
             <p v-else class="text-13 text-muted-foreground">
                 Nessuna fattura ancora. Crea la prima dal pulsante in alto.
             </p>

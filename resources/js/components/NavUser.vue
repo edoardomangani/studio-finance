@@ -22,7 +22,9 @@ const user = computed(() => page.props.auth.user);
 const { isMobile, state } = useSidebar();
 const { getInitials } = useInitials();
 
-const showAvatar = computed(() => user.value.avatar && user.value.avatar !== '');
+const showAvatar = computed(
+    () => user.value.avatar && user.value.avatar !== '',
+);
 </script>
 
 <template>
@@ -31,10 +33,12 @@ const showAvatar = computed(() => user.value.avatar && user.value.avatar !== '')
             <DropdownMenu>
                 <DropdownMenuTrigger as-child>
                     <SidebarMenuButton
-                        class="h-auto gap-2 px-2 py-1.5 data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground group-data-[collapsible=icon]:p-0! group-data-[collapsible=icon]:justify-center"
+                        class="h-auto gap-2 px-2 py-1.5 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:p-0! data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         data-test="sidebar-menu-button"
                     >
-                        <Avatar class="size-6 shrink-0 overflow-hidden rounded group-data-[collapsible=icon]:size-5">
+                        <Avatar
+                            class="size-6 shrink-0 overflow-hidden rounded group-data-[collapsible=icon]:size-5"
+                        >
                             <AvatarImage
                                 v-if="showAvatar"
                                 :src="user.avatar!"
@@ -46,11 +50,17 @@ const showAvatar = computed(() => user.value.avatar && user.value.avatar !== '')
                                 {{ getInitials(user.name) }}
                             </AvatarFallback>
                         </Avatar>
-                        <div class="grid min-w-0 flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden">
-                            <span class="truncate text-xs font-medium text-foreground">
+                        <div
+                            class="grid min-w-0 flex-1 text-left leading-tight group-data-[collapsible=icon]:hidden"
+                        >
+                            <span
+                                class="truncate text-xs font-medium text-foreground"
+                            >
                                 {{ user.name }}
                             </span>
-                            <span class="truncate text-2xs text-muted-foreground">
+                            <span
+                                class="truncate text-2xs text-muted-foreground"
+                            >
                                 {{ user.email }}
                             </span>
                         </div>

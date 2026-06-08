@@ -21,7 +21,11 @@ import { computed, ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Calendar } from '@/components/ui/calendar';
 import { Input } from '@/components/ui/input';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from '@/components/ui/popover';
 import { formatDateIT } from '@/lib/format';
 
 withDefaults(
@@ -63,12 +67,7 @@ const displayLabel = computed(() =>
 
 <template>
     <!-- Mobile (<md): input nativo. Touch keyboard del SO gestisce il picker. -->
-    <Input
-        :id="id"
-        v-model="modelValue"
-        type="date"
-        class="md:hidden"
-    />
+    <Input :id="id" v-model="modelValue" type="date" class="md:hidden" />
 
     <!-- Desktop (md+): Popover + Calendar shadcn. -->
     <Popover v-model:open="popoverOpen">

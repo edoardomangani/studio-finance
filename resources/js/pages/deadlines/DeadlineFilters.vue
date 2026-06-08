@@ -19,13 +19,22 @@ const props = defineProps<{
 
 const modelValue = defineModel<DeadlineFilterState>({ required: true });
 
-const yearOptions = computed(() => props.availableYears.map((y) => ({ value: y, label: String(y) })));
-const dueYearOptions = computed(() => props.availableDueYears.map((y) => ({ value: y, label: String(y) })));
-const expenseOptions = computed(() => props.expenseItems.map((i) => ({ value: i.id, label: i.name })));
+const yearOptions = computed(() =>
+    props.availableYears.map((y) => ({ value: y, label: String(y) })),
+);
+const dueYearOptions = computed(() =>
+    props.availableDueYears.map((y) => ({ value: y, label: String(y) })),
+);
+const expenseOptions = computed(() =>
+    props.expenseItems.map((i) => ({ value: i.id, label: i.name })),
+);
 
 // Riassegna l'intero oggetto (non muta annidato) così il defineModel del
 // parent emette e il live-apply desktop scatta.
-function setFacet<K extends keyof DeadlineFilterState>(key: K, values: DeadlineFilterState[K]): void {
+function setFacet<K extends keyof DeadlineFilterState>(
+    key: K,
+    values: DeadlineFilterState[K],
+): void {
     modelValue.value = { ...modelValue.value, [key]: values };
 }
 </script>
@@ -37,7 +46,9 @@ function setFacet<K extends keyof DeadlineFilterState>(key: K, values: DeadlineF
             id-prefix="flt-kind"
             :options="kindOptions"
             :model-value="modelValue.kind"
-            @update:model-value="(v) => setFacet('kind', v as DeadlineFilterState['kind'])"
+            @update:model-value="
+                (v) => setFacet('kind', v as DeadlineFilterState['kind'])
+            "
         />
         <CheckboxFacet
             title="Anno di riferimento"
@@ -58,7 +69,9 @@ function setFacet<K extends keyof DeadlineFilterState>(key: K, values: DeadlineF
             id-prefix="flt-voce"
             :options="expenseOptions"
             :model-value="modelValue.expenseItemId"
-            @update:model-value="(v) => setFacet('expenseItemId', v as number[])"
+            @update:model-value="
+                (v) => setFacet('expenseItemId', v as number[])
+            "
         />
     </div>
 </template>

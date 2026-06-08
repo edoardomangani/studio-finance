@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\DeadlineKind;
+use App\Enums\DeadlineStatus;
 use App\Enums\ExpenseCalculationType;
 use App\Enums\QuotaType;
 use App\Models\AnnualExpense;
@@ -58,19 +59,42 @@ class DeadlineExpectation
         }
 
         return match ($deadline->quota_type) {
-            QuotaType::TaxAdvance => $this->taxAdvance($deadline, $expense, $context),
+            QuotaType::TaxAdvance => $this->advanceExpected($expense, QuotaType::TaxAdvance, $context),
             QuotaType::TaxBalance => $this->balance($expense, QuotaType::TaxAdvance, $context),
-            QuotaType::ContributionMinimum => $this->splitFloor($deadline, $expense, $context),
+            QuotaType::ContributionMinimum => $this->advanceExpected($expense, QuotaType::ContributionMinimum, $context),
             QuotaType::ContributionAdjustment => $this->balance($expense, QuotaType::ContributionMinimum, $context),
             QuotaType::FullAmount => $this->fullAmount($deadline, $expense, $context),
         };
     }
 
     /**
-     * Acconto imposta: IS netta dell'anno N-1 ÷ n° acconti. null se l'anno
-     * precedente (o la sua spesa IS) non è nel context.
+     * Previsto di una rata di acconto:
+     *  - acconto imposta (TaxAdvance): IS netta dell'anno N-1 ÷ n° acconti;
+     *  - rata del minimale contributivo (ContributionMinimum): minimale ÷ n° rate.
+     * null se i dati non esistono (anno precedente assente, voce senza minimale).
      */
-    private function taxAdvance(Deadline $deadline, AnnualExpense $expense, DeadlineContext $context): ?float
+    private function advanceExpected(AnnualExpense $expense, QuotaType $quota, DeadlineContext $context): ?float
+    {
+        $count = $this->siblingCountByKey($expense, $quota, $context);
+
+        if ($quota === QuotaType::TaxAdvance) {
+            $net = $this->previousImpostaSostitutivaNet($expense, $context);
+
+            return $net === null ? null : round($net / $count, 2);
+        }
+
+        if ($quota === QuotaType::ContributionMinimum) {
+            return $expense->minimum === null ? null : round((float) $expense->minimum / $count, 2);
+        }
+
+        return null;
+    }
+
+    /**
+     * IS netta (definitive) dell'anno N-1 della spesa; null se l'anno precedente
+     * o la sua voce di imposta sostitutiva non sono nel context.
+     */
+    private function previousImpostaSostitutivaNet(AnnualExpense $expense, DeadlineContext $context): ?float
     {
         $previous = $context->amountsByYear[$expense->year->year - 1] ?? null;
 
@@ -85,16 +109,17 @@ class DeadlineExpectation
             return null;
         }
 
-        $net = (float) $previous->expenseAmounts[$previousIs->id]['definitive'];
-
-        return round($net / $this->siblingCount($deadline, $context), 2);
+        return (float) $previous->expenseAmounts[$previousIs->id]['definitive'];
     }
 
     /**
-     * Saldo/conguaglio: definitive della spesa − quanto già pagato sulle rate
-     * della quota indicata (acconti o minimi).
+     * Saldo/conguaglio: definitive della spesa − quanto è coperto dalle rate di
+     * acconto/minimo. Una rata coperta vale: il versato reale se pagata, il suo
+     * previsto se ancora aperta (verrà pagata), zero se "non dovuta" (in quel
+     * caso l'importo resta nel saldo). Così il saldo non mostra più il totale
+     * pieno finché gli acconti sono solo aperti.
      */
-    private function balance(AnnualExpense $expense, QuotaType $paidQuota, DeadlineContext $context): ?float
+    private function balance(AnnualExpense $expense, QuotaType $advanceQuota, DeadlineContext $context): ?float
     {
         $definitive = $this->definitive($expense, $context);
 
@@ -102,20 +127,19 @@ class DeadlineExpectation
             return null;
         }
 
-        return round($definitive - $this->paidForQuota($expense, $paidQuota, $context), 2);
-    }
+        // Rate già pagate → importo realmente versato.
+        $covered = $this->paidForQuota($expense, $advanceQuota, $context);
 
-    /**
-     * Rata del minimale contributivo: minimale della voce ÷ n° rate. null se la
-     * voce non ha minimale.
-     */
-    private function splitFloor(Deadline $deadline, AnnualExpense $expense, DeadlineContext $context): ?float
-    {
-        if ($expense->minimum === null) {
-            return null;
+        // Rate ancora aperte → si stima il loro previsto (saranno versate). Le
+        // non dovute non rientrano: non sono né pagate né aperte.
+        $openCount = $context->openSiblingCounts[$expense->id.':'.$advanceQuota->value] ?? 0;
+        $perAdvance = $this->advanceExpected($expense, $advanceQuota, $context);
+
+        if ($perAdvance !== null) {
+            $covered = round($covered + $openCount * $perAdvance, 2);
         }
 
-        return round((float) $expense->minimum / $this->siblingCount($deadline, $context), 2);
+        return round($definitive - $covered, 2);
     }
 
     /**
@@ -145,12 +169,47 @@ class DeadlineExpectation
             return null;
         }
 
-        $issuedUpTo = $amounts->invoices
-            ->filter(fn ($invoice): bool => $invoice->issued_at->lessThanOrEqualTo($deadline->due_at));
+        $accruedUpTo = fn ($dueAt): float => $this->revenueCalculator->stampDuty(
+            $amounts->invoices->filter(fn ($invoice): bool => $invoice->issued_at->lessThanOrEqualTo($dueAt)),
+        );
 
-        $accrued = $this->revenueCalculator->stampDuty($issuedUpTo);
+        $siblings = ($context->siblingDeadlines[$expense->id] ?? collect())
+            ->sortBy('due_at')
+            ->values();
 
-        return round($accrued - $this->paidOnExpense($expense, $context), 2);
+        // Catena delle rate bolli: ogni rata copre i bolli del SUO periodo. Le
+        // precedenti pagate riducono col versato reale, le aperte col loro
+        // previsto (saranno pagate), le non dovute con zero (arretrato che
+        // scivola sul saldo successivo). Così una rata aperta non mostra il
+        // cumulato delle precedenti, ma solo il proprio trimestre.
+        $covered = 0.0;
+        foreach ($siblings as $sibling) {
+            $expected = round($accruedUpTo($sibling->due_at) - $covered, 2);
+
+            if ($sibling->id === $deadline->id) {
+                return $expected;
+            }
+
+            $coverage = match ($sibling->status) {
+                DeadlineStatus::Completed => $this->paidOnDeadline($sibling->id, $context),
+                DeadlineStatus::Open => $expected,
+                default => 0.0,
+            };
+            $covered = round($covered + $coverage, 2);
+        }
+
+        // Fallback (scadenza non tra i fratelli noti): saldo classico sull'intera spesa.
+        return round($accruedUpTo($deadline->due_at) - $this->paidOnExpense($expense, $context), 2);
+    }
+
+    /**
+     * Somma pagata su una specifica scadenza.
+     */
+    private function paidOnDeadline(int $deadlineId, DeadlineContext $context): float
+    {
+        return round((float) $context->paidPayments
+            ->where('deadline_id', $deadlineId)
+            ->sum('amount'), 2);
     }
 
     /**
@@ -174,6 +233,15 @@ class DeadlineExpectation
         $key = $deadline->annual_expense_id.':'.$deadline->quota_type?->value;
 
         return max(1, $context->siblingCounts[$key] ?? 1);
+    }
+
+    /**
+     * Come [[siblingCount]] ma per (spesa, quota) espliciti: usato dal saldo per
+     * il denominatore delle rate di acconto/minimo.
+     */
+    private function siblingCountByKey(AnnualExpense $expense, QuotaType $quota, DeadlineContext $context): int
+    {
+        return max(1, $context->siblingCounts[$expense->id.':'.$quota->value] ?? 1);
     }
 
     /**

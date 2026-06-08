@@ -7,7 +7,11 @@
  * flussi multi-step come il wizard apertura anno). Sul blur il valore torna nei
  * limiti subito, nello step in cui è stato inserito. Il vuoto resta ''.
  */
-export function clampNumber(value: number | string, min: number, max: number): number | string {
+export function clampNumber(
+    value: number | string,
+    min: number,
+    max: number,
+): number | string {
     if (value === '' || value === null || value === undefined) {
         return '';
     }

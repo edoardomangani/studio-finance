@@ -17,12 +17,19 @@ const props = defineProps<{
 
 const modelValue = defineModel<PaymentFilterState>({ required: true });
 
-const expenseYearOptions = computed(() => props.availableExpenseYears.map((y) => ({ value: y, label: String(y) })));
-const paidYearOptions = computed(() => props.availablePaidYears.map((y) => ({ value: y, label: String(y) })));
+const expenseYearOptions = computed(() =>
+    props.availableExpenseYears.map((y) => ({ value: y, label: String(y) })),
+);
+const paidYearOptions = computed(() =>
+    props.availablePaidYears.map((y) => ({ value: y, label: String(y) })),
+);
 
 // Riassegna l'intero oggetto (non muta annidato) così il defineModel del
 // parent emette e il live-apply desktop scatta.
-function setFacet<K extends keyof PaymentFilterState>(key: K, values: PaymentFilterState[K]): void {
+function setFacet<K extends keyof PaymentFilterState>(
+    key: K,
+    values: PaymentFilterState[K],
+): void {
     modelValue.value = { ...modelValue.value, [key]: values };
 }
 </script>

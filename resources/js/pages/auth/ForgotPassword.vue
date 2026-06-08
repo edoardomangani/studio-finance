@@ -12,7 +12,8 @@ import { email } from '@/routes/password';
 defineOptions({
     layout: {
         title: 'Password dimenticata',
-        description: 'Inserisci l\'email del tuo account. Ti invieremo un link per reimpostare la password.',
+        description:
+            "Inserisci l'email del tuo account. Ti invieremo un link per reimpostare la password.",
     },
 });
 
@@ -48,7 +49,9 @@ function submit(): void {
                     autofocus
                     placeholder="nome@studio.it"
                 />
-                <template v-if="form.errors.email" #error>{{ form.errors.email }}</template>
+                <template v-if="form.errors.email" #error>{{
+                    form.errors.email
+                }}</template>
             </FormField>
 
             <Button

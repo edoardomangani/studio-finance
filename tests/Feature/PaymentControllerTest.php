@@ -1,6 +1,7 @@
 <?php
 
 use App\Actions\Studiofinance\OpenYear;
+use App\Actions\Studiofinance\RegisterManualPayment;
 use App\Actions\Studiofinance\RegisterPayment;
 use App\Enums\DeadlineKind;
 use App\Enums\PaymentStatus;
@@ -114,6 +115,54 @@ it('registra un pagamento manuale extra-scadenza', function () {
         ->and($payment->annual_expense_id)->toBe($expense->id)
         ->and((float) $payment->amount)->toBe(480.50)
         ->and($payment->user_id)->toBe($user->id);
+});
+
+it('modifica un pagamento manuale', function () {
+    userWithOpenYearForPayments();
+    $expense = AnnualExpense::query()->firstOrFail();
+    $manual = app(RegisterManualPayment::class)($expense, ['amount' => '100', 'paid_at' => '2026-04-10', 'description' => 'Bozza']);
+
+    $this->from(route('payments.index'))
+        ->patch(route('payments.update', $manual), [
+            'annual_expense_id' => $expense->id,
+            'amount' => '250.00',
+            'paid_at' => '2026-05-01',
+            'description' => 'Saldo corretto',
+        ])->assertRedirect(route('payments.index'));
+
+    $manual->refresh();
+    expect((float) $manual->amount)->toBe(250.0)
+        ->and($manual->description)->toBe('Saldo corretto')
+        ->and($manual->paid_at->toDateString())->toBe('2026-05-01');
+});
+
+it('elimina (soft delete) un pagamento manuale', function () {
+    userWithOpenYearForPayments();
+    $expense = AnnualExpense::query()->firstOrFail();
+    $manual = app(RegisterManualPayment::class)($expense, ['amount' => '100', 'paid_at' => '2026-04-10', 'description' => null]);
+
+    $this->from(route('payments.index'))
+        ->delete(route('payments.destroy', $manual))
+        ->assertRedirect(route('payments.index'));
+
+    expect(Payment::find($manual->id))->toBeNull()
+        ->and(Payment::withTrashed()->find($manual->id))->not->toBeNull();
+});
+
+it('vieta modifica ed eliminazione di un pagamento da scadenza', function () {
+    userWithOpenYearForPayments();
+    registerFirstPayment(250, '2026-03-15');
+    $fromDeadline = Payment::query()->where('status', PaymentStatus::Paid)->whereNotNull('deadline_id')->firstOrFail();
+
+    $this->patch(route('payments.update', $fromDeadline), [
+        'annual_expense_id' => $fromDeadline->annual_expense_id,
+        'amount' => '999',
+        'paid_at' => '2026-03-15',
+    ])->assertForbidden();
+
+    $this->delete(route('payments.destroy', $fromDeadline))->assertForbidden();
+
+    expect((float) $fromDeadline->fresh()->amount)->toBe(250.0);
 });
 
 it('rifiuta importo non positivo e data futura', function () {

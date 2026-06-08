@@ -6,6 +6,7 @@ use App\Actions\Studiofinance\OpenYear;
 use App\Concerns\FlashesToast;
 use App\Exceptions\YearAlreadyOpenException;
 use App\Http\Requests\OpenYearRequest;
+use App\Services\DeadlineService;
 use App\Services\YearService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
@@ -27,9 +28,32 @@ class YearController extends Controller
 
     public function __construct(private readonly YearService $years) {}
 
-    public function index(): Response
+    /**
+     * Ingresso della sezione Anni: atterra sull'anno corrente (cockpit) se ne
+     * esiste uno aperto, altrimenti mostra la vista di confronto pluriennale
+     * (che porta l'empty state e la CTA "Apri il primo anno"). La sidebar punta
+     * qui; lo switcher e il link "Confronto anni" della vista anno coprono la
+     * navigazione tra anni.
+     */
+    public function index(): RedirectResponse|Response
     {
-        return Inertia::render('years/Index', [
+        $current = $this->years->currentYear();
+
+        if ($current !== null) {
+            return redirect()->route('years.show', $current);
+        }
+
+        return $this->compare();
+    }
+
+    /**
+     * Vista di confronto pluriennale: una riga per anno (KPI in arrivo). È la
+     * vista "report" secondaria, raggiunta dal link nella vista anno; serve
+     * anche da empty state quando non c'è ancora alcun anno.
+     */
+    public function compare(): Response
+    {
+        return Inertia::render('years/Compare', [
             'years' => $this->years->list(),
         ]);
     }
@@ -74,10 +98,18 @@ class YearController extends Controller
         return to_route('years.show', $year->year);
     }
 
-    public function show(int $year): Response
+    public function show(int $year, DeadlineService $deadlines): Response
     {
+        $yearModel = $this->years->findByYear($year);
+
         return Inertia::render('years/Show', [
-            'year' => $this->years->forShow($this->years->findByYear($year)),
+            'year' => $this->years->forShow($yearModel),
+            // Opzioni per i form di scadenza ad-hoc / pagamento manuale del
+            // cockpit, SCOPATE su quest'anno: dentro l'anno X si vedono solo le
+            // spese (e l'anno) di X, non l'elenco pluriennale della lista globale.
+            'annualExpenses' => $this->years->expensePickerForYear($yearModel),
+            'yearOptions' => [['id' => $yearModel->id, 'year' => $yearModel->year]],
+            'kindOptions' => $deadlines->kindOptions(),
         ]);
     }
 

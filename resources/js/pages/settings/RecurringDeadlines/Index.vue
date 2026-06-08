@@ -10,12 +10,7 @@
  * Kind `fulfillment` non ha collegamenti.
  */
 import { Head, setLayoutProps, useForm } from '@inertiajs/vue3';
-import {
-    PhArchive,
-    PhDotsThreeVertical,
-    PhPencil,
-    PhPlus,
-} from '@phosphor-icons/vue';
+import { PhArchive, PhPencil, PhPlus } from '@phosphor-icons/vue';
 import { computed, ref, watch } from 'vue';
 import RecurringDeadlineController from '@/actions/App/Http/Controllers/Settings/RecurringDeadlineController';
 import FormField from '@/components/forms/FormField.vue';
@@ -23,12 +18,7 @@ import ResponsiveDialog from '@/components/ResponsiveDialog.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/dialog';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import {
@@ -47,13 +37,13 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import {
-    Table,
-    TableBody,
+    DataTable,
+    DataTableBody,
+    DataTableHeader,
+    DataTableRow,
     TableCell,
     TableEmpty,
     TableHead,
-    TableHeader,
-    TableRow,
 } from '@/components/ui/table';
 import { useArchiveAction } from '@/composables/useArchiveAction';
 import type {
@@ -221,30 +211,26 @@ function formatDate(deadline: RecurringDeadline): string {
         </Button>
     </Teleport>
 
-    <Table boxed>
-        <TableHeader>
-            <TableRow>
-                <TableHead class="w-[90px]">Data</TableHead>
-                <TableHead class="w-[35%]">Nome</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Voce collegata</TableHead>
-                <TableHead>Anno spesa</TableHead>
-                <TableHead class="w-[80px] text-right">Stato</TableHead>
-                <TableHead class="w-[48px]" />
-            </TableRow>
-        </TableHeader>
-        <TableBody>
-            <TableEmpty v-if="recurringDeadlines.length === 0" :colspan="7">
+    <DataTable>
+        <DataTableHeader>
+            <TableHead class="w-[90px]">Data</TableHead>
+            <TableHead class="w-[35%]">Nome</TableHead>
+            <TableHead>Tipo</TableHead>
+            <TableHead>Voce collegata</TableHead>
+            <TableHead>Anno spesa</TableHead>
+            <TableHead>Tipo quota</TableHead>
+            <TableHead class="w-[80px] text-right">Stato</TableHead>
+        </DataTableHeader>
+        <DataTableBody>
+            <TableEmpty v-if="recurringDeadlines.length === 0" :colspan="8">
                 Nessuna scadenza tipo. Creane una dal pulsante in alto.
             </TableEmpty>
-            <TableRow
+            <DataTableRow
                 v-for="deadline in recurringDeadlines"
                 v-else
                 :key="deadline.id"
-                :class="[
-                    'cursor-pointer transition-colors hover:bg-muted/40',
-                    !deadline.active && 'opacity-60',
-                ]"
+                interactive
+                :class="!deadline.active && 'opacity-60'"
                 @click="openEdit(deadline)"
             >
                 <TableCell class="tabular text-foreground">
@@ -266,41 +252,30 @@ function formatDate(deadline: RecurringDeadline): string {
                             : '—'
                     }}
                 </TableCell>
+                <TableCell class="text-muted-foreground">
+                    {{ deadline.quota_type_label ?? '—' }}
+                </TableCell>
                 <TableCell class="text-right">
                     <Badge :variant="deadline.active ? 'default' : 'outline'">
                         {{ deadline.active ? 'Attiva' : 'Inattiva' }}
                     </Badge>
                 </TableCell>
-                <TableCell class="text-right" @click.stop>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger as-child>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon-sm"
-                                aria-label="Azioni scadenza"
-                            >
-                                <PhDotsThreeVertical :size="14" weight="bold" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem @select="openEdit(deadline)">
-                                <PhPencil :size="14" />
-                                Modifica
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                variant="destructive"
-                                @select="askArchive(deadline)"
-                            >
-                                <PhArchive :size="14" />
-                                Archivia
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </TableCell>
-            </TableRow>
-        </TableBody>
-    </Table>
+                <template #actions>
+                    <DropdownMenuItem @select="openEdit(deadline)">
+                        <PhPencil :size="14" />
+                        Modifica
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        variant="destructive"
+                        @select="askArchive(deadline)"
+                    >
+                        <PhArchive :size="14" />
+                        Archivia
+                    </DropdownMenuItem>
+                </template>
+            </DataTableRow>
+        </DataTableBody>
+    </DataTable>
 
     <ResponsiveDialog
         v-model:open="dialogOpen"

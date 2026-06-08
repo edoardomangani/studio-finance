@@ -12,9 +12,9 @@
 import { Head, Link, setLayoutProps } from '@inertiajs/vue3';
 import { PhFloppyDisk } from '@phosphor-icons/vue';
 import { ref } from 'vue';
-import InvoiceForm from '@/pages/invoices/InvoiceForm.vue';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import InvoiceForm from '@/pages/invoices/InvoiceForm.vue';
 import { index as invoicesIndex } from '@/routes/invoices';
 import type { ClientForPicker } from '@/types';
 

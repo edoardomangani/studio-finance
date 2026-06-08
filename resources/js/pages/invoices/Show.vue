@@ -23,20 +23,37 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/dialog';
 import { formatDateIT, formatEUR } from '@/lib/format';
+import { originTrail, withOrigin } from '@/lib/origin';
 import { show as clientShow } from '@/routes/clients';
-import { index as invoicesIndex, edit as invoiceEdit } from '@/routes/invoices';
+import {
+    index as invoicesIndex,
+    edit as invoiceEdit,
+    show as invoiceShow,
+} from '@/routes/invoices';
 import type { Invoice } from '@/types';
 
 const props = defineProps<{
     invoice: Invoice;
 }>();
 
+// Punto d'accesso: se assente (deep-link) → fallback alla lista Fatture.
+const origin = originTrail();
+const prefix =
+    origin.length > 0
+        ? origin
+        : [{ label: 'Fatture', href: invoicesIndex().url }];
+
+// Modifica eredita l'origine + questa fattura; l'archivio torna alla superficie
+// di provenienza (ultimo crumb), non per forza alla lista.
+const editUrl = withOrigin(invoiceEdit(props.invoice.id).url, [
+    ...prefix,
+    { label: props.invoice.number, href: invoiceShow(props.invoice.id).url },
+]);
+const backUrl = prefix[prefix.length - 1].href;
+
 setLayoutProps({
     pageTitle: `Fattura ${props.invoice.number}`,
-    pageCrumbs: [
-        { label: 'Fatture', href: invoicesIndex().url },
-        { label: props.invoice.number },
-    ],
+    pageCrumbs: [...prefix, { label: props.invoice.number }],
     subbar: false,
 });
 
@@ -48,7 +65,7 @@ function confirmArchive(): void {
         InvoiceController.destroy.url({ invoice: props.invoice.id }),
         {
             onSuccess: () => {
-                router.visit(invoicesIndex().url);
+                router.visit(backUrl);
             },
         },
     );
@@ -73,7 +90,7 @@ const netAmount = computed(
             Archivia
         </Button>
         <Button as-child size="sm">
-            <Link :href="invoiceEdit(invoice.id).url">
+            <Link :href="editUrl">
                 <PhPencil :size="14" />
                 Modifica
             </Link>

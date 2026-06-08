@@ -84,7 +84,10 @@ function submit(): void {
                         />
                     </InputOTPGroup>
                 </InputOTP>
-                <FieldError v-if="form.errors.code" :errors="[form.errors.code]" />
+                <FieldError
+                    v-if="form.errors.code"
+                    :errors="[form.errors.code]"
+                />
             </Field>
 
             <FormField

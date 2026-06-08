@@ -34,10 +34,12 @@ class ExpenseCalculator
     /**
      * Importo della spesa secondo il calculation_type, sulle basi date (mese o anno).
      * $applyLimits decide se applicare minimali/massimali: l'annuale sì, l'accantonamento mensile no.
+     * $applyMinimum permette di escludere il SOLO minimo tenendo il massimale: serve
+     * al maturato "a oggi" (il minimo è un pavimento annuo, non matura nel tempo — RB12/KPI.md).
      */
-    public function expectedAmount(AnnualExpense $expense, RevenueBases $bases, bool $applyLimits): float
+    public function expectedAmount(AnnualExpense $expense, RevenueBases $bases, bool $applyLimits, bool $applyMinimum = true): float
     {
-        $minimum = $applyLimits && $expense->minimum !== null ? (float) $expense->minimum : null;
+        $minimum = $applyLimits && $applyMinimum && $expense->minimum !== null ? (float) $expense->minimum : null;
         $maximum = $applyLimits && $expense->maximum !== null ? (float) $expense->maximum : null;
 
         return match ($expense->calculation_type) {
@@ -67,16 +69,30 @@ class ExpenseCalculator
     }
 
     /**
-     * Importo maturato ad oggi. Voci fisse: quota proporzionale ai mesi trascorsi
-     * (12 = anno concluso). Altre: il definitivo (la base è già "ad oggi").
+     * Importo maturato ad oggi (RB12/KPI.md). Tre regole:
+     *  - voci fisse: quota proporzionale ai mesi trascorsi (12 = anno concluso);
+     *  - importo manuale: è l'annuo già noto, niente base income da maturare → il definitivo;
+     *  - voci a percentuale/bolli: income-based SENZA minimo (col massimale, già passato
+     *    in $calculatedToDate) meno le deduzioni. Il minimo è un pavimento annuo che NON
+     *    matura nel tempo, quindi vive solo nel definitivo, non nel maturato a oggi.
      */
-    public function amountToDate(AnnualExpense $expense, float $definitiveAmount, int $monthsElapsed): float
-    {
-        if ($expense->calculation_type !== ExpenseCalculationType::FixedAnnual) {
+    public function amountToDate(
+        AnnualExpense $expense,
+        float $definitiveAmount,
+        float $calculatedToDate,
+        float $deductions,
+        ?float $manualAmount,
+        int $monthsElapsed,
+    ): float {
+        if ($expense->calculation_type === ExpenseCalculationType::FixedAnnual) {
+            return round($definitiveAmount / 12 * $monthsElapsed, 2);
+        }
+
+        if ($manualAmount !== null) {
             return $definitiveAmount;
         }
 
-        return round($definitiveAmount / 12 * $monthsElapsed, 2);
+        return round($calculatedToDate - $deductions, 2);
     }
 
     /**

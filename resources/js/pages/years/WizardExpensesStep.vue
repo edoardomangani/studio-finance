@@ -15,20 +15,22 @@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import {
-    Table,
-    TableBody,
+    DataTable,
+    DataTableBody,
+    DataTableHeader,
+    DataTableRow,
     TableCell,
     TableEmpty,
     TableHead,
-    TableHeader,
-    TableRow,
 } from '@/components/ui/table';
 import { clampNumber } from '@/lib/clampNumber';
 import type { ExpenseCalculationType, YearWizardExpense } from '@/types';
 
 // Two-way: l'orchestratore possiede lo useForm, qui editiamo le righe via
 // v-model:expenses (no mutazione diretta di prop).
-const expenses = defineModel<YearWizardExpense[]>('expenses', { required: true });
+const expenses = defineModel<YearWizardExpense[]>('expenses', {
+    required: true,
+});
 
 const CALCULATION_LABELS: Record<ExpenseCalculationType, string> = {
     percentage_of_irpef_income: '% reddito IRPEF',
@@ -38,7 +40,10 @@ const CALCULATION_LABELS: Record<ExpenseCalculationType, string> = {
 };
 
 function isPercentage(type: ExpenseCalculationType): boolean {
-    return type === 'percentage_of_irpef_income' || type === 'percentage_of_iva_revenue';
+    return (
+        type === 'percentage_of_irpef_income' ||
+        type === 'percentage_of_iva_revenue'
+    );
 }
 
 function isFixed(type: ExpenseCalculationType): boolean {
@@ -49,27 +54,29 @@ function isFixed(type: ExpenseCalculationType): boolean {
 <template>
     <section class="flex flex-col gap-3">
         <p class="text-13 text-muted-foreground">
-            Valori ereditati dai template, modificabili per quest'anno. Deseleziona una voce
-            per escluderla dall'anno corrente; le scadenze collegate non verranno generate.
+            Valori ereditati dai template, modificabili per quest'anno.
+            Deseleziona una voce per escluderla dall'anno corrente; le scadenze
+            collegate non verranno generate.
         </p>
 
-        <Table boxed>
-            <TableHeader>
-                <TableRow>
-                    <TableHead class="w-[52px]"><span class="sr-only">Includi</span></TableHead>
-                    <TableHead>Voce</TableHead>
-                    <TableHead class="w-[120px]">Tipo</TableHead>
-                    <TableHead class="w-[110px] text-right">Aliquota %</TableHead>
-                    <TableHead class="w-[120px] text-right">Minimale</TableHead>
-                    <TableHead class="w-[120px] text-right">Massimale</TableHead>
-                    <TableHead class="w-[120px] text-right">Quota €</TableHead>
-                </TableRow>
-            </TableHeader>
-            <TableBody>
+        <DataTable>
+            <DataTableHeader :has-actions="false">
+                <TableHead class="w-[52px]"
+                    ><span class="sr-only">Includi</span></TableHead
+                >
+                <TableHead>Voce</TableHead>
+                <TableHead class="w-[120px]">Tipo</TableHead>
+                <TableHead class="w-[110px] text-right">Aliquota %</TableHead>
+                <TableHead class="w-[120px] text-right">Minimale</TableHead>
+                <TableHead class="w-[120px] text-right">Massimale</TableHead>
+                <TableHead class="w-[120px] text-right">Quota €</TableHead>
+            </DataTableHeader>
+            <DataTableBody>
                 <TableEmpty v-if="expenses.length === 0" :colspan="7">
-                    Nessuna voce di spesa attiva. Aggiungine dalle impostazioni prima di aprire l'anno.
+                    Nessuna voce di spesa attiva. Aggiungine dalle impostazioni
+                    prima di aprire l'anno.
                 </TableEmpty>
-                <TableRow
+                <DataTableRow
                     v-for="(expense, index) in expenses"
                     v-else
                     :key="expense.expense_item_id ?? `row-${index}`"
@@ -79,7 +86,9 @@ function isFixed(type: ExpenseCalculationType): boolean {
                         <!-- Cella intera cliccabile: area touch ampia attorno al
                              checkbox 16px (la <label> inoltra il click al
                              checkbox, che è un button labelable). -->
-                        <label class="flex h-9 cursor-pointer items-center justify-center">
+                        <label
+                            class="flex h-9 cursor-pointer items-center justify-center"
+                        >
                             <Checkbox
                                 v-model="expense.included"
                                 :aria-label="`Includi ${expense.name}`"
@@ -87,7 +96,11 @@ function isFixed(type: ExpenseCalculationType): boolean {
                         </label>
                     </TableCell>
                     <TableCell class="font-medium text-foreground">
-                        <span class="block max-w-[220px] truncate" :title="expense.name">{{ expense.name }}</span>
+                        <span
+                            class="block max-w-[220px] truncate"
+                            :title="expense.name"
+                            >{{ expense.name }}</span
+                        >
                     </TableCell>
                     <TableCell class="text-muted-foreground">
                         {{ CALCULATION_LABELS[expense.calculation_type] }}
@@ -105,7 +118,9 @@ function isFixed(type: ExpenseCalculationType): boolean {
                             :disabled="!expense.included"
                             class="tabular text-right"
                             :aria-label="`Aliquota ${expense.name}`"
-                            @blur="expense.rate = clampNumber(expense.rate, 0, 100)"
+                            @blur="
+                                expense.rate = clampNumber(expense.rate, 0, 100)
+                            "
                         />
                         <span v-else class="text-muted-foreground">—</span>
                     </TableCell>
@@ -154,8 +169,8 @@ function isFixed(type: ExpenseCalculationType): boolean {
                         />
                         <span v-else class="text-muted-foreground">—</span>
                     </TableCell>
-                </TableRow>
-            </TableBody>
-        </Table>
+                </DataTableRow>
+            </DataTableBody>
+        </DataTable>
     </section>
 </template>

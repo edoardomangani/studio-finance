@@ -53,11 +53,16 @@ export function useDeadlineFilters(getFilters: () => DeadlineFilters): {
             deadlinesIndex().url,
             {
                 search: (next.search ?? filters.value.search) || undefined,
-                state: (next.state !== undefined ? next.state : filters.value.state) ?? undefined,
+                state:
+                    (next.state !== undefined
+                        ? next.state
+                        : filters.value.state) ?? undefined,
                 kind: nonEmpty(next.kind ?? filters.value.kind),
                 year: nonEmpty(next.year ?? filters.value.year),
                 due_year: nonEmpty(next.due_year ?? filters.value.due_year),
-                expense_item_id: nonEmpty(next.expense_item_id ?? filters.value.expense_item_id),
+                expense_item_id: nonEmpty(
+                    next.expense_item_id ?? filters.value.expense_item_id,
+                ),
             },
             { preserveState: true, preserveScroll: true, replace: true },
         );
@@ -100,7 +105,13 @@ export function useDeadlineFilters(getFilters: () => DeadlineFilters): {
 
     // Risincronizza il draft quando i filtri applicati cambiano (navigazione).
     watch(
-        () => [filters.value.kind, filters.value.year, filters.value.due_year, filters.value.expense_item_id] as const,
+        () =>
+            [
+                filters.value.kind,
+                filters.value.year,
+                filters.value.due_year,
+                filters.value.expense_item_id,
+            ] as const,
         ([kind, year, dueYear, expenseItemId]) => {
             filterState.value = {
                 kind: kind as DeadlineFilterState['kind'],
@@ -111,13 +122,19 @@ export function useDeadlineFilters(getFilters: () => DeadlineFilters): {
         },
     );
 
-    const activeFilterCount = computed(() =>
-        [filters.value.kind, filters.value.year, filters.value.due_year, filters.value.expense_item_id].filter(
-            (v) => v.length > 0,
-        ).length,
+    const activeFilterCount = computed(
+        () =>
+            [
+                filters.value.kind,
+                filters.value.year,
+                filters.value.due_year,
+                filters.value.expense_item_id,
+            ].filter((v) => v.length > 0).length,
     );
 
-    const hasActiveFilters = computed(() => activeFilterCount.value > 0 || !!filters.value.search);
+    const hasActiveFilters = computed(
+        () => activeFilterCount.value > 0 || !!filters.value.search,
+    );
 
     // Applica i filtri del pannello (desktop live, mobile via "Applica"). Lo
     // stato resta nel toggle.
@@ -131,7 +148,12 @@ export function useDeadlineFilters(getFilters: () => DeadlineFilters): {
     }
 
     function clearAllFilters(): void {
-        filterState.value = { kind: [], year: [], dueYear: [], expenseItemId: [] };
+        filterState.value = {
+            kind: [],
+            year: [],
+            dueYear: [],
+            expenseItemId: [],
+        };
         applyFilters({ kind: [], year: [], due_year: [], expense_item_id: [] });
     }
 

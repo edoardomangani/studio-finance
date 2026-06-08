@@ -16,7 +16,11 @@ import { computed, onUnmounted, ref, watch } from 'vue';
 import FilterPanel from '@/components/FilterPanel.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
+import {
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
 import {
     Pagination,
     PaginationContent,
@@ -25,18 +29,8 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from '@/components/ui/pagination';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableEmpty,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import { formatDateIT, formatEUR } from '@/lib/format';
 import PaymentFilters from '@/pages/payments/PaymentFilters.vue';
-import PaymentFormDialog from '@/pages/payments/PaymentFormDialog.vue';
+import PaymentsTable from '@/pages/payments/PaymentsTable.vue';
 import { index as paymentsIndex } from '@/routes/payments';
 import type {
     AnnualExpenseForPicker,
@@ -63,8 +57,9 @@ setLayoutProps({
     subbar: true,
 });
 
-// Dialog di registrazione pagamento manuale extra-scadenza (F8).
-const createOpen = ref(false);
+// Tabella (con form crea/modifica e ConfirmDialog) estratta in [[PaymentsTable]];
+// la creazione manuale si apre via il metodo esposto dalla tabella.
+const table = ref<InstanceType<typeof PaymentsTable> | null>(null);
 
 // Search reattiva con debounce 250ms.
 const searchTerm = ref(props.filters.search);
@@ -98,11 +93,16 @@ watch(
     },
 );
 
-const activeFilterCount = computed(() =>
-    [props.filters.expense_year, props.filters.paid_year].filter((v) => v.length > 0).length,
+const activeFilterCount = computed(
+    () =>
+        [props.filters.expense_year, props.filters.paid_year].filter(
+            (v) => v.length > 0,
+        ).length,
 );
 
-const hasActiveFilters = computed(() => activeFilterCount.value > 0 || !!props.filters.search);
+const hasActiveFilters = computed(
+    () => activeFilterCount.value > 0 || !!props.filters.search,
+);
 
 function applyPanelFilters(): void {
     applyFilters({
@@ -130,7 +130,9 @@ function applyFilters(next: {
         paymentsIndex().url,
         {
             search: (next.search ?? props.filters.search) || undefined,
-            expense_year: nonEmpty(next.expense_year ?? props.filters.expense_year),
+            expense_year: nonEmpty(
+                next.expense_year ?? props.filters.expense_year,
+            ),
             paid_year: nonEmpty(next.paid_year ?? props.filters.paid_year),
         },
         { preserveState: true, preserveScroll: true, replace: true },
@@ -155,7 +157,7 @@ function goToPage(page: number): void {
     <Head title="Pagamenti" />
 
     <Teleport to="#page-topbar-actions" defer>
-        <Button size="sm" @click="createOpen = true">
+        <Button size="sm" @click="table?.openCreate()">
             <PhPlus :size="14" weight="bold" />
             Nuovo pagamento
         </Button>
@@ -188,57 +190,28 @@ function goToPage(page: number): void {
             <Badge
                 v-if="activeFilterCount > 0"
                 variant="secondary"
-                class="ml-1 h-4 min-w-4 px-1 text-2xs tabular"
+                class="tabular ml-1 h-4 min-w-4 px-1 text-2xs"
             >
                 {{ activeFilterCount }}
             </Badge>
         </Button>
     </Teleport>
 
-    <Table boxed>
-        <TableHeader>
-            <TableRow>
-                <TableHead class="w-[100px]">Data</TableHead>
-                <TableHead>Descrizione</TableHead>
-                <TableHead>Voce di spesa</TableHead>
-                <TableHead class="w-[110px]">Origine</TableHead>
-                <TableHead class="w-[70px] text-right">Anno</TableHead>
-                <TableHead class="w-[120px] text-right">Importo</TableHead>
-            </TableRow>
-        </TableHeader>
-        <TableBody>
-            <TableEmpty v-if="payments.data.length === 0" :colspan="6">
-                <span v-if="hasActiveFilters">Nessun pagamento trovato con questi filtri.</span>
-                <span v-else>Nessun pagamento registrato. Registrane uno dal pulsante in alto o dalle scadenze.</span>
-            </TableEmpty>
-            <TableRow v-for="payment in payments.data" v-else :key="payment.id">
-                <TableCell class="tabular text-muted-foreground">
-                    {{ formatDateIT(payment.paid_at) }}
-                </TableCell>
-                <TableCell class="text-foreground">
-                    <span v-if="payment.description" class="block truncate" :title="payment.description">
-                        {{ payment.description }}
-                    </span>
-                    <span v-else class="text-muted-foreground">—</span>
-                </TableCell>
-                <TableCell class="text-muted-foreground">
-                    <span v-if="payment.annual_expense_name" class="block truncate" :title="payment.annual_expense_name">
-                        {{ payment.annual_expense_name }}
-                    </span>
-                    <span v-else>—</span>
-                </TableCell>
-                <TableCell class="text-muted-foreground">
-                    {{ payment.is_manual ? 'Manuale' : 'Scadenza' }}
-                </TableCell>
-                <TableCell class="tabular text-right text-muted-foreground">
-                    {{ payment.expense_year ?? '—' }}
-                </TableCell>
-                <TableCell class="tabular text-right font-medium text-foreground">
-                    {{ formatEUR(payment.amount) }}
-                </TableCell>
-            </TableRow>
-        </TableBody>
-    </Table>
+    <PaymentsTable
+        ref="table"
+        :payments="payments.data"
+        :annual-expenses="annualExpenses"
+    >
+        <template #empty>
+            <span v-if="hasActiveFilters">
+                Nessun pagamento trovato con questi filtri.
+            </span>
+            <span v-else>
+                Nessun pagamento registrato. Registrane uno dal pulsante in alto
+                o dalle scadenze.
+            </span>
+        </template>
+    </PaymentsTable>
 
     <footer
         v-if="payments.last_page > 1"
@@ -289,6 +262,4 @@ function goToPage(page: number): void {
             />
         </template>
     </FilterPanel>
-
-    <PaymentFormDialog v-model:open="createOpen" :annual-expenses="annualExpenses" />
 </template>

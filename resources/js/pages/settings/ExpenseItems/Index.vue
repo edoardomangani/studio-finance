@@ -7,12 +7,7 @@
  * via Teleport.
  */
 import { Head, setLayoutProps, useForm } from '@inertiajs/vue3';
-import {
-    PhArchive,
-    PhDotsThreeVertical,
-    PhPencil,
-    PhPlus,
-} from '@phosphor-icons/vue';
+import { PhArchive, PhPencil, PhPlus } from '@phosphor-icons/vue';
 import { computed, ref } from 'vue';
 import ExpenseItemController from '@/actions/App/Http/Controllers/Settings/ExpenseItemController';
 import FormField from '@/components/forms/FormField.vue';
@@ -20,12 +15,7 @@ import ResponsiveDialog from '@/components/ResponsiveDialog.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/dialog';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import {
@@ -37,13 +27,13 @@ import {
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import {
-    Table,
-    TableBody,
+    DataTable,
+    DataTableBody,
+    DataTableHeader,
+    DataTableRow,
     TableCell,
     TableEmpty,
     TableHead,
-    TableHeader,
-    TableRow,
 } from '@/components/ui/table';
 import { useArchiveAction } from '@/composables/useArchiveAction';
 import { clampNumber } from '@/lib/clampNumber';
@@ -192,28 +182,25 @@ function formatDefault(item: ExpenseItem): string {
         </Button>
     </Teleport>
 
-    <Table boxed>
-        <TableHeader>
-            <TableRow>
-                <TableHead class="w-[40%]">Nome</TableHead>
-                <TableHead>Tipo calcolo</TableHead>
-                <TableHead class="text-right">Default</TableHead>
-                <TableHead class="w-[80px] text-right">Stato</TableHead>
-                <TableHead class="w-[48px]" />
-            </TableRow>
-        </TableHeader>
-        <TableBody>
-            <TableEmpty v-if="expenseItems.length === 0" :colspan="5">
+    <DataTable>
+        <DataTableHeader>
+            <TableHead class="w-[40%]">Nome</TableHead>
+            <TableHead>Tipo calcolo</TableHead>
+            <TableHead class="text-right">Default</TableHead>
+            <TableHead class="w-[120px] text-right">Minimo</TableHead>
+            <TableHead class="w-[120px] text-right">Massimo</TableHead>
+            <TableHead class="w-[80px] text-right">Stato</TableHead>
+        </DataTableHeader>
+        <DataTableBody>
+            <TableEmpty v-if="expenseItems.length === 0" :colspan="7">
                 Nessuna voce di spesa. Creane una dal pulsante in alto.
             </TableEmpty>
-            <TableRow
+            <DataTableRow
                 v-for="item in expenseItems"
                 v-else
                 :key="item.id"
-                :class="[
-                    'cursor-pointer transition-colors hover:bg-muted/40',
-                    !item.active && 'opacity-60',
-                ]"
+                interactive
+                :class="!item.active && 'opacity-60'"
                 @click="openEdit(item)"
             >
                 <TableCell class="font-medium text-foreground">
@@ -225,41 +212,39 @@ function formatDefault(item: ExpenseItem): string {
                 <TableCell class="tabular text-right text-foreground">
                     {{ formatDefault(item) }}
                 </TableCell>
+                <TableCell class="tabular text-right text-muted-foreground">
+                    <span v-if="item.default_minimum !== null">{{
+                        formatEUR(item.default_minimum)
+                    }}</span>
+                    <span v-else>—</span>
+                </TableCell>
+                <TableCell class="tabular text-right text-muted-foreground">
+                    <span v-if="item.default_maximum !== null">{{
+                        formatEUR(item.default_maximum)
+                    }}</span>
+                    <span v-else>—</span>
+                </TableCell>
                 <TableCell class="text-right">
                     <Badge :variant="item.active ? 'default' : 'outline'">
                         {{ item.active ? 'Attiva' : 'Inattiva' }}
                     </Badge>
                 </TableCell>
-                <TableCell class="text-right" @click.stop>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger as-child>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon-sm"
-                                aria-label="Azioni voce"
-                            >
-                                <PhDotsThreeVertical :size="14" weight="bold" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem @select="openEdit(item)">
-                                <PhPencil :size="14" />
-                                Modifica
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                variant="destructive"
-                                @select="askArchive(item)"
-                            >
-                                <PhArchive :size="14" />
-                                Archivia
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </TableCell>
-            </TableRow>
-        </TableBody>
-    </Table>
+                <template #actions>
+                    <DropdownMenuItem @select="openEdit(item)">
+                        <PhPencil :size="14" />
+                        Modifica
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        variant="destructive"
+                        @select="askArchive(item)"
+                    >
+                        <PhArchive :size="14" />
+                        Archivia
+                    </DropdownMenuItem>
+                </template>
+            </DataTableRow>
+        </DataTableBody>
+    </DataTable>
 
     <ResponsiveDialog
         v-model:open="dialogOpen"

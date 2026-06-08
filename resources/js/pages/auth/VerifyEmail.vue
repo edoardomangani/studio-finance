@@ -10,7 +10,7 @@ defineOptions({
     layout: {
         title: 'Verifica email',
         description:
-            'Apri il link che abbiamo inviato al tuo indirizzo email per confermare l\'account.',
+            "Apri il link che abbiamo inviato al tuo indirizzo email per confermare l'account.",
     },
 });
 
@@ -29,8 +29,8 @@ const form = useForm({});
         v-if="status === 'verification-link-sent'"
         class="text-center text-xs font-medium text-accent-strong"
     >
-        Abbiamo inviato un nuovo link di verifica all'indirizzo email
-        utilizzato per la registrazione.
+        Abbiamo inviato un nuovo link di verifica all'indirizzo email utilizzato
+        per la registrazione.
     </div>
 
     <div class="flex flex-col items-center gap-4">
@@ -44,8 +44,6 @@ const form = useForm({});
             Reinvia email di verifica
         </Button>
 
-        <TextLink :href="logout()" as="button" class="text-xs">
-            Esci
-        </TextLink>
+        <TextLink :href="logout()" as="button" class="text-xs"> Esci </TextLink>
     </div>
 </template>

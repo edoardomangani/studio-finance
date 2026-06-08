@@ -31,7 +31,9 @@ const props = defineProps<{
 
 const modelValue = defineModel<InvoiceFilterState>({ required: true });
 
-const yearOptions = computed(() => props.availableYears.map((y) => ({ value: y, label: String(y) })));
+const yearOptions = computed(() =>
+    props.availableYears.map((y) => ({ value: y, label: String(y) })),
+);
 
 const ALL_CLIENTS = 'all';
 
@@ -40,7 +42,10 @@ function setYear(values: number[]): void {
 }
 
 function setClient(value: unknown): void {
-    const next = value === ALL_CLIENTS || value === '' || value == null ? null : Number(value);
+    const next =
+        value === ALL_CLIENTS || value === '' || value == null
+            ? null
+            : Number(value);
     modelValue.value = { ...modelValue.value, client_id: next };
 }
 
@@ -82,15 +87,25 @@ function setWithholding(values: string[]): void {
         <div>
             <h3 class="kicker mb-2">Cliente</h3>
             <Select
-                :model-value="modelValue.client_id === null ? ALL_CLIENTS : String(modelValue.client_id)"
+                :model-value="
+                    modelValue.client_id === null
+                        ? ALL_CLIENTS
+                        : String(modelValue.client_id)
+                "
                 @update:model-value="setClient"
             >
                 <SelectTrigger class="w-full">
                     <SelectValue placeholder="Tutti i clienti" />
                 </SelectTrigger>
                 <SelectContent>
-                    <SelectItem :value="ALL_CLIENTS">Tutti i clienti</SelectItem>
-                    <SelectItem v-for="c in clients" :key="c.id" :value="String(c.id)">
+                    <SelectItem :value="ALL_CLIENTS"
+                        >Tutti i clienti</SelectItem
+                    >
+                    <SelectItem
+                        v-for="c in clients"
+                        :key="c.id"
+                        :value="String(c.id)"
+                    >
                         {{ c.name }}
                     </SelectItem>
                 </SelectContent>

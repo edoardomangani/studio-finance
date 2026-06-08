@@ -16,7 +16,6 @@
 import { Link, usePage } from '@inertiajs/vue3';
 import { PhCheck, PhPlus, PhArrowRight } from '@phosphor-icons/vue';
 import { computed, nextTick, ref, watch } from 'vue';
-import ClientFormDialog from '@/pages/clients/ClientFormDialog.vue';
 import { Button } from '@/components/ui/button';
 import {
     Combobox,
@@ -30,6 +29,7 @@ import {
     ComboboxSeparator,
     ComboboxTrigger,
 } from '@/components/ui/combobox';
+import ClientFormDialog from '@/pages/clients/ClientFormDialog.vue';
 import type { ClientForPicker } from '@/types';
 
 const CREATE_SENTINEL = -1;
@@ -75,9 +75,9 @@ const filtered = computed<ClientForPicker[]>(() => {
 
     return props.clients.filter(
         (c) =>
-            c.name.toLowerCase().includes(q)
-            || (c.vat_number ?? '').toLowerCase().includes(q)
-            || (c.tax_code ?? '').toLowerCase().includes(q),
+            c.name.toLowerCase().includes(q) ||
+            (c.vat_number ?? '').toLowerCase().includes(q) ||
+            (c.tax_code ?? '').toLowerCase().includes(q),
     );
 });
 
@@ -151,19 +151,24 @@ watch(
                     class="w-full justify-between font-normal"
                     :class="invalid ? 'border-destructive' : ''"
                 >
-                    <span :class="selectedClient ? '' : 'text-muted-foreground/70'">
+                    <span
+                        :class="
+                            selectedClient ? '' : 'text-muted-foreground/70'
+                        "
+                    >
                         {{ selectedClient?.name ?? 'Cerca cliente…' }}
                     </span>
                     <div class="flex items-center">
                         <span
                             v-if="selectedClient?.vat_number"
-                            class="ml-2 tabular text-xs text-muted-foreground"
+                            class="tabular ml-2 text-xs text-muted-foreground"
                         >
                             {{ selectedClient.vat_number }}
                         </span>
-                        <PhArrowRight class="ml-2 size-3.5 rotate-90 opacity-50"/>
+                        <PhArrowRight
+                            class="ml-2 size-3.5 rotate-90 opacity-50"
+                        />
                     </div>
-                    
                 </Button>
             </ComboboxTrigger>
         </ComboboxAnchor>
@@ -177,9 +182,7 @@ watch(
                 />
             </div>
 
-            <ComboboxEmpty>
-                Nessun cliente trovato.
-            </ComboboxEmpty>
+            <ComboboxEmpty> Nessun cliente trovato. </ComboboxEmpty>
 
             <ComboboxGroup v-if="filtered.length > 0">
                 <ComboboxItem
@@ -208,11 +211,13 @@ watch(
             <ComboboxGroup>
                 <ComboboxItem
                     :value="CREATE_SENTINEL"
-                    class="text-foreground text-xs"
+                    class="text-xs text-foreground"
                 >
                     <PhPlus class="size-3 text-muted-foreground" />
                     <span>
-                        Crea nuovo cliente<span v-if="searchTerm">: «{{ searchTerm }}»</span>
+                        Crea nuovo cliente<span v-if="searchTerm"
+                            >: «{{ searchTerm }}»</span
+                        >
                     </span>
                 </ComboboxItem>
             </ComboboxGroup>
@@ -222,10 +227,7 @@ watch(
     <!-- Fallback no-clients: se la lista è completamente vuota, mostriamo un
          link di scappamento alla pagina clienti. Edge case raro (volumi
          tipici partono almeno con 1-2 clienti) ma non sguscia l'utente. -->
-    <p
-        v-if="clients.length === 0"
-        class="mt-1 text-xs text-muted-foreground"
-    >
+    <p v-if="clients.length === 0" class="mt-1 text-xs text-muted-foreground">
         Nessun cliente registrato.
         <Link
             :href="'/clients'"

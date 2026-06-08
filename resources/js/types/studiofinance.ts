@@ -131,7 +131,9 @@ export type ImportPreviewServer = {
     };
     matched_client_id?: number | null;
     /** Mappa per campo → divergenza. Solo i campi con `delta > 0.01`. */
-    discrepancies?: Partial<Record<'stamp_amount' | 'inarcassa_amount', ImportDiscrepancy>>;
+    discrepancies?: Partial<
+        Record<'stamp_amount' | 'inarcassa_amount', ImportDiscrepancy>
+    >;
 };
 
 /** Payload upload XML batch → POST /invoices/import/parse. */
@@ -174,7 +176,7 @@ export type Invoice = {
     client: ClientForPicker;
 };
 
-/** Riga della lista anni (years/Index.vue). */
+/** Riga della lista anni (years/Compare.vue). */
 export type YearListItem = {
     id: number;
     year: number;
@@ -240,7 +242,27 @@ export type YearPlan = {
     next_year_needs_preopen: boolean;
 };
 
-/** Spesa annuale nella vista anno (years/Show.vue). */
+/**
+ * FormulaBlock (9.a): dati strutturati della derivazione di una spesa. La
+ * frase leggibile la compone il frontend; `base`/`rate`/`fixed_amount` sono
+ * null secondo il tipo di calcolo.
+ */
+export type YearExpenseFormula = {
+    calculation_type: ExpenseCalculationType;
+    base_label: string | null;
+    base: number | null;
+    rate: number | null;
+    minimum: number | null;
+    maximum: number | null;
+    capped_base: number | null;
+    fixed_amount: number | null;
+    calculated: number;
+    deductions: number;
+    manual: number | null;
+    definitive: number;
+};
+
+/** Spesa annuale nella vista anno (tab Spese), con famiglia importi e formula. */
 export type YearShowExpense = {
     id: number;
     name: string;
@@ -250,9 +272,78 @@ export type YearShowExpense = {
     minimum: number | null;
     maximum: number | null;
     amount: number | null;
+    is_pension_contribution: boolean;
+    is_imposta_sostitutiva: boolean;
+    previous_year_credit: number | null;
+    /** una-tantum (creata a mano, senza template): eliminabile. */
+    is_custom: boolean;
+    // Famiglia importi (RB12).
+    expected: number;
+    calculated: number;
+    deductions: number;
+    manual: number | null;
+    definitive: number;
+    amount_to_date: number;
+    paid: number;
+    due: number;
+    due_to_date: number;
+    formula: YearExpenseFormula;
 };
 
-/** Vista anno (placeholder Fase 6, KPI fiscali in Fase 9). */
+/** Spesa col previsto del mese (riga mensile). */
+export type YearMonthExpense = { id: number; name: string; expected: number };
+
+/** Riga mensile della panoramica (12 mesi). */
+export type YearMonth = {
+    month: number;
+    taxable_amount: number;
+    stamp_duty: number;
+    vat_turnover: number;
+    irpef_income: number;
+    invoice_total: number;
+    total_expenses: number;
+    net: number;
+    net_to_gross_ratio: number;
+    invoices: InvoiceListItem[];
+    expenses: YearMonthExpense[];
+};
+
+/** Totali d'anno (KPI + righe spesa sommate). */
+export type YearTotals = {
+    taxable_amount: number;
+    stamp_duty: number;
+    vat_turnover: number;
+    irpef_income_gross: number;
+    irpef_income_net: number;
+    pension_contributions_paid: number;
+    withholdings: number;
+    previous_year_credit: number;
+    invoice_total: number;
+    expenses_expected: number;
+    expenses_definitive: number;
+    expenses_paid: number;
+    expenses_due: number;
+    /** "A oggi": maturato e scoperto attuale (= maturato − pagato). */
+    expenses_amount_to_date: number;
+    expenses_due_to_date: number;
+    net: number;
+    /** Netto a oggi (anno in corso): fatturato − maturato a oggi. */
+    net_to_date: number;
+    bank_income: number;
+};
+
+/** Stato dell'anno N+1 per l'azione "Apri prossimo anno" + stato temporale. */
+export type YearMeta = {
+    next_year: number;
+    can_open_next: boolean;
+    /** past = chiuso, current = in corso, future = aperto in anticipo. */
+    time_state: 'past' | 'current' | 'future';
+};
+
+/** Voce dello switcher anni. */
+export type YearNavItem = { year: number; pre_opened: boolean };
+
+/** Vista anno (cockpit, Fase 9): meta, switcher, mensile, totali, entità. */
 export type YearShow = {
     id: number;
     year: number;
@@ -260,8 +351,89 @@ export type YearShow = {
     pre_opened: boolean;
     note: string | null;
     deadlines_count: number;
+    invoices: InvoiceListItem[];
+    months: YearMonth[];
+    totals: YearTotals;
     expenses: YearShowExpense[];
+    deadlines: DeadlineListItem[];
+    payments: PaymentListItem[];
+    meta: YearMeta;
+    years_nav: YearNavItem[];
 };
+
+/* ── Dashboard generale (Fase 9.b) ─────────────────────────────────────── */
+
+/** Mese in corso: stipendio (netto), fatturato, spese, delta vs anno prima. */
+export type DashboardThisMonth = {
+    month: number;
+    net: number;
+    invoice_total: number;
+    expenses: number;
+    yoy_percent: number | null;
+};
+
+/** I due numeri cross-anno di "Da coprire": competenza vs cassa. */
+export type DashboardToCover = {
+    expenses_due_to_date: number;
+    paid_to_date: number;
+    deadlines_due: number;
+    open_deadlines_count: number;
+};
+
+/** Pannello anno: cumulato, mesi trascorsi (progress), proiezione, IRPEF. */
+export type DashboardYear = {
+    year: number;
+    invoice_total: number;
+    months_elapsed: number;
+    projection: number;
+    irpef_income_net: number;
+};
+
+/** Una voce di spesa del mese (accantonamento del mese, per singola spesa). */
+export type DashboardMonthExpense = { id: number; label: string; amount: number };
+
+/** Scadenza aperta nella lista dashboard (prossime per data). */
+export type DashboardDeadline = {
+    id: number;
+    name: string;
+    due_at: string;
+    year: number | null;
+    kind_label: string;
+    expected_amount: number | null;
+};
+
+export type DashboardRecentInvoice = {
+    id: number;
+    number: string;
+    issued_at: string;
+    total: number;
+    client_name: string | null;
+};
+
+export type DashboardRecentPayment = {
+    id: number;
+    description: string | null;
+    annual_expense_name: string | null;
+    amount: number;
+    paid_at: string | null;
+};
+
+/** Payload dashboard: empty state (`has_data: false`) o pieno. */
+export type DashboardData =
+    | { has_data: false }
+    | {
+          has_data: true;
+          calendar_year: number;
+          calendar_month: number;
+          current_year: number;
+          this_month: DashboardThisMonth | null;
+          to_cover: DashboardToCover;
+          year: DashboardYear;
+          month_expenses: DashboardMonthExpense[];
+          open_deadlines: DashboardDeadline[];
+          recent_invoices: DashboardRecentInvoice[];
+          recent_payments: DashboardRecentPayment[];
+      };
 
 /**
  * Shape della paginazione Laravel `->paginate()` (default, senza API
@@ -365,4 +537,3 @@ export type DeadlineFilterState = {
 
 /** Toggle stato: open = da fare, closed = completate + non dovute. */
 export type DeadlineStateFilter = 'open' | 'closed';
-

@@ -71,8 +71,10 @@ function applyMobile(): void {
                 class="hidden w-[260px] shrink-0 overflow-y-auto border-l border-border md:block"
             >
                 <div class="p-5">
-                    <div class="mb-4 flex items-center justify-between h-8">
-                        <span class="text-13 font-medium text-foreground">{{ title }}</span>
+                    <div class="mb-4 flex h-8 items-center justify-between">
+                        <span class="text-13 font-medium text-foreground">{{
+                            title
+                        }}</span>
                         <Button
                             v-if="activeCount > 0"
                             type="button"
@@ -93,14 +95,18 @@ function applyMobile(): void {
             <SheetContent side="right" class="w-full max-w-sm">
                 <SheetHeader>
                     <SheetTitle>{{ title }}</SheetTitle>
-                    <SheetDescription v-if="description">{{ description }}</SheetDescription>
+                    <SheetDescription v-if="description">{{
+                        description
+                    }}</SheetDescription>
                 </SheetHeader>
 
                 <div class="px-6 py-4">
                     <slot :request-live-apply="requestLiveApply" />
                 </div>
 
-                <SheetFooter class="flex flex-row items-center justify-between gap-2">
+                <SheetFooter
+                    class="flex flex-row items-center justify-between gap-2"
+                >
                     <Button
                         v-if="activeCount > 0"
                         type="button"
@@ -114,9 +120,13 @@ function applyMobile(): void {
 
                     <div class="flex items-center gap-2">
                         <SheetClose as-child>
-                            <Button type="button" variant="outline" size="sm">Annulla</Button>
+                            <Button type="button" variant="outline" size="sm"
+                                >Annulla</Button
+                            >
                         </SheetClose>
-                        <Button type="button" size="sm" @click="applyMobile">Applica</Button>
+                        <Button type="button" size="sm" @click="applyMobile"
+                            >Applica</Button
+                        >
                     </div>
                 </SheetFooter>
             </SheetContent>

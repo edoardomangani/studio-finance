@@ -59,6 +59,7 @@ class YearStatement
     {
         $sum = fn (string $key): float => round(array_sum(array_column($expenseRows, $key)), 2);
         $definitive = $sum('definitive');
+        $amountToDate = $sum('amount_to_date');
         $is = $this->impostaSostitutivaRow($expenseRows);
 
         return [
@@ -75,7 +76,15 @@ class YearStatement
             'expenses_definitive' => $definitive,
             'expenses_paid' => $sum('paid'),
             'expenses_due' => $sum('due'),
+            // "A oggi": quota maturata (proporzionale ai mesi per le fisse) e
+            // scoperto attuale = maturato − pagato. Guidano "da accantonare a
+            // oggi" della vista anno, distinto dal residuo di fine anno.
+            'expenses_amount_to_date' => $amountToDate,
+            'expenses_due_to_date' => $sum('due_to_date'),
             'net' => round($figures->invoiceTotal - $definitive, 2),
+            // Netto a oggi (anno in corso): fatturato − maturato a oggi. La banda
+            // KPI usa questo in corso, `net` (− definitivo) sul consuntivo.
+            'net_to_date' => round($figures->invoiceTotal - $amountToDate, 2),
             'bank_income' => round($figures->irpefIncomeNet - (float) ($is['calculated'] ?? 0), 2),
         ];
     }
@@ -94,10 +103,13 @@ class YearStatement
     {
         $bases = $expense->is_pension_contribution ? $grossBases : $netBases;
         $calculated = round($this->expenseCalculator->expectedAmount($expense, $bases, applyLimits: true), $decimals);
+        // Maturato a oggi: stesso calcolo income-based ma SENZA minimo (il minimo
+        // è un pavimento annuo, non matura nel tempo — KPI.md).
+        $calculatedToDate = round($this->expenseCalculator->expectedAmount($expense, $bases, applyLimits: true, applyMinimum: false), $decimals);
         $manual = $expense->effective_amount !== null ? (float) $expense->effective_amount : null;
         $definitive = round($this->expenseCalculator->definitiveAmount($manual, $calculated - $deductions), $decimals);
         $paid = $this->expenseCalculator->paidAmount($payments);
-        $toDate = $this->expenseCalculator->amountToDate($expense, $definitive, $monthsElapsed);
+        $toDate = $this->expenseCalculator->amountToDate($expense, $definitive, $calculatedToDate, $deductions, $manual, $monthsElapsed);
 
         return [
             'expected' => $expected,

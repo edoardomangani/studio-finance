@@ -6,7 +6,9 @@ use App\Actions\Studiofinance\RegisterManualPayment;
 use App\Concerns\FlashesToast;
 use App\Concerns\NormalizesFacetFilters;
 use App\Http\Requests\RegisterManualPaymentRequest;
+use App\Http\Requests\UpdateManualPaymentRequest;
 use App\Models\AnnualExpense;
+use App\Models\Payment;
 use App\Services\PaymentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -63,6 +65,35 @@ class PaymentController extends Controller
         $register($annualExpense, $data);
 
         $this->flashSuccess('Pagamento registrato.');
+
+        return back();
+    }
+
+    /**
+     * Modifica un pagamento manuale. I pagamenti da scadenza si gestiscono
+     * dalla scadenza (ne possiede il ciclo di vita): qui sono off-limits.
+     */
+    public function update(UpdateManualPaymentRequest $request, Payment $payment): RedirectResponse
+    {
+        abort_unless($payment->deadline_id === null, 403);
+
+        $this->payments->update($payment, $request->validated());
+
+        $this->flashSuccess('Pagamento aggiornato.');
+
+        return back();
+    }
+
+    /**
+     * Elimina (soft delete) un pagamento manuale. Stesso guard dell'update.
+     */
+    public function destroy(Payment $payment): RedirectResponse
+    {
+        abort_unless($payment->deadline_id === null, 403);
+
+        $this->payments->delete($payment);
+
+        $this->flashSuccess('Pagamento eliminato.');
 
         return back();
     }

@@ -10,23 +10,16 @@
 import { Head, router, setLayoutProps } from '@inertiajs/vue3';
 import {
     PhArchive,
-    PhDotsThreeVertical,
     PhMagnifyingGlass,
     PhPencil,
     PhPlus,
 } from '@phosphor-icons/vue';
 import { onUnmounted, ref, watch } from 'vue';
 import ClientController from '@/actions/App/Http/Controllers/ClientController';
-import ClientFormDialog from '@/pages/clients/ClientFormDialog.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/dialog';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import {
     InputGroup,
     InputGroupAddon,
@@ -41,15 +34,16 @@ import {
     PaginationPrevious,
 } from '@/components/ui/pagination';
 import {
-    Table,
-    TableBody,
+    DataTable,
+    DataTableBody,
+    DataTableHeader,
+    DataTableRow,
     TableCell,
     TableEmpty,
     TableHead,
-    TableHeader,
-    TableRow,
 } from '@/components/ui/table';
 import { useArchiveAction } from '@/composables/useArchiveAction';
+import ClientFormDialog from '@/pages/clients/ClientFormDialog.vue';
 import { index as clientsIndex } from '@/routes/clients';
 import type { Client, PaginatedList } from '@/types';
 
@@ -74,6 +68,7 @@ watch(searchTerm, (value) => {
     if (searchTimeout) {
         clearTimeout(searchTimeout);
     }
+
     searchTimeout = setTimeout(() => {
         router.get(
             clientsIndex().url,
@@ -140,17 +135,14 @@ function goToPage(page: number): void {
         </InputGroup>
     </Teleport>
 
-    <Table boxed>
-        <TableHeader>
-            <TableRow>
-                <TableHead class="w-[40%]">Denominazione</TableHead>
-                <TableHead>P.IVA</TableHead>
-                <TableHead>Codice Fiscale</TableHead>
-                <TableHead class="w-[120px] text-right">Ritenuta</TableHead>
-                <TableHead class="w-[48px]" />
-            </TableRow>
-        </TableHeader>
-        <TableBody>
+    <DataTable>
+        <DataTableHeader>
+            <TableHead class="w-[40%]">Denominazione</TableHead>
+            <TableHead>P.IVA</TableHead>
+            <TableHead>Codice Fiscale</TableHead>
+            <TableHead class="w-[120px] text-right">Ritenuta</TableHead>
+        </DataTableHeader>
+        <DataTableBody>
             <TableEmpty v-if="clients.data.length === 0" :colspan="5">
                 {{
                     search
@@ -158,11 +150,11 @@ function goToPage(page: number): void {
                         : 'Nessun cliente. Creane uno dal pulsante in alto.'
                 }}
             </TableEmpty>
-            <TableRow
+            <DataTableRow
                 v-for="client in clients.data"
                 v-else
                 :key="client.id"
-                class="cursor-pointer transition-colors hover:bg-muted/40"
+                interactive
                 @click="openClient(client)"
             >
                 <TableCell class="font-medium text-foreground">
@@ -180,36 +172,22 @@ function goToPage(page: number): void {
                     </Badge>
                     <span v-else class="text-muted-foreground">—</span>
                 </TableCell>
-                <TableCell class="text-right" @click.stop>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger as-child>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon-sm"
-                                aria-label="Azioni cliente"
-                            >
-                                <PhDotsThreeVertical :size="14" weight="bold" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem @select="askEdit(client)">
-                                <PhPencil :size="14" />
-                                Modifica
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                variant="destructive"
-                                @select="askArchive(client)"
-                            >
-                                <PhArchive :size="14" />
-                                Archivia
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </TableCell>
-            </TableRow>
-        </TableBody>
-    </Table>
+                <template #actions>
+                    <DropdownMenuItem @select="askEdit(client)">
+                        <PhPencil :size="14" />
+                        Modifica
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        variant="destructive"
+                        @select="askArchive(client)"
+                    >
+                        <PhArchive :size="14" />
+                        Archivia
+                    </DropdownMenuItem>
+                </template>
+            </DataTableRow>
+        </DataTableBody>
+    </DataTable>
 
     <!-- Pagination footer: visibile solo se più di una pagina. Counter
          risultati a sinistra, paginator numerico (shadcn) a destra.

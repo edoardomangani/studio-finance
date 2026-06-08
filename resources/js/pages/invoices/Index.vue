@@ -9,27 +9,20 @@
  */
 import { Head, Link, router, setLayoutProps } from '@inertiajs/vue3';
 import {
-    PhArchive,
-    PhDotsThreeVertical,
     PhFunnel,
     PhMagnifyingGlass,
-    PhPencil,
     PhPlus,
     PhUploadSimple,
 } from '@phosphor-icons/vue';
 import { computed, onUnmounted, ref, watch } from 'vue';
-import InvoiceController from '@/actions/App/Http/Controllers/InvoiceController';
 import FilterPanel from '@/components/FilterPanel.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ConfirmDialog } from '@/components/ui/dialog';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
 import {
     Pagination,
     PaginationContent,
@@ -38,20 +31,13 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from '@/components/ui/pagination';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableEmpty,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import { useArchiveAction } from '@/composables/useArchiveAction';
-import { formatDateIT, formatEUR } from '@/lib/format';
 import InvoiceFilters from '@/pages/invoices/InvoiceFilters.vue';
 import type { InvoiceFilterState } from '@/pages/invoices/InvoiceFilters.vue';
-import { create as invoicesCreate, edit as invoiceEdit, index as invoicesIndex, show as invoiceShow } from '@/routes/invoices';
+import InvoicesTable from '@/pages/invoices/InvoicesTable.vue';
+import {
+    create as invoicesCreate,
+    index as invoicesIndex,
+} from '@/routes/invoices';
 import type { ClientForPicker, InvoiceListItem, PaginatedList } from '@/types';
 
 const props = defineProps<{
@@ -71,10 +57,6 @@ setLayoutProps({
     pageCrumbs: [{ label: 'Fatture' }],
     subbar: true,
 });
-
-const { archiveOpen, archiveTarget, askArchive, confirmArchive } = useArchiveAction<InvoiceListItem>(
-    (invoice) => InvoiceController.destroy.url({ invoice: invoice.id }),
-);
 
 // Search reattiva con debounce 250ms.
 const searchTerm = ref(props.filters.search);
@@ -110,7 +92,12 @@ const filterState = ref<InvoiceFilterState>({
 });
 
 watch(
-    () => [props.filters.year, props.filters.client_id, props.filters.withholding] as const,
+    () =>
+        [
+            props.filters.year,
+            props.filters.client_id,
+            props.filters.withholding,
+        ] as const,
     ([year, clientId, withholding]) => {
         filterState.value = { year, client_id: clientId, withholding };
     },
@@ -169,10 +156,22 @@ function applyFilters(next: {
         {
             search: (next.search ?? props.filters.search) || undefined,
             year: nonEmpty(next.year ?? props.filters.year),
-            client_id: (next.client_id !== undefined ? next.client_id : props.filters.client_id) ?? undefined,
-            withholding: next.withholding !== undefined
-                ? (next.withholding === null ? undefined : (next.withholding ? 1 : 0))
-                : (props.filters.withholding === null ? undefined : (props.filters.withholding ? 1 : 0)),
+            client_id:
+                (next.client_id !== undefined
+                    ? next.client_id
+                    : props.filters.client_id) ?? undefined,
+            withholding:
+                next.withholding !== undefined
+                    ? next.withholding === null
+                        ? undefined
+                        : next.withholding
+                          ? 1
+                          : 0
+                    : props.filters.withholding === null
+                      ? undefined
+                      : props.filters.withholding
+                        ? 1
+                        : 0,
         },
         { preserveState: true, preserveScroll: true, replace: true },
     );
@@ -185,17 +184,16 @@ function goToPage(page: number): void {
             search: props.filters.search || undefined,
             year: nonEmpty(props.filters.year),
             client_id: props.filters.client_id ?? undefined,
-            withholding: props.filters.withholding === null
-                ? undefined
-                : (props.filters.withholding ? 1 : 0),
+            withholding:
+                props.filters.withholding === null
+                    ? undefined
+                    : props.filters.withholding
+                      ? 1
+                      : 0,
             page,
         },
         { preserveState: true, preserveScroll: true },
     );
-}
-
-function openInvoice(invoice: InvoiceListItem): void {
-    router.visit(invoiceShow(invoice.id).url);
 }
 </script>
 
@@ -244,110 +242,26 @@ function openInvoice(invoice: InvoiceListItem): void {
             <Badge
                 v-if="activeFilterCount > 0"
                 variant="secondary"
-                class="ml-1 h-4 min-w-4 px-1 text-2xs tabular"
+                class="tabular ml-1 h-4 min-w-4 px-1 text-2xs"
             >
                 {{ activeFilterCount }}
             </Badge>
         </Button>
     </Teleport>
 
-    <Table boxed>
-        <TableHeader>
-            <TableRow>
-                <TableHead class="w-[100px]">Data</TableHead>
-                <TableHead class="w-[110px]">Numero</TableHead>
-                <TableHead>Cliente</TableHead>
-                <TableHead class="text-right">Imponibile</TableHead>
-                <TableHead class="text-right">Bollo</TableHead>
-                <TableHead class="text-right">Cassa</TableHead>
-                <TableHead class="text-right">Art.15</TableHead>
-                <TableHead class="text-right">Totale</TableHead>
-                <TableHead class="w-[80px] text-right">Ritenuta</TableHead>
-                <TableHead class="w-[48px]" />
-            </TableRow>
-        </TableHeader>
-        <TableBody>
-            <TableEmpty v-if="invoices.data.length === 0" :colspan="10">
-                <span v-if="hasActiveFilters">
-                    Nessuna fattura trovata con questi filtri.
-                </span>
-                <span v-else>
-                    Nessuna fattura. Creane una dal pulsante in alto.
-                </span>
-            </TableEmpty>
-            <TableRow
-                v-for="invoice in invoices.data"
-                v-else
-                :key="invoice.id"
-                class="cursor-pointer transition-colors hover:bg-muted/40"
-                @click="openInvoice(invoice)"
-            >
-                <TableCell class="tabular text-muted-foreground">
-                    {{ formatDateIT(invoice.issued_at) }}
-                </TableCell>
-                <TableCell class="tabular font-medium text-foreground">
-                    <span class="block max-w-[110px] truncate" :title="invoice.number">
-                        {{ invoice.number }}
-                    </span>
-                </TableCell>
-                <TableCell class="text-foreground">
-                    <span class="block truncate" :title="invoice.client.name">
-                        {{ invoice.client.name }}
-                    </span>
-                </TableCell>
-                <TableCell class="tabular text-right text-muted-foreground">
-                    {{ formatEUR(invoice.amount) }}
-                </TableCell>
-                <TableCell class="tabular text-right text-muted-foreground">
-                    {{ formatEUR(invoice.stamp_amount) }}
-                </TableCell>
-                <TableCell class="tabular text-right text-muted-foreground">
-                    {{ formatEUR(invoice.inarcassa_amount) }}
-                </TableCell>
-                <TableCell class="tabular text-right text-muted-foreground">
-                    {{ formatEUR(invoice.art_15_amount) }}
-                </TableCell>
-                <TableCell class="tabular text-right font-medium text-foreground">
-                    {{ formatEUR(invoice.total) }}
-                </TableCell>
-                <TableCell class="text-right">
-                    <Badge v-if="invoice.bank_withholding" variant="outline">
-                        Sì
-                    </Badge>
-                    <span v-else class="text-muted-foreground">—</span>
-                </TableCell>
-                <TableCell class="text-right" @click.stop>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger as-child>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon-sm"
-                                aria-label="Azioni fattura"
-                            >
-                                <PhDotsThreeVertical :size="14" weight="bold" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem as-child>
-                                <Link :href="invoiceEdit(invoice.id).url">
-                                    <PhPencil :size="14" />
-                                    Modifica
-                                </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                variant="destructive"
-                                @select="askArchive(invoice)"
-                            >
-                                <PhArchive :size="14" />
-                                Archivia
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </TableCell>
-            </TableRow>
-        </TableBody>
-    </Table>
+    <InvoicesTable
+        :invoices="invoices.data"
+        :origin="[{ label: 'Fatture', href: invoicesIndex().url }]"
+    >
+        <template #empty>
+            <span v-if="hasActiveFilters">
+                Nessuna fattura trovata con questi filtri.
+            </span>
+            <span v-else>
+                Nessuna fattura. Creane una dal pulsante in alto.
+            </span>
+        </template>
+    </InvoicesTable>
 
     <footer
         v-if="invoices.last_page > 1"
@@ -375,11 +289,7 @@ function openInvoice(invoice: InvoiceListItem): void {
                     >
                         {{ item.value }}
                     </PaginationItem>
-                    <PaginationEllipsis
-                        v-else
-                        :key="`e-${idx}`"
-                        :index="idx"
-                    />
+                    <PaginationEllipsis v-else :key="`e-${idx}`" :index="idx" />
                 </template>
                 <PaginationNext />
             </PaginationContent>
@@ -402,15 +312,4 @@ function openInvoice(invoice: InvoiceListItem): void {
             />
         </template>
     </FilterPanel>
-
-    <ConfirmDialog
-        v-model:open="archiveOpen"
-        title="Archiviare la fattura?"
-        :description="archiveTarget
-            ? `«${archiveTarget.number}» verrà nascosta dall'elenco. I dati restano per i calcoli storici.`
-            : undefined"
-        confirm-label="Archivia"
-        destructive
-        @confirm="confirmArchive"
-    />
 </template>

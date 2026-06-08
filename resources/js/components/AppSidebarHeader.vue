@@ -54,7 +54,7 @@ const { toggleSidebar } = useSidebar();
     <header class="shrink-0 bg-background">
         <!-- ─── FASCIA TOP (h-12): breadcrumb-titolo · azioni pagina ─── -->
         <div
-            class="border-border-soft flex h-12 items-center gap-2 border-b px-3 md:gap-3 md:px-5"
+            class="flex h-12 items-center gap-2 border-b border-border-soft px-3 md:gap-3 md:px-5"
         >
             <!-- Tablet/mobile: hamburger per aprire la Sidebar in modalità Sheet
                  (sotto 1024px). Da lg+ nascosto: il toggle vive a cavallo del

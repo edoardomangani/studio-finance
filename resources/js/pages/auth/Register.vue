@@ -17,7 +17,8 @@ defineProps<{
 defineOptions({
     layout: {
         title: 'Crea il tuo account',
-        description: 'Pochi dati per iniziare. Compili il profilo professionale al primo accesso.',
+        description:
+            'Pochi dati per iniziare. Compili il profilo professionale al primo accesso.',
     },
 });
 
@@ -51,7 +52,9 @@ function submit(): void {
                     autocomplete="name"
                     placeholder="Es. Mario Rossi"
                 />
-                <template v-if="form.errors.name" #error>{{ form.errors.name }}</template>
+                <template v-if="form.errors.name" #error>{{
+                    form.errors.name
+                }}</template>
             </FormField>
 
             <FormField label="Email" for="email" required>
@@ -64,7 +67,9 @@ function submit(): void {
                     autocomplete="email"
                     placeholder="nome@studio.it"
                 />
-                <template v-if="form.errors.email" #error>{{ form.errors.email }}</template>
+                <template v-if="form.errors.email" #error>{{
+                    form.errors.email
+                }}</template>
             </FormField>
 
             <FormField label="Password" for="password" required>
@@ -76,10 +81,16 @@ function submit(): void {
                     autocomplete="new-password"
                     :passwordrules="passwordRules"
                 />
-                <template v-if="form.errors.password" #error>{{ form.errors.password }}</template>
+                <template v-if="form.errors.password" #error>{{
+                    form.errors.password
+                }}</template>
             </FormField>
 
-            <FormField label="Conferma password" for="password_confirmation" required>
+            <FormField
+                label="Conferma password"
+                for="password_confirmation"
+                required
+            >
                 <PasswordInput
                     id="password_confirmation"
                     v-model="form.password_confirmation"
@@ -88,7 +99,9 @@ function submit(): void {
                     autocomplete="new-password"
                     :passwordrules="passwordRules"
                 />
-                <template v-if="form.errors.password_confirmation" #error>{{ form.errors.password_confirmation }}</template>
+                <template v-if="form.errors.password_confirmation" #error>{{
+                    form.errors.password_confirmation
+                }}</template>
             </FormField>
 
             <Button

@@ -51,11 +51,15 @@ function submit() {
 <template>
     <Head title="Onboarding" />
 
-    <div class="flex min-h-full items-center justify-center bg-background px-4 py-12">
+    <div
+        class="flex min-h-full items-center justify-center bg-background px-4 py-12"
+    >
         <div class="w-full max-w-md">
             <header class="mb-8">
                 <span class="kicker">Studiofinance</span>
-                <h1 class="mt-2 text-2xl font-medium tracking-tight text-foreground">
+                <h1
+                    class="mt-2 text-2xl font-medium tracking-tight text-foreground"
+                >
                     Configura il tuo profilo
                 </h1>
                 <p class="mt-3 text-13 leading-relaxed text-muted-foreground">
@@ -99,9 +103,18 @@ function submit() {
                             min="0"
                             max="100"
                             class="tabular"
-                            @blur="form.profitability_coefficient = clampNumber(form.profitability_coefficient, 0, 100)"
+                            @blur="
+                                form.profitability_coefficient = clampNumber(
+                                    form.profitability_coefficient,
+                                    0,
+                                    100,
+                                )
+                            "
                         />
-                        <template v-if="form.errors.profitability_coefficient" #error>
+                        <template
+                            v-if="form.errors.profitability_coefficient"
+                            #error
+                        >
                             {{ form.errors.profitability_coefficient }}
                         </template>
                     </FormField>
@@ -118,7 +131,10 @@ function submit() {
                             :min="1990"
                             :max="new Date().getFullYear()"
                             :step="1"
-                            :format-options="{ useGrouping: false, maximumFractionDigits: 0 }"
+                            :format-options="{
+                                useGrouping: false,
+                                maximumFractionDigits: 0,
+                            }"
                         >
                             <NumberFieldContent>
                                 <NumberFieldDecrement />

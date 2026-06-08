@@ -35,7 +35,8 @@ const props = defineProps<{
 const open = defineModel<boolean>('open', { default: false });
 
 const isPayableOpen = computed(
-    () => props.deadline?.kind === 'payment' && props.deadline?.status === 'open',
+    () =>
+        props.deadline?.kind === 'payment' && props.deadline?.status === 'open',
 );
 
 const expectedHint = computed(() => {
@@ -90,7 +91,10 @@ watch(open, (isOpen) => {
     form.clearErrors();
     form.defaults({
         description: props.deadline.name,
-        amount: props.deadline.expected_amount !== null ? String(props.deadline.expected_amount) : '',
+        amount:
+            props.deadline.expected_amount !== null
+                ? String(props.deadline.expected_amount)
+                : '',
         paid_at: todayISO(),
     });
     form.reset();
@@ -102,7 +106,8 @@ function askMarkNotDue(): void {
     }
 
     pending.value = {
-        description: 'La scadenza e il pagamento collegato verranno segnati come non dovuti.',
+        description:
+            'La scadenza e il pagamento collegato verranno segnati come non dovuti.',
         confirmLabel: 'Marca non dovuta',
         url: markNotDueRoute({ deadline: props.deadline.id }).url,
         destructive: false,
@@ -115,7 +120,8 @@ function askUndoCompletion(): void {
     }
 
     pending.value = {
-        description: 'Il completamento verrà annullato: importo e data del pagamento verranno azzerati.',
+        description:
+            'Il completamento verrà annullato: importo e data del pagamento verranno azzerati.',
         confirmLabel: 'Annulla completamento',
         url: reopenRoute({ deadline: props.deadline.id }).url,
         destructive: true,
@@ -128,7 +134,8 @@ function askReopen(): void {
     }
 
     pending.value = {
-        description: 'La scadenza tornerà aperta e potrai registrare di nuovo il pagamento.',
+        description:
+            'La scadenza tornerà aperta e potrai registrare di nuovo il pagamento.',
         confirmLabel: 'Riapri scadenza',
         url: reopenRoute({ deadline: props.deadline.id }).url,
         destructive: false,
@@ -140,22 +147,26 @@ function runReversal(): void {
         return;
     }
 
-    router.post(pending.value.url, {}, {
-        preserveScroll: true,
-        onStart: () => {
-            reversing.value = true;
+    router.post(
+        pending.value.url,
+        {},
+        {
+            preserveScroll: true,
+            onStart: () => {
+                reversing.value = true;
+            },
+            onFinish: () => {
+                reversing.value = false;
+            },
+            onSuccess: () => {
+                pending.value = null;
+                open.value = false;
+            },
+            onError: () => {
+                toast.error('Operazione non riuscita. Riprova.');
+            },
         },
-        onFinish: () => {
-            reversing.value = false;
-        },
-        onSuccess: () => {
-            pending.value = null;
-            open.value = false;
-        },
-        onError: () => {
-            toast.error('Operazione non riuscita. Riprova.');
-        },
-    });
+    );
 }
 
 function restoreExpected(): void {
@@ -203,19 +214,33 @@ function submit(): void {
 
         <template v-if="deadline">
             <!-- Meta scadenza: contesto in lettura, niente card. -->
-            <dl class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-b border-border pb-4 text-13">
+            <dl
+                class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 border-b border-border pb-4 text-13"
+            >
                 <dt class="text-muted-foreground">Scadenza</dt>
-                <dd class="tabular text-right text-foreground">{{ formatDateIT(deadline.due_at) }}</dd>
+                <dd class="tabular text-right text-foreground">
+                    {{ formatDateIT(deadline.due_at) }}
+                </dd>
                 <dt class="text-muted-foreground">Anno</dt>
-                <dd class="tabular text-right text-foreground">{{ deadline.year }}</dd>
+                <dd class="tabular text-right text-foreground">
+                    {{ deadline.year }}
+                </dd>
                 <template v-if="deadline.annual_expense_name">
                     <dt class="text-muted-foreground">Voce di spesa</dt>
-                    <dd class="text-right text-foreground">{{ deadline.annual_expense_name }}</dd>
+                    <dd class="text-right text-foreground">
+                        {{ deadline.annual_expense_name }}
+                    </dd>
                 </template>
                 <dt class="text-muted-foreground">Stato</dt>
                 <dd class="text-right">
-                    <Badge :variant="DEADLINE_STATUS_META[deadline.status].variant" class="gap-1">
-                        <component :is="DEADLINE_STATUS_META[deadline.status].icon" :size="12" />
+                    <Badge
+                        :variant="DEADLINE_STATUS_META[deadline.status].variant"
+                        class="gap-1"
+                    >
+                        <component
+                            :is="DEADLINE_STATUS_META[deadline.status].icon"
+                            :size="12"
+                        />
                         {{ deadline.status_label }}
                     </Badge>
                 </dd>
@@ -230,13 +255,25 @@ function submit(): void {
             >
                 <FieldGroup>
                     <FormField label="Descrizione" for="payment-description">
-                        <Input id="payment-description" v-model="form.description" />
-                        <template v-if="form.errors.description" #error>{{ form.errors.description }}</template>
+                        <Input
+                            id="payment-description"
+                            v-model="form.description"
+                        />
+                        <template v-if="form.errors.description" #error>{{
+                            form.errors.description
+                        }}</template>
                     </FormField>
 
                     <FormField label="Data del pagamento" for="payment-date">
-                        <Input id="payment-date" v-model="form.paid_at" type="date" :max="todayISO()" />
-                        <template v-if="form.errors.paid_at" #error>{{ form.errors.paid_at }}</template>
+                        <Input
+                            id="payment-date"
+                            v-model="form.paid_at"
+                            type="date"
+                            :max="todayISO()"
+                        />
+                        <template v-if="form.errors.paid_at" #error>{{
+                            form.errors.paid_at
+                        }}</template>
                     </FormField>
 
                     <FormField label="Importo" for="payment-amount">
@@ -248,7 +285,9 @@ function submit(): void {
                             class="tabular"
                         />
                         <template #hint>
-                            <span class="flex items-center justify-between gap-2">
+                            <span
+                                class="flex items-center justify-between gap-2"
+                            >
                                 <span>{{ expectedHint }}</span>
                                 <button
                                     v-if="canRestoreExpected"
@@ -260,27 +299,41 @@ function submit(): void {
                                 </button>
                             </span>
                         </template>
-                        <template v-if="form.errors.amount" #error>{{ form.errors.amount }}</template>
+                        <template v-if="form.errors.amount" #error>{{
+                            form.errors.amount
+                        }}</template>
                     </FormField>
                 </FieldGroup>
             </form>
 
             <!-- Pagamento registrato → lettura. -->
             <dl
-                v-else-if="deadline.payment && deadline.payment.status === 'paid'"
+                v-else-if="
+                    deadline.payment && deadline.payment.status === 'paid'
+                "
                 class="grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 pt-4 text-13"
             >
                 <dt class="text-muted-foreground">Importo pagato</dt>
                 <dd class="tabular text-right font-medium text-foreground">
-                    {{ deadline.payment.amount !== null ? formatEUR(deadline.payment.amount) : '—' }}
+                    {{
+                        deadline.payment.amount !== null
+                            ? formatEUR(deadline.payment.amount)
+                            : '—'
+                    }}
                 </dd>
                 <dt class="text-muted-foreground">Data</dt>
-                <dd class="tabular text-right text-foreground">{{ formatDateIT(deadline.payment.paid_at) }}</dd>
+                <dd class="tabular text-right text-foreground">
+                    {{ formatDateIT(deadline.payment.paid_at) }}
+                </dd>
             </dl>
 
             <p v-else class="pt-4 text-13 text-muted-foreground">
-                <span v-if="deadline.kind === 'fulfillment'">Adempimento, nessun pagamento collegato.</span>
-                <span v-else-if="deadline.status === 'not_due'">Scadenza segnata come non dovuta.</span>
+                <span v-if="deadline.kind === 'fulfillment'"
+                    >Adempimento, nessun pagamento collegato.</span
+                >
+                <span v-else-if="deadline.status === 'not_due'"
+                    >Scadenza segnata come non dovuta.</span
+                >
                 <span v-else>Nessun pagamento da registrare.</span>
             </p>
         </template>
@@ -288,14 +341,24 @@ function submit(): void {
         <template v-if="showFooter" #footer>
             <!-- Conferma inline di una reversibilità. -->
             <div v-if="pending" class="space-y-3">
-                <p class="text-13 text-muted-foreground">{{ pending.description }}</p>
+                <p class="text-13 text-muted-foreground">
+                    {{ pending.description }}
+                </p>
                 <div class="flex gap-2">
-                    <Button type="button" variant="outline" class="flex-1" :disabled="reversing" @click="pending = null">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        class="flex-1"
+                        :disabled="reversing"
+                        @click="pending = null"
+                    >
                         Annulla
                     </Button>
                     <Button
                         type="button"
-                        :variant="pending.destructive ? 'destructive' : 'default'"
+                        :variant="
+                            pending.destructive ? 'destructive' : 'default'
+                        "
                         class="flex-1"
                         :disabled="reversing"
                         @click="runReversal"

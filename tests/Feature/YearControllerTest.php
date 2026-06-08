@@ -1,5 +1,7 @@
 <?php
 
+use App\Actions\Studiofinance\RegisterManualPayment;
+use App\Enums\ExpenseCalculationType;
 use App\Enums\PaymentStatus;
 use App\Models\AnnualExpense;
 use App\Models\Deadline;
@@ -8,6 +10,8 @@ use App\Models\Payment;
 use App\Models\User;
 use App\Models\Year;
 use App\Services\YearOpeningPlanner;
+use App\Services\YearService;
+use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 
 /**
@@ -38,16 +42,34 @@ function planFor(User $user, int $year): array
     return app(YearOpeningPlanner::class)->plan($user, $year);
 }
 
-it('mostra la lista anni', function () {
+it('mostra il confronto pluriennale', function () {
     $user = onboardedUserWithTemplates();
     $user->years()->create(['year' => 2025, 'profitability_coefficient' => 78, 'pre_opened' => false]);
+
+    $this->get(route('years.compare'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('years/Compare')
+            ->has('years', 1)
+            ->where('years.0.year', 2025));
+});
+
+it('atterra sull anno corrente entrando nella sezione', function () {
+    $user = onboardedUserWithTemplates();
+    $user->years()->create(['year' => 2025, 'profitability_coefficient' => 78, 'pre_opened' => false]);
+
+    // currentYear: 2026 (oggi) non aperto → ultimo aperto = 2025.
+    $this->get(route('years.index'))->assertRedirect(route('years.show', 2025));
+});
+
+it('mostra il confronto come empty state se non c è alcun anno aperto', function () {
+    onboardedUserWithTemplates();
 
     $this->get(route('years.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('years/Index')
-            ->has('years', 1)
-            ->where('years.0.year', 2025));
+            ->component('years/Compare')
+            ->has('years', 0));
 });
 
 it('mostra la pagina di apertura anno con l anno suggerito', function () {
@@ -214,6 +236,75 @@ it('scala ritenute e credito dal definitivo della imposta sostitutiva', function
             ->where('year.totals.previous_year_credit', 20));
 });
 
+it('espone pagamenti, formula, meta e switcher nella vista anno', function () {
+    $user = onboardedUserWithTemplates();
+    $this->post(route('years.store'), openYearPayload(planFor($user, 2026)))->assertRedirect();
+    $year = Year::where('year', 2026)->first();
+
+    // Registro un pagamento su una scadenza (pianificato → pagato).
+    $planned = Payment::where('status', PaymentStatus::Planned)->whereNotNull('deadline_id')->first();
+    $planned->update(['status' => PaymentStatus::Paid, 'amount' => 250.00, 'paid_at' => '2026-06-16']);
+
+    $this->get(route('years.show', 2026))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('year.payments', 1)
+            ->where('year.payments.0.amount', 250)
+            ->where('year.payments.0.is_manual', false)
+            ->where('year.payments.0.expense_year', 2026)
+            // FormulaBlock (9.a): base + aliquota della voce IS.
+            ->where('year.expenses.0.formula.base_label', 'Reddito IRPEF netto')
+            ->where('year.expenses.0.formula.rate', 15)
+            ->has('year.expenses.0.formula.definitive')
+            // Meta + switcher.
+            ->where('year.meta.next_year', 2027)
+            ->where('year.meta.can_open_next', true)   // 2027 esiste pre-aperto → formalizzabile
+            ->where('year.years_nav.0.year', 2027)
+            ->where('year.years_nav.0.pre_opened', true)
+            ->where('year.years_nav.1.year', 2026));
+});
+
+it('legge i pagamenti dell anno con una sola query', function () {
+    $user = onboardedUserWithTemplates();
+    $this->post(route('years.store'), openYearPayload(planFor($user, 2026)))->assertRedirect();
+    $planned = Payment::where('status', PaymentStatus::Planned)->whereNotNull('deadline_id')->first();
+    $planned->update(['status' => PaymentStatus::Paid, 'amount' => 250.00, 'paid_at' => '2026-06-16']);
+
+    DB::enableQueryLog();
+    $this->get(route('years.show', 2026))->assertOk();
+
+    $paymentQueries = collect(DB::getQueryLog())
+        ->filter(fn (array $q): bool => str_contains($q['query'], 'from "payments"'))
+        ->count();
+
+    // Tre popolazioni distinte, nessuna ripetuta: (1) union del 2026 (cassa ∪
+    // competenza) dal loader, (2) la 1:1 per-scadenza (tutti gli stati) che il
+    // set paid-only non copre, (3) union del 2027 — una scadenza 2026 paga la
+    // spesa cross-year del 2027 e l'aspettativa la richiede. Il ContextBuilder
+    // NON riquery (riusa l'union via `paidPayments`): se ricomparisse, salirebbe.
+    expect($paymentQueries)->toBe(3);
+});
+
+it('il tab pagamenti mostra solo la competenza dell anno, non la cassa di altri anni', function () {
+    $user = onboardedUserWithTemplates();
+    $this->post(route('years.store'), openYearPayload(planFor($user, 2026)))->assertRedirect();
+
+    $expense2026 = AnnualExpense::where('year_id', Year::where('year', 2026)->value('id'))->firstOrFail();
+    $expense2027 = AnnualExpense::where('year_id', Year::where('year', 2027)->value('id'))->firstOrFail();
+
+    // Competenza 2026, pagato nel 2027 → deve comparire nel cockpit 2026.
+    app(RegisterManualPayment::class)($expense2026, ['amount' => '111', 'paid_at' => '2027-02-01', 'description' => 'comp2026']);
+    // Competenza 2027 (cross-year), pagato nel 2026 → NON deve comparire.
+    app(RegisterManualPayment::class)($expense2027, ['amount' => '222', 'paid_at' => '2026-02-01', 'description' => 'comp2027']);
+
+    $this->get(route('years.show', 2026))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('year.payments', fn ($payments) => collect($payments)->contains('description', 'comp2026')
+                && ! collect($payments)->contains('description', 'comp2027'))
+            ->etc());
+});
+
 it('richiede onboarding e autenticazione', function () {
     $this->get(route('years.index'))->assertRedirect(route('login'));
 
@@ -221,4 +312,35 @@ it('richiede onboarding e autenticazione', function () {
     $this->actingAs($user)
         ->get(route('years.index'))
         ->assertRedirect(route('onboarding.show'));
+});
+
+it('maturato a oggi di un contributo a minimo è income-based, non il minimo', function () {
+    $user = User::factory()->create();
+    $this->actingAs($user);
+
+    // Anno in corso (2026), coefficiente 100 per numeri puliti.
+    $year = Year::factory()->create(['user_id' => $user->id, 'year' => 2026, 'profitability_coefficient' => 100]);
+    AnnualExpense::factory()->create([
+        'user_id' => $user->id,
+        'year_id' => $year->id,
+        'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome,
+        'is_pension_contribution' => true,
+        'rate' => 10.00,
+        'minimum' => 2000.00,
+        'amount' => null,
+    ]);
+    // Reddito IRPEF 5000 → 10% = 500, sotto il minimale 2000.
+    Invoice::factory()->create([
+        'user_id' => $user->id,
+        'issued_at' => '2026-05-10',
+        'amount' => 5000.00,
+        'stamp_amount' => 0.00,
+        'art_15_amount' => 0.00,
+    ]);
+
+    $totals = app(YearService::class)->forShow($year->fresh())['totals'];
+
+    expect($totals['expenses_definitive'])->toBe(2000.0)        // definitivo = minimo
+        ->and($totals['expenses_amount_to_date'])->toBe(500.0)  // a oggi income-based, niente minimo
+        ->and($totals['net_to_date'])->toBe(round($totals['invoice_total'] - 500.0, 2));
 });

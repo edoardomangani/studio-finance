@@ -9,7 +9,7 @@
  * lista pagamenti si rinfresca.
  */
 import { useForm } from '@inertiajs/vue3';
-import { watch } from 'vue';
+import { computed, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import PaymentController from '@/actions/App/Http/Controllers/PaymentController';
 import AnnualExpensePicker from '@/components/AnnualExpensePicker.vue';
@@ -18,13 +18,17 @@ import ResponsiveDialog from '@/components/ResponsiveDialog.vue';
 import { FieldGroup } from '@/components/ui/field';
 import { Input } from '@/components/ui/input';
 import { todayISO } from '@/lib/format';
-import type { AnnualExpenseForPicker } from '@/types';
+import type { AnnualExpenseForPicker, PaymentListItem } from '@/types';
 
-defineProps<{
+// `payment` valorizzato = modifica di un pagamento manuale; null = creazione.
+const props = defineProps<{
     annualExpenses: AnnualExpenseForPicker[];
+    payment?: PaymentListItem | null;
 }>();
 
 const open = defineModel<boolean>('open', { default: false });
+
+const isEditing = computed(() => props.payment != null);
 
 type FormPayload = {
     annual_expense_id: number | null;
@@ -42,14 +46,24 @@ const emptyForm = (): FormPayload => ({
 
 const form = useForm<FormPayload>(emptyForm());
 
-// Reset a ogni apertura: la data del pagamento parte da oggi.
+// Precompila a ogni apertura: in modifica dai dati del pagamento, in creazione
+// la data parte da oggi.
 watch(open, (isOpen) => {
     if (!isOpen) {
         return;
     }
 
     form.clearErrors();
-    form.defaults({ ...emptyForm(), paid_at: todayISO() });
+    form.defaults(
+        props.payment
+            ? {
+                  annual_expense_id: props.payment.annual_expense_id,
+                  description: props.payment.description ?? '',
+                  amount: String(props.payment.amount),
+                  paid_at: props.payment.paid_at ?? todayISO(),
+              }
+            : { ...emptyForm(), paid_at: todayISO() },
+    );
     form.reset();
 });
 
@@ -60,27 +74,36 @@ function submit(): void {
         description: data.description.trim() || null,
     }));
 
-    form.post(PaymentController.store.url(), {
+    const options = {
         preserveScroll: true,
         onSuccess: () => {
             open.value = false;
         },
-        onError: (errors) => {
+        onError: (errors: Record<string, string>) => {
             if (Object.keys(errors).length === 0) {
-                toast.error('Registrazione non riuscita. Riprova.');
+                toast.error('Operazione non riuscita. Riprova.');
             }
         },
-    });
+    };
+
+    if (props.payment) {
+        form.patch(
+            PaymentController.update.url({ payment: props.payment.id }),
+            options,
+        );
+    } else {
+        form.post(PaymentController.store.url(), options);
+    }
 }
 </script>
 
 <template>
     <ResponsiveDialog
         v-model:open="open"
-        title="Nuovo pagamento"
+        :title="isEditing ? 'Modifica pagamento' : 'Nuovo pagamento'"
         description="Cassa imputata a una spesa, senza una scadenza da tracciare. Per gli obblighi previsti usa le scadenze."
         submit-form="payment-form"
-        submit-label="Registra pagamento"
+        :submit-label="isEditing ? 'Salva modifiche' : 'Registra pagamento'"
         :submitting="form.processing"
     >
         <form id="payment-form" @submit.prevent="submit">
@@ -97,14 +120,20 @@ function submit(): void {
                     }}</template>
                 </FormField>
 
-                <FormField label="Data del pagamento" for="payment-date" required>
+                <FormField
+                    label="Data del pagamento"
+                    for="payment-date"
+                    required
+                >
                     <Input
                         id="payment-date"
                         v-model="form.paid_at"
                         type="date"
                         :max="todayISO()"
                     />
-                    <template v-if="form.errors.paid_at" #error>{{ form.errors.paid_at }}</template>
+                    <template v-if="form.errors.paid_at" #error>{{
+                        form.errors.paid_at
+                    }}</template>
                 </FormField>
 
                 <FormField label="Importo" for="payment-amount" required>
@@ -115,7 +144,9 @@ function submit(): void {
                         placeholder="0.00"
                         class="tabular"
                     />
-                    <template v-if="form.errors.amount" #error>{{ form.errors.amount }}</template>
+                    <template v-if="form.errors.amount" #error>{{
+                        form.errors.amount
+                    }}</template>
                 </FormField>
 
                 <FormField label="Descrizione" for="payment-description">

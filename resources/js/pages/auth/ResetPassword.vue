@@ -48,7 +48,9 @@ function submit(): void {
                     autocomplete="email"
                     readonly
                 />
-                <template v-if="form.errors.email" #error>{{ form.errors.email }}</template>
+                <template v-if="form.errors.email" #error>{{
+                    form.errors.email
+                }}</template>
             </FormField>
 
             <FormField label="Nuova password" for="password" required>
@@ -59,17 +61,25 @@ function submit(): void {
                     autofocus
                     :passwordrules="passwordRules"
                 />
-                <template v-if="form.errors.password" #error>{{ form.errors.password }}</template>
+                <template v-if="form.errors.password" #error>{{
+                    form.errors.password
+                }}</template>
             </FormField>
 
-            <FormField label="Conferma password" for="password_confirmation" required>
+            <FormField
+                label="Conferma password"
+                for="password_confirmation"
+                required
+            >
                 <PasswordInput
                     id="password_confirmation"
                     v-model="form.password_confirmation"
                     autocomplete="new-password"
                     :passwordrules="passwordRules"
                 />
-                <template v-if="form.errors.password_confirmation" #error>{{ form.errors.password_confirmation }}</template>
+                <template v-if="form.errors.password_confirmation" #error>{{
+                    form.errors.password_confirmation
+                }}</template>
             </FormField>
 
             <Button

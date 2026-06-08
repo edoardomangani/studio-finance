@@ -17,7 +17,12 @@
 import { PhX } from '@phosphor-icons/vue';
 import { useMediaQuery } from '@vueuse/core';
 import { Button } from '@/components/ui/button';
-import { Drawer, DrawerContent, DrawerDescription, DrawerTitle } from '@/components/ui/drawer';
+import {
+    Drawer,
+    DrawerContent,
+    DrawerDescription,
+    DrawerTitle,
+} from '@/components/ui/drawer';
 
 defineProps<{ title: string; description?: string }>();
 
@@ -36,7 +41,9 @@ const isMobile = useMediaQuery('(max-width: 767px)');
             class="data-[vaul-drawer-direction=right]:w-full data-[vaul-drawer-direction=right]:sm:max-w-md"
         >
             <!-- Header iOS: X a sx, titolo centrato, primario a dx. -->
-            <header class="grid grid-cols-[1fr_auto_1fr] items-center gap-2 border-b border-border px-2 h-12 shrink-0">
+            <header
+                class="grid h-12 shrink-0 grid-cols-[1fr_auto_1fr] items-center gap-2 border-b border-border px-2"
+            >
                 <div class="justify-self-start">
                     <Button
                         type="button"
@@ -48,20 +55,27 @@ const isMobile = useMediaQuery('(max-width: 767px)');
                         <PhX :size="18" />
                     </Button>
                 </div>
-                <DrawerTitle class="truncate px-2 text-center text-13 font-medium text-foreground">
+                <DrawerTitle
+                    class="truncate px-2 text-center text-13 font-medium text-foreground"
+                >
                     {{ title }}
                 </DrawerTitle>
                 <div class="flex justify-self-end">
                     <slot name="primary" />
                 </div>
             </header>
-            <DrawerDescription class="sr-only">{{ description ?? title }}</DrawerDescription>
+            <DrawerDescription class="sr-only">{{
+                description ?? title
+            }}</DrawerDescription>
 
             <div class="flex-1 overflow-y-auto px-6 py-4">
                 <slot />
             </div>
 
-            <footer v-if="$slots.footer" class="shrink-0 border-t border-border px-4 py-3">
+            <footer
+                v-if="$slots.footer"
+                class="shrink-0 border-t border-border px-4 py-3"
+            >
                 <slot name="footer" />
             </footer>
         </DrawerContent>

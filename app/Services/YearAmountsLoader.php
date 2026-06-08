@@ -37,19 +37,23 @@ class YearAmountsLoader
             ->orderByDesc('issued_at')
             ->orderByDesc('number_sort')
             ->orderByDesc('id')
+            ->with('client')
             ->get();
 
-        $cashPayments = Payment::query()
+        // Pagamenti rilevanti per l'anno in UNA query (RB9): pagati nell'anno
+        // solare (per cassa) OPPURE collegati a una spesa dell'anno (per
+        // competenza). I due sottoinsiemi vengono derivati in memoria dal
+        // calcolatore; la stessa union alimenta vista, scadenze e tab pagamenti.
+        $expenseIds = $year->annualExpenses->pluck('id');
+        $paidPayments = Payment::query()
             ->where('user_id', $year->user_id)
             ->where('status', PaymentStatus::Paid)
-            ->whereYear('paid_at', $year->year)
-            ->with('annualExpense')
-            ->get();
-
-        $expensePayments = Payment::query()
-            ->where('user_id', $year->user_id)
-            ->where('status', PaymentStatus::Paid)
-            ->whereIn('annual_expense_id', $year->annualExpenses->pluck('id'))
+            ->where(function ($query) use ($year, $expenseIds): void {
+                $query
+                    ->whereYear('paid_at', $year->year)
+                    ->orWhereIn('annual_expense_id', $expenseIds);
+            })
+            ->with(['annualExpense.year', 'deadline'])
             ->get();
 
         return $this->cache[$year->id] = $this->calculator->compute(
@@ -57,8 +61,7 @@ class YearAmountsLoader
             (float) $year->profitability_coefficient,
             $year->annualExpenses,
             $invoices,
-            $cashPayments,
-            $expensePayments,
+            $paidPayments,
         );
     }
 }

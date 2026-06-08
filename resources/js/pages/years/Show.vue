@@ -1,29 +1,45 @@
 <script setup lang="ts">
 /**
- * Years — Show page (placeholder Fase 6).
+ * Years — Show (cockpit dell'anno, Fase 9).
  *
- * Mostra le spese annuali generate all'apertura. I KPI fiscali (reddito
- * IRPEF, imposta sostitutiva, crediti, vista mensile) arrivano in Fase 9
- * con i servizi di calcolo: qui restano volutamente fuori per non simulare
- * numeri non ancora calcolati.
+ * Centro operativo dell'anno: si atterra qui entrando nella sezione Anni
+ * (redirect all'anno corrente). Topbar con switcher tra gli anni e azioni di
+ * livello-anno; corpo a tab (Panoramica · Fatture · Scadenze · Pagamenti ·
+ * Spese), ciascuno scopato su quest'anno e con la propria azione. Le azioni
+ * complete (registra pagamento, nuova fattura, ecc.) riusano le superfici già
+ * esistenti. Desktop-first: il pass mobile è lo step successivo.
  */
-import { Head, Link, setLayoutProps } from '@inertiajs/vue3';
+import { Head, Link, router, setLayoutProps } from '@inertiajs/vue3';
+import { PhArrowsLeftRight, PhPlus } from '@phosphor-icons/vue';
+import { ref } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import DeadlinesPanel from '@/pages/years/show/DeadlinesPanel.vue';
+import ExpensesPanel from '@/pages/years/show/ExpensesPanel.vue';
+import InvoicesPanel from '@/pages/years/show/InvoicesPanel.vue';
+import OverviewPanel from '@/pages/years/show/OverviewPanel.vue';
+import PaymentsPanel from '@/pages/years/show/PaymentsPanel.vue';
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
-import { formatEUR, formatPercent } from '@/lib/format';
-import { index as yearsIndex } from '@/routes/years';
-import type { YearShow } from '@/types';
+    compare as yearsCompare,
+    create as yearCreate,
+    index as yearsIndex,
+    show as yearShow,
+} from '@/routes/years';
+import type {
+    AnnualExpenseForPicker,
+    EnumOption,
+    YearOption,
+    YearShow,
+} from '@/types';
 
 const props = defineProps<{
     year: YearShow;
+    // Opzioni per il form scadenza ad-hoc del tab Scadenze.
+    annualExpenses: AnnualExpenseForPicker[];
+    yearOptions: YearOption[];
+    kindOptions: EnumOption[];
 }>();
 
 setLayoutProps({
@@ -34,60 +50,129 @@ setLayoutProps({
     ],
     subbar: false,
 });
+
+const TABS = [
+    { value: 'overview', label: 'Panoramica' },
+    { value: 'invoices', label: 'Fatture' },
+    { value: 'deadlines', label: 'Scadenze' },
+    { value: 'payments', label: 'Pagamenti' },
+    { value: 'expenses', label: 'Spese' },
+];
+
+// Tab corrente sincronizzato con l'URL (?tab=…) per link e back coerenti,
+// senza nuova visita Inertia (solo replaceState).
+const initialTab = new URLSearchParams(window.location.search).get('tab');
+const activeTab = ref(
+    TABS.some((t) => t.value === initialTab)
+        ? (initialTab as string)
+        : 'overview',
+);
+
+function selectTab(value: string | number): void {
+    const tab = String(value);
+    activeTab.value = tab;
+    const url = new URL(window.location.href);
+
+    if (tab === 'overview') {
+        url.searchParams.delete('tab');
+    } else {
+        url.searchParams.set('tab', tab);
+    }
+
+    window.history.replaceState(window.history.state, '', url);
+}
+
+function switchYear(value: unknown): void {
+    const raw = Array.isArray(value) ? value[0] : value;
+    const year = Number(raw);
+
+    if (year && year !== props.year.year) {
+        router.visit(yearShow(year).url);
+    }
+}
 </script>
 
 <template>
-    <Head :title="`Anno ${props.year.year}`" />
+    <Head :title="`Anno ${year.year}`" />
 
     <Teleport to="#page-topbar-actions" defer>
-        <Button as-child variant="outline" size="sm">
-            <Link :href="yearsIndex().url">Tutti gli anni</Link>
-        </Button>
+        <div class="flex items-center gap-2">
+            <ToggleGroup
+                :model-value="String(year.year)"
+                type="single"
+                variant="boxed"
+                size="sm"
+                @update:model-value="switchYear"
+            >
+                <ToggleGroupItem
+                    v-for="nav in year.years_nav"
+                    :key="nav.year"
+                    :value="String(nav.year)"
+                    class="tabular"
+                    :aria-label="`Anno ${nav.year}`"
+                >
+                    {{ nav.year }}
+                    <span
+                        v-if="nav.pre_opened"
+                        class="ml-1 size-1.5 rounded-full bg-muted-foreground/50"
+                        aria-hidden="true"
+                    />
+                </ToggleGroupItem>
+            </ToggleGroup>
+
+            <Badge v-if="year.pre_opened" variant="secondary">Pre-aperto</Badge>
+
+            <Button
+                v-if="year.years_nav.length > 1"
+                as-child
+                variant="outline"
+                size="sm"
+            >
+                <Link :href="yearsCompare().url">
+                    <PhArrowsLeftRight :size="14" />
+                    Confronto
+                </Link>
+            </Button>
+
+            <Button v-if="year.meta.can_open_next" as-child size="sm">
+                <Link :href="yearCreate().url">
+                    <PhPlus :size="14" weight="bold" />
+                    Apri {{ year.meta.next_year }}
+                </Link>
+            </Button>
+        </div>
     </Teleport>
 
-    <div class="mx-auto w-full max-w-[920px] px-4 py-6 md:px-6">
-        <header class="mb-6 flex items-baseline justify-between">
-            <div class="flex items-baseline gap-3">
-                <h1 class="text-2xl font-medium tabular text-foreground">{{ props.year.year }}</h1>
-                <Badge v-if="props.year.pre_opened" variant="secondary">Pre-aperto</Badge>
-            </div>
-            <dl class="flex items-baseline gap-2 text-13 text-muted-foreground">
-                <dt>Coefficiente</dt>
-                <dd class="tabular text-foreground">{{ formatPercent(props.year.profitability_coefficient) }}</dd>
-            </dl>
-        </header>
+    <Tabs :model-value="activeTab" @update:model-value="selectTab">
+        <TabsList>
+            <TabsTrigger
+                v-for="tab in TABS"
+                :key="tab.value"
+                :value="tab.value"
+            >
+                {{ tab.label }}
+            </TabsTrigger>
+        </TabsList>
 
-        <section>
-            <h2 class="kicker mb-2 text-muted-foreground">Voci di spesa</h2>
-            <Table boxed>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Voce</TableHead>
-                        <TableHead>Tipo</TableHead>
-                        <TableHead class="w-[120px] text-right">Aliquota</TableHead>
-                        <TableHead class="w-[140px] text-right">Quota</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    <TableRow v-for="expense in props.year.expenses" :key="expense.id">
-                        <TableCell class="font-medium text-foreground">{{ expense.name }}</TableCell>
-                        <TableCell class="text-muted-foreground">{{ expense.calculation_type_label }}</TableCell>
-                        <TableCell class="tabular text-right text-muted-foreground">
-                            <span v-if="expense.rate !== null">{{ formatPercent(expense.rate) }}</span>
-                            <span v-else>—</span>
-                        </TableCell>
-                        <TableCell class="tabular text-right text-muted-foreground">
-                            <span v-if="expense.amount !== null">{{ formatEUR(expense.amount) }}</span>
-                            <span v-else>—</span>
-                        </TableCell>
-                    </TableRow>
-                </TableBody>
-            </Table>
-        </section>
-
-        <p class="mt-4 text-13 text-muted-foreground">
-            {{ props.year.deadlines_count }} scadenze generate. I calcoli fiscali e la vista mensile
-            arriveranno con i servizi di calcolo.
-        </p>
-    </div>
+        <TabsContent value="overview" class="mt-4">
+            <OverviewPanel :year="year" @go="selectTab" />
+        </TabsContent>
+        <TabsContent value="invoices" class="mt-4">
+            <InvoicesPanel :year="year" />
+        </TabsContent>
+        <TabsContent value="deadlines" class="mt-4">
+            <DeadlinesPanel
+                :year="year"
+                :annual-expenses="annualExpenses"
+                :year-options="yearOptions"
+                :kind-options="kindOptions"
+            />
+        </TabsContent>
+        <TabsContent value="payments" class="mt-4">
+            <PaymentsPanel :year="year" :annual-expenses="annualExpenses" />
+        </TabsContent>
+        <TabsContent value="expenses" class="mt-4">
+            <ExpensesPanel :year="year" />
+        </TabsContent>
+    </Tabs>
 </template>

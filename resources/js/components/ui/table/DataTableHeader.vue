@@ -12,8 +12,8 @@
  *     ...
  *   </DataTableHeader>
  *
- * Quando `selectable=false` la cella checkbox sparisce. Quando `has-actions=false`
- * la cella spazio kebab sparisce. Default: entrambe presenti.
+ * Quando `selectable=true` compare la checkbox col 0. Quando `hasActions=true`
+ * (default) l'ultima col riserva lo spazio per il kebab menu.
  */
 import { Checkbox } from '@/components/ui/checkbox'
 import TableHead from './TableHead.vue'
@@ -24,12 +24,12 @@ withDefaults(
     defineProps<{
         /** Stato "tutti selezionati" (model). */
         allSelected?: boolean
-        /** Mostra checkbox col 0. Default true. */
+        /** Mostra checkbox col 0. Default false. */
         selectable?: boolean
         /** Riserva ultima col per kebab menu (anche se vuoto). Default true. */
         hasActions?: boolean
     }>(),
-    { selectable: true, hasActions: true },
+    { selectable: false, hasActions: true },
 )
 
 defineEmits<{
@@ -39,8 +39,8 @@ defineEmits<{
 
 <template>
   <TableHeader>
-    <TableRow class="border-b-0 hover:bg-transparent">
-      <TableHead v-if="selectable">
+    <TableRow class="border-b-0">
+      <TableHead v-if="selectable" class="w-[44px]">
         <Checkbox
           :model-value="allSelected"
           aria-label="Seleziona tutti"
@@ -48,7 +48,7 @@ defineEmits<{
         />
       </TableHead>
       <slot />
-      <TableHead v-if="hasActions" />
+      <TableHead v-if="hasActions" class="w-[44px]" />
     </TableRow>
   </TableHeader>
 </template>

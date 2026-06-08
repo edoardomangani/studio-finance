@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\AnnualExpense;
 use App\Models\Deadline;
 use App\Models\Invoice;
+use App\Models\Payment;
 use App\Models\User;
 use App\Models\Year;
 use Illuminate\Support\Carbon;
@@ -29,6 +30,7 @@ class YearService
         private readonly YearAmountsLoader $amountsLoader,
         private readonly DeadlineContextBuilder $deadlineContextBuilder,
         private readonly DeadlineExpectation $deadlineExpectation,
+        private readonly YearFormulaBuilder $formulaBuilder,
     ) {}
 
     /**
@@ -75,6 +77,28 @@ class YearService
     }
 
     /**
+     * Spese dell'anno come opzioni per l'autocomplete (scadenza ad-hoc /
+     * pagamento manuale dal cockpit): solo le voci di QUEST'anno, non l'intero
+     * elenco pluriennale. Riusa la relazione già caricata dal loader.
+     *
+     * @return array<int, array{id: int, name: string, year: int}>
+     */
+    public function expensePickerForYear(Year $year): array
+    {
+        $year->loadMissing('annualExpenses');
+
+        return $year->annualExpenses
+            ->sortBy('name')
+            ->map(fn (AnnualExpense $e): array => [
+                'id' => $e->id,
+                'name' => $e->name,
+                'year' => $year->year,
+            ])
+            ->values()
+            ->all();
+    }
+
+    /**
      * Anno da proporre di default nel wizard: l'anno corrente se non ancora
      * aperto, altrimenti il primo anno successivo libero (F6 step 1).
      */
@@ -93,29 +117,59 @@ class YearService
     }
 
     /**
-     * Mapping completo della vista anno: meta, righe mensili, totali d'anno,
-     * spese annuali (con famiglia importi) e scadenze. Le query stanno qui
-     * (punto unico); i calcoli sono delegati ai calcolatori e a YearStatement.
+     * Anno su cui atterrare quando si entra nella sezione: l'anno solare se
+     * aperto formalmente, altrimenti l'ultimo anno aperto (non pre-aperto).
+     * null se non esiste alcun anno aperto (primo utilizzo). I pre-aperti non
+     * contano come "corrente": sono in attesa di apertura formale.
+     */
+    public function currentYear(): ?int
+    {
+        $open = Year::query()
+            ->where('pre_opened', false)
+            ->orderByDesc('year')
+            ->pluck('year');
+
+        $calendar = (int) Carbon::now()->year;
+
+        return $open->contains($calendar) ? $calendar : $open->first();
+    }
+
+    /**
+     * Mapping completo della vista anno (cockpit): meta, switcher anni, righe
+     * mensili, totali d'anno, spese annuali (con famiglia importi e formula),
+     * scadenze e pagamenti. Le query stanno qui (punto unico); i calcoli sono
+     * delegati ai calcolatori e a YearStatement.
+     *
+     * Pagamenti: una sola query (l'union del loader) alimenta sia i calcoli sia
+     * il tab pagamenti sia il context delle scadenze (passata a `build`, niente
+     * riquery). Le scadenze portano `payment` (tutti gli stati, 1:1) che il set
+     * `paid`-only del loader non contiene: popolazione distinta, non duplicato.
      *
      * @return array<string, mixed>
      */
     public function forShow(Year $year): array
     {
-        $year->loadCount('deadlines');
         $coefficient = (float) $year->profitability_coefficient;
 
-        // Carico l'anno una volta (fatture + figure + importi spesa) dal loader
-        // condiviso: lo stesso anno richiesto dalle scadenze non viene ricaricato.
+        // Carico l'anno una volta (fatture + figure + importi spesa + pagamenti)
+        // dal loader condiviso: lo stesso anno richiesto dalle scadenze non viene
+        // ricaricato.
         $amounts = $this->amountsLoader->load($year);
         $invoices = $amounts->invoices;
 
         $months = $this->months($invoices, $amounts->expenses, $coefficient);
         $expenseRows = $this->expenseRows($amounts, $months);
 
+        $nav = $this->navYears();
+
         $deadlines = $year->deadlines()->orderBy('due_at')->orderBy('id')->with(['payment', 'annualExpense.year'])->get();
         // Scope completo: sono tutte le scadenze dell'anno → conteggio rate
-        // in-memory, niente query aggiuntiva.
-        $context = $this->deadlineContextBuilder->build($deadlines, completeScope: true);
+        // in-memory. paidPayments riusa l'union del loader → niente query.
+        $context = $this->deadlineContextBuilder->build(
+            $deadlines,
+            completeScope: true,
+            paidPayments: $amounts->payments,
+        );
 
         return [
             'id' => $year->id,
@@ -123,24 +177,97 @@ class YearService
             'profitability_coefficient' => $coefficient,
             'pre_opened' => $year->pre_opened,
             'note' => $year->note,
-            'deadlines_count' => $year->deadlines_count,
+            'deadlines_count' => $deadlines->count(),
             'invoices' => $invoices->map(fn (Invoice $invoice): array => $this->invoiceRow($invoice))->all(),
             'months' => $months,
             'totals' => $this->yearStatement->totals($amounts->figures, $expenseRows),
             'expenses' => $expenseRows,
-            'deadlines' => $this->deadlineRows($deadlines, $context),
+            'deadlines' => $this->deadlineRows($deadlines, $context, $year->year),
+            // Solo i pagamenti di COMPETENZA dell'anno (imputati a una spesa di
+            // quest'anno), a prescindere dalla data di cassa: coerente col resto
+            // del cockpit (spese, riserva). I pagamenti per sola cassa di altri
+            // anni vivono nella lista globale, non qui.
+            'payments' => $this->paymentRows(
+                $amounts->payments->whereIn('annual_expense_id', $amounts->expenses->pluck('id')),
+            ),
+            'meta' => $this->meta($year, $nav),
+            'years_nav' => $nav
+                ->map(fn (Year $y): array => ['year' => $y->year, 'pre_opened' => $y->pre_opened])
+                ->all(),
         ];
     }
 
     /**
-     * Righe scadenze/pagamenti, con l'importo previsto (suggerimento) calcolato
-     * dal tipo quota (RB8). null per gli adempimenti e quando i dati necessari
-     * non esistono.
+     * Tutti gli anni dell'utente (DESC), per lo switcher e per `meta`. Caricati
+     * una volta sola in `forShow` e passati a chi serve: niente query ripetuta.
+     *
+     * @return Collection<int, Year>
+     */
+    private function navYears(): Collection
+    {
+        return Year::query()->orderByDesc('year')->get(['id', 'year', 'pre_opened']);
+    }
+
+    /**
+     * Meta per le azioni del cockpit: stato dell'anno N+1 per pilotare "Apri
+     * prossimo anno" (assente → da aprire; pre-aperto → da formalizzare; già
+     * aperto → niente azione) + stato temporale per la scelta dei KPI.
+     *
+     * @param  Collection<int, Year>  $nav  anni già caricati (no riquery)
+     * @return array<string, mixed>
+     */
+    private function meta(Year $year, Collection $nav): array
+    {
+        $next = $nav->firstWhere('year', $year->year + 1);
+        $calendar = (int) Carbon::now()->year;
+
+        return [
+            'next_year' => $year->year + 1,
+            'can_open_next' => $next === null || $next->pre_opened,
+            // Stato temporale: pilota quali KPI mostrare (un anno chiuso non ha
+            // "da accantonare a oggi"). I pre-aperti restano marcati a parte.
+            'time_state' => $year->year < $calendar ? 'past' : ($year->year > $calendar ? 'future' : 'current'),
+        ];
+    }
+
+    /**
+     * Righe del tab pagamenti nella stessa forma della lista Pagamenti
+     * (`PaymentListItem`): la vista anno riusa la stessa tabella e azioni. Sono
+     * i pagamenti `paid` di competenza dell'anno (imputati a una spesa
+     * dell'anno), più recenti per data; `is_manual` distingue i manuali
+     * (modificabili) dai pagamenti da scadenza.
+     *
+     * @param  Collection<int, Payment>  $payments  pagamenti di competenza dell'anno
+     * @return array<int, array<string, mixed>>
+     */
+    private function paymentRows(Collection $payments): array
+    {
+        return $payments
+            ->sortByDesc(fn (Payment $p): string => $p->paid_at?->toDateString() ?? '')
+            ->values()
+            ->map(fn (Payment $p): array => [
+                'id' => $p->id,
+                'description' => $p->description,
+                'annual_expense_id' => $p->annual_expense_id,
+                'annual_expense_name' => $p->annualExpense?->name,
+                'expense_year' => $p->annualExpense?->year?->year,
+                'amount' => (float) $p->amount,
+                'paid_at' => $p->paid_at?->toDateString(),
+                'is_manual' => $p->deadline_id === null,
+            ])
+            ->all();
+    }
+
+    /**
+     * Righe scadenze/pagamenti nella stessa forma della lista Scadenze
+     * (`DeadlineListItem`): la vista anno riusa così il side-sheet di dettaglio
+     * e registrazione. L'importo previsto (suggerimento) è calcolato dal tipo
+     * quota (RB8); null per gli adempimenti e quando i dati non esistono.
      *
      * @param  Collection<int, Deadline>  $deadlines
      * @return array<int, array<string, mixed>>
      */
-    private function deadlineRows(Collection $deadlines, DeadlineContext $context): array
+    private function deadlineRows(Collection $deadlines, DeadlineContext $context, int $yearNumber): array
     {
         return $deadlines
             ->map(fn (Deadline $d): array => [
@@ -148,13 +275,20 @@ class YearService
                 'name' => $d->name,
                 'due_at' => $d->due_at->toDateString(),
                 'kind' => $d->kind->value,
+                'kind_label' => $d->kind->label(),
                 'quota_type' => $d->quota_type?->value,
+                'quota_type_label' => $d->quota_type?->label(),
                 'status' => $d->status->value,
+                'status_label' => $d->status->label(),
+                'year' => $yearNumber,
+                'is_custom' => $d->isAdHoc(),
                 'annual_expense_id' => $d->annual_expense_id,
+                'annual_expense_name' => $d->annualExpense?->name,
                 'expected_amount' => $this->deadlineExpectation->for($d, $context),
                 'payment' => $d->payment === null ? null : [
                     'id' => $d->payment->id,
                     'status' => $d->payment->status->value,
+                    'status_label' => $d->payment->status->label(),
                     'amount' => $d->payment->amount !== null ? (float) $d->payment->amount : null,
                     'paid_at' => $d->payment->paid_at?->toDateString(),
                 ],
@@ -192,7 +326,10 @@ class YearService
                     'is_pension_contribution' => $e->is_pension_contribution,
                     'is_imposta_sostitutiva' => YearExpenseAmounts::isImpostaSostitutiva($e),
                     'previous_year_credit' => $e->previous_year_credit !== null ? (float) $e->previous_year_credit : null,
+                    // una-tantum (creata a mano, senza template): eliminabile.
+                    'is_custom' => $e->expense_item_id === null,
                     ...$row,
+                    'formula' => $this->formulaBuilder->for($e, $amounts->figures, $row),
                 ];
             })
             ->all();
@@ -279,12 +416,22 @@ class YearService
      */
     private function invoiceRow(Invoice $invoice): array
     {
+        // Forma piena InvoiceListItem: la vista anno riusa la stessa tabella
+        // (e azioni) della lista Fatture.
         return [
             'id' => $invoice->id,
             'number' => $invoice->number,
             'issued_at' => $invoice->issued_at->toDateString(),
             'amount' => (float) $invoice->amount,
+            'inarcassa_amount' => (float) $invoice->inarcassa_amount,
+            'stamp_amount' => (float) $invoice->stamp_amount,
+            'art_15_amount' => (float) $invoice->art_15_amount,
             'total' => (float) $invoice->total,
+            'bank_withholding' => $invoice->bank_withholding,
+            'client' => [
+                'id' => $invoice->client->id,
+                'name' => $invoice->client->name,
+            ],
         ];
     }
 }

@@ -53,7 +53,11 @@ onUnmounted(() => clearTwoFactorAuthData());
         </header>
 
         <div v-if="!twoFactorEnabled">
-            <Button v-if="hasSetupData" size="sm" @click="showSetupModal = true">
+            <Button
+                v-if="hasSetupData"
+                size="sm"
+                @click="showSetupModal = true"
+            >
                 <PhShieldCheck />
                 Continua configurazione
             </Button>

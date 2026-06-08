@@ -15,7 +15,8 @@
  *     );
  */
 import { useForm } from '@inertiajs/vue3';
-import { ref, type Ref } from 'vue';
+import { ref } from 'vue';
+import type { Ref } from 'vue';
 
 type ItemWithId = { id: number };
 

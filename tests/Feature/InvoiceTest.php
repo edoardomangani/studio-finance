@@ -230,7 +230,10 @@ it('destroy: archivia (soft delete) la fattura', function (): void {
         ->for(Client::factory()->for($user))
         ->create();
 
-    $this->delete("/invoices/{$invoice->id}")
+    // back(): archiviabile da più superfici (lista, vista anno) → torna dove
+    // sei. Con referer impostato resta la lista.
+    $this->from('/invoices')
+        ->delete("/invoices/{$invoice->id}")
         ->assertRedirect('/invoices');
 
     expect(Invoice::find($invoice->id))->toBeNull()

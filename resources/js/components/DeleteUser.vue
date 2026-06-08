@@ -66,14 +66,20 @@ watch(open, (isOpen) => {
                 <DialogBody>
                     <form id="delete-user-form" @submit.prevent="submit">
                         <FieldGroup>
-                            <FormField label="Password attuale" for="delete-account-password" required>
+                            <FormField
+                                label="Password attuale"
+                                for="delete-account-password"
+                                required
+                            >
                                 <PasswordInput
                                     id="delete-account-password"
                                     ref="passwordInput"
                                     v-model="form.password"
                                     autocomplete="current-password"
                                 />
-                                <template v-if="form.errors.password" #error>{{ form.errors.password }}</template>
+                                <template v-if="form.errors.password" #error>{{
+                                    form.errors.password
+                                }}</template>
                             </FormField>
                         </FieldGroup>
                     </form>

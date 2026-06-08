@@ -31,13 +31,22 @@ function toggle(value: FacetValue, checked: boolean): void {
     <div>
         <h3 class="kicker mb-2">{{ title }}</h3>
         <div class="flex flex-col gap-1">
-            <div v-for="opt in options" :key="String(opt.value)" class="flex items-center gap-2">
+            <div
+                v-for="opt in options"
+                :key="String(opt.value)"
+                class="flex items-center gap-2"
+            >
                 <Checkbox
                     :id="`${idPrefix}-${opt.value}`"
                     :model-value="selected.includes(opt.value)"
-                    @update:model-value="(checked) => toggle(opt.value, checked === true)"
+                    @update:model-value="
+                        (checked) => toggle(opt.value, checked === true)
+                    "
                 />
-                <Label :for="`${idPrefix}-${opt.value}`" class="cursor-pointer text-13 font-normal">
+                <Label
+                    :for="`${idPrefix}-${opt.value}`"
+                    class="cursor-pointer text-13 font-normal"
+                >
                     {{ opt.label }}
                 </Label>
             </div>

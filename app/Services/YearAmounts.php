@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\AnnualExpense;
 use App\Models\Invoice;
+use App\Models\Payment;
 use Illuminate\Support\Collection;
 
 /**
@@ -19,9 +20,14 @@ use Illuminate\Support\Collection;
 final class YearAmounts
 {
     /**
-     * @param  Collection<int, Invoice>  $invoices  fatture dell'anno (ordinate per la vista)
+     * @param  Collection<int, Invoice>  $invoices  fatture dell'anno (ordinate per la vista, con `client`)
      * @param  Collection<int, AnnualExpense>  $expenses  spese dell'anno
      * @param  ExpenseAmounts  $expenseAmounts  mappa expense_id => famiglia importi
+     * @param  Collection<int, Payment>  $payments  pagamenti `paid` rilevanti per l'anno
+     *                                              (per cassa ∪ per competenza, RB9), con
+     *                                              `annualExpense.year` e `deadline` caricati.
+     *                                              È l'union della singola query pagamenti
+     *                                              del loader: riusata da vista, scadenze e tab.
      */
     public function __construct(
         public readonly Collection $invoices,
@@ -29,5 +35,6 @@ final class YearAmounts
         public readonly int $monthsElapsed,
         public readonly Collection $expenses,
         public readonly array $expenseAmounts,
+        public readonly Collection $payments,
     ) {}
 }

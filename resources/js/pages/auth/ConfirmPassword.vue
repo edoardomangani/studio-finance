@@ -16,7 +16,7 @@ defineOptions({
     layout: {
         title: 'Conferma password',
         description:
-            'Stai accedendo a un\'area sensibile. Conferma la password per continuare.',
+            "Stai accedendo a un'area sensibile. Conferma la password per continuare.",
     },
 });
 
@@ -52,7 +52,9 @@ function submit(): void {
                     autocomplete="current-password"
                     autofocus
                 />
-                <template v-if="form.errors.password" #error>{{ form.errors.password }}</template>
+                <template v-if="form.errors.password" #error>{{
+                    form.errors.password
+                }}</template>
             </FormField>
 
             <Button

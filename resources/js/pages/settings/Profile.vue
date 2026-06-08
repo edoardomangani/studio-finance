@@ -187,7 +187,9 @@ useShortcut(
                     autocomplete="name"
                     placeholder="Es. Mario Rossi"
                 />
-                <template v-if="professionalForm.errors.name" #error>{{ professionalForm.errors.name }}</template>
+                <template v-if="professionalForm.errors.name" #error>{{
+                    professionalForm.errors.name
+                }}</template>
             </FormField>
 
             <FormField
@@ -203,7 +205,9 @@ useShortcut(
                     autocomplete="username"
                     placeholder="nome@studio.it"
                 />
-                <template v-if="professionalForm.errors.email" #error>{{ professionalForm.errors.email }}</template>
+                <template v-if="professionalForm.errors.email" #error>{{
+                    professionalForm.errors.email
+                }}</template>
             </FormField>
 
             <div
@@ -244,9 +248,22 @@ useShortcut(
                     min="0"
                     max="100"
                     class="tabular"
-                    @blur="professionalForm.profitability_coefficient = clampNumber(professionalForm.profitability_coefficient, 0, 100)"
+                    @blur="
+                        professionalForm.profitability_coefficient =
+                            clampNumber(
+                                professionalForm.profitability_coefficient,
+                                0,
+                                100,
+                            )
+                    "
                 />
-                <template v-if="professionalForm.errors.profitability_coefficient" #error>{{ professionalForm.errors.profitability_coefficient }}</template>
+                <template
+                    v-if="professionalForm.errors.profitability_coefficient"
+                    #error
+                    >{{
+                        professionalForm.errors.profitability_coefficient
+                    }}</template
+                >
             </FormField>
 
             <FormField
@@ -262,7 +279,10 @@ useShortcut(
                     :min="1990"
                     :max="new Date().getFullYear()"
                     :step="1"
-                    :format-options="{ useGrouping: false, maximumFractionDigits: 0 }"
+                    :format-options="{
+                        useGrouping: false,
+                        maximumFractionDigits: 0,
+                    }"
                 >
                     <NumberFieldContent>
                         <NumberFieldDecrement />
@@ -270,7 +290,11 @@ useShortcut(
                         <NumberFieldIncrement />
                     </NumberFieldContent>
                 </NumberField>
-                <template v-if="professionalForm.errors.business_start_year" #error>{{ professionalForm.errors.business_start_year }}</template>
+                <template
+                    v-if="professionalForm.errors.business_start_year"
+                    #error
+                    >{{ professionalForm.errors.business_start_year }}</template
+                >
             </FormField>
         </FormSection>
 
@@ -286,7 +310,9 @@ useShortcut(
                     v-model="securityForm.current_password"
                     autocomplete="current-password"
                 />
-                <template v-if="securityForm.errors.current_password" #error>{{ securityForm.errors.current_password }}</template>
+                <template v-if="securityForm.errors.current_password" #error>{{
+                    securityForm.errors.current_password
+                }}</template>
             </FormField>
 
             <FormField label="Nuova password" for="password">
@@ -295,16 +321,26 @@ useShortcut(
                     v-model="securityForm.password"
                     autocomplete="new-password"
                 />
-                <template v-if="securityForm.errors.password" #error>{{ securityForm.errors.password }}</template>
+                <template v-if="securityForm.errors.password" #error>{{
+                    securityForm.errors.password
+                }}</template>
             </FormField>
 
-            <FormField label="Conferma nuova password" for="password_confirmation" last>
+            <FormField
+                label="Conferma nuova password"
+                for="password_confirmation"
+                last
+            >
                 <PasswordInput
                     id="password_confirmation"
                     v-model="securityForm.password_confirmation"
                     autocomplete="new-password"
                 />
-                <template v-if="securityForm.errors.password_confirmation" #error>{{ securityForm.errors.password_confirmation }}</template>
+                <template
+                    v-if="securityForm.errors.password_confirmation"
+                    #error
+                    >{{ securityForm.errors.password_confirmation }}</template
+                >
             </FormField>
 
             <div class="mt-8 space-y-8">
@@ -315,7 +351,7 @@ useShortcut(
                 />
                 <ManagePasskeys
                     :can-manage-passkeys="canManagePasskeys"
-                    :passkeys="(passkeys as never[])"
+                    :passkeys="passkeys as never[]"
                 />
             </div>
         </FormSection>

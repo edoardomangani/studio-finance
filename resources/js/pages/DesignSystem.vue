@@ -146,13 +146,9 @@ import {
     DataTableHeader,
     DataTablePagination,
     DataTableRow,
-    Table,
-    TableBody,
     TableCell,
     TableEmpty,
     TableHead,
-    TableHeader,
-    TableRow,
 } from '@/components/ui/table';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
@@ -320,7 +316,8 @@ const palette: SwatchGroup[] = [
     },
     {
         title: 'Petrol',
-        subtitle: 'Accent · decoro testuale (vivid) + UI funzionale (strong) + soft 10%',
+        subtitle:
+            'Accent · decoro testuale (vivid) + UI funzionale (strong) + soft 10%',
         swatches: [
             {
                 var: '--c-sage',
@@ -997,16 +994,16 @@ const goTo = (id: string) => {
 
 watchEffect((onCleanup) => {
     if (!main.value) {
-return;
-}
+        return;
+    }
 
     const els = sections
         .map((s) => document.getElementById(`s-${s.id}`))
         .filter((el): el is HTMLElement => el !== null);
 
     if (els.length === 0) {
-return;
-}
+        return;
+    }
 
     const observer = new IntersectionObserver(
         (entries) => {
@@ -1154,7 +1151,7 @@ return;
                                     class="flex flex-col gap-2 rounded-md border border-border bg-card p-3"
                                 >
                                     <div
-                                        class="border-border-soft h-10 w-full rounded border"
+                                        class="h-10 w-full rounded border border-border-soft"
                                         :style="{
                                             backgroundColor: `var(${sw.var})`,
                                         }"
@@ -1231,7 +1228,7 @@ return;
                                     class="grid items-center gap-4 bg-card px-4 py-2.5"
                                     :class="
                                         i < group.tokens.length - 1
-                                            ? 'border-border-soft border-b'
+                                            ? 'border-b border-border-soft'
                                             : ''
                                     "
                                     style="
@@ -1251,7 +1248,7 @@ return;
                                         class="flex min-w-0 items-center gap-2"
                                     >
                                         <span
-                                            class="border-border-soft size-4 shrink-0 rounded border"
+                                            class="size-4 shrink-0 rounded border border-border-soft"
                                             :style="{
                                                 backgroundColor: `var(${t.mapsTo})`,
                                             }"
@@ -1282,8 +1279,8 @@ return;
                             derivati dalla palette base.
                             <strong class="font-medium text-foreground"
                                 >Non usati in v0</strong
-                            >: placeholder per future dashboard analitiche
-                            (KPI numerici tabulari sono coperti da Mono +
+                            >: placeholder per future dashboard analitiche (KPI
+                            numerici tabulari sono coperti da Mono +
                             tabular-nums).
                         </p>
                         <div class="flex gap-2">
@@ -1329,7 +1326,7 @@ return;
                             </p>
                             <div class="mt-4 grid gap-3 md:grid-cols-2">
                                 <div
-                                    class="border-border-soft rounded border p-4"
+                                    class="rounded border border-border-soft p-4"
                                 >
                                     <p class="kicker mb-2">Petrol</p>
                                     <ul
@@ -1341,7 +1338,8 @@ return;
                                             />
                                             <span
                                                 >Voce sidebar attiva (barra 2px
-                                                accent + icona fill, no bg)</span
+                                                accent + icona fill, no
+                                                bg)</span
                                             >
                                         </li>
                                         <li class="flex items-start gap-2">
@@ -1392,7 +1390,7 @@ return;
                                     </ul>
                                 </div>
                                 <div
-                                    class="border-border-soft rounded border p-4"
+                                    class="rounded border border-border-soft p-4"
                                 >
                                     <p class="kicker mb-2">Ink (nero)</p>
                                     <ul
@@ -1564,7 +1562,7 @@ return;
                                 class="grid items-center gap-4 px-4 py-3"
                                 :class="
                                     i < typographyScale.length - 1
-                                        ? 'border-border-soft border-b'
+                                        ? 'border-b border-border-soft'
                                         : ''
                                 "
                                 style="
@@ -1658,7 +1656,7 @@ return;
                                 class="grid items-center gap-4 px-4 py-2.5"
                                 :class="
                                     i < spacingScale.length - 1
-                                        ? 'border-border-soft border-b'
+                                        ? 'border-b border-border-soft'
                                         : ''
                                 "
                                 style="grid-template-columns: 110px 80px 1fr"
@@ -1686,9 +1684,9 @@ return;
                         <h3 class="kicker mb-3">1.5 Radius</h3>
                         <p class="mb-6 max-w-2xl text-13 text-muted-foreground">
                             Token <code class="kbd">--radius: 4px</code> come
-                            default. Studiofinance dichiara 4 step separati
-                            (sm 3 · default 4 · md 6 · lg 8), non derivati: la
-                            scala è breve, niente
+                            default. Studiofinance dichiara 4 step separati (sm
+                            3 · default 4 · md 6 · lg 8), non derivati: la scala
+                            è breve, niente
                             <code class="kbd">rounded-2xl</code> / 3xl che
                             farebbero leggere consumer.
                         </p>
@@ -1835,7 +1833,6 @@ return;
                                     <span class="code-pill">CF · 78%</span>
                                 </div>
                             </div>
-
                         </div>
 
                         <!-- Pattern: opacity-modifier vs hex piatto -->
@@ -1863,7 +1860,7 @@ return;
                             </p>
                             <div class="mt-4 grid gap-3 md:grid-cols-3">
                                 <div
-                                    class="border-border-soft rounded border p-3"
+                                    class="rounded border border-border-soft p-3"
                                 >
                                     <div
                                         class="h-10 rounded bg-accent-vivid/10"
@@ -1881,7 +1878,7 @@ return;
                                     </p>
                                 </div>
                                 <div
-                                    class="border-border-soft rounded border p-3"
+                                    class="rounded border border-border-soft p-3"
                                 >
                                     <div
                                         class="h-10 rounded bg-accent-vivid/15"
@@ -1898,7 +1895,7 @@ return;
                                     </p>
                                 </div>
                                 <div
-                                    class="border-border-soft rounded border p-3"
+                                    class="rounded border border-border-soft p-3"
                                 >
                                     <div
                                         class="h-10 rounded bg-accent-vivid/30"
@@ -1925,9 +1922,8 @@ return;
                                 Solo dove l'opacity-modifier non è praticabile:
                                 utility CSS classiche in
                                 <code class="kbd">app.css</code> (es.
-                                <code class="kbd">.pill</code>). Per
-                                tutto il resto preferisci
-                                <code class="kbd">/10</code>,
+                                <code class="kbd">.pill</code>). Per tutto il
+                                resto preferisci <code class="kbd">/10</code>,
                                 <code class="kbd">/15</code>,
                                 <code class="kbd">/30</code>.
                             </p>
@@ -2007,7 +2003,7 @@ return;
                             class="grid items-center gap-4 bg-card px-4 py-2.5"
                             :class="
                                 i < buttonVariantsInfo.length - 1
-                                    ? 'border-border-soft border-b'
+                                    ? 'border-b border-border-soft'
                                     : ''
                             "
                             style="grid-template-columns: 140px 1fr"
@@ -2071,7 +2067,7 @@ return;
                             class="grid items-center gap-4 bg-card px-4 py-2.5"
                             :class="
                                 i < buttonSizes.length - 1
-                                    ? 'border-border-soft border-b'
+                                    ? 'border-b border-border-soft'
                                     : ''
                             "
                             style="grid-template-columns: 140px 90px 1fr"
@@ -2398,7 +2394,7 @@ return;
                             class="grid items-center gap-4 bg-card px-4 py-2.5"
                             :class="
                                 i < badgeVariantsInfo.length - 1
-                                    ? 'border-border-soft border-b'
+                                    ? 'border-b border-border-soft'
                                     : ''
                             "
                             style="grid-template-columns: 160px 1fr"
@@ -2423,9 +2419,9 @@ return;
                             >stati di record</strong
                         >
                         (attivo, sospeso, bloccato, archiviato) usa la utility
-                        <code class="kbd">.pill</code> +
-                        modificatore di tono. Più morbida del Badge solid,
-                        perfetta per liste e detail panel.
+                        <code class="kbd">.pill</code> + modificatore di tono.
+                        Più morbida del Badge solid, perfetta per liste e detail
+                        panel.
                     </p>
                     <div
                         class="mb-6 rounded-md border border-border bg-card p-5"
@@ -2456,7 +2452,7 @@ return;
                             class="grid items-center gap-4 bg-card px-4 py-2.5"
                             :class="
                                 i < pillStatuses.length - 1
-                                    ? 'border-border-soft border-b'
+                                    ? 'border-b border-border-soft'
                                     : ''
                             "
                             style="grid-template-columns: 1fr 130px 2fr"
@@ -2976,7 +2972,10 @@ return;
                     >
                         <Field>
                             <div class="flex items-baseline justify-between">
-                                <FieldLabel>Aliquota imposta sostitutiva (%)</FieldLabel>
+                                <FieldLabel
+                                    >Aliquota imposta sostitutiva
+                                    (%)</FieldLabel
+                                >
                                 <span
                                     class="tabular font-mono text-2xs text-muted-foreground"
                                 >
@@ -3207,9 +3206,7 @@ return;
                         <div
                             class="rounded-md border border-border bg-card p-5"
                         >
-                            <Label class="mb-2"
-                                >Voci attive (check)</Label
-                            >
+                            <Label class="mb-2">Voci attive (check)</Label>
                             <div class="grid gap-2">
                                 <ChoiceCardCheck
                                     v-for="opt in projectTypes.slice(0, 3)"
@@ -3294,9 +3291,7 @@ return;
                         <div
                             class="rounded-md border border-border bg-card p-5"
                         >
-                            <Label class="mb-2"
-                                >Voci attive (check)</Label
-                            >
+                            <Label class="mb-2">Voci attive (check)</Label>
                             <div class="flex flex-wrap gap-2">
                                 <ChoicePillCheck
                                     v-for="opt in projectTypes"
@@ -3438,8 +3433,8 @@ return;
                         con <code class="kbd">bg-card</code> + leggera shadow.
                         Per switch tra viste in spazi contenuti (vista Anno,
                         dettaglio Spesa annuale, dettaglio Cliente). Stato
-                        attivo = <strong class="font-medium text-foreground"
-                            >ink</strong
+                        attivo =
+                        <strong class="font-medium text-foreground">ink</strong
                         >, non petrol: Tabs è navigazione tra viste, non
                         selezione di valore.
                     </p>
@@ -3580,11 +3575,11 @@ return;
                         >
                             <p class="kicker mb-3">Composizione canonica</p>
                             <div
-                                class="border-border-soft overflow-hidden rounded border bg-card"
+                                class="overflow-hidden rounded border border-border-soft bg-card"
                             >
                                 <!-- Header: title (left), trailing? + close (right) -->
                                 <div
-                                    class="border-border-soft border-b px-5 py-4"
+                                    class="border-b border-border-soft px-5 py-4"
                                 >
                                     <div
                                         class="flex items-center justify-between gap-3"
@@ -3623,7 +3618,7 @@ return;
                                 </div>
                                 <!-- Footer (bg-muted/50 + border-t) -->
                                 <div
-                                    class="border-border-soft flex justify-end gap-2 border-t bg-muted/50 px-5 py-3"
+                                    class="flex justify-end gap-2 border-t border-border-soft bg-muted/50 px-5 py-3"
                                 >
                                     <span
                                         class="rounded bg-transparent px-2 py-0.5 text-2xs text-muted-foreground/70"
@@ -3782,7 +3777,7 @@ return;
                             <span>Cosa fa</span>
                         </div>
                         <div
-                            class="border-border-soft grid items-center gap-4 border-b bg-card px-4 py-2.5"
+                            class="grid items-center gap-4 border-b border-border-soft bg-card px-4 py-2.5"
                             style="grid-template-columns: 200px 220px 1fr"
                         >
                             <code class="font-mono text-2xs text-foreground"
@@ -3799,14 +3794,14 @@ return;
                                 sotto. Slot
                                 <code class="font-mono">#trailing</code> per
                                 content a destra del title (es. WizardStepper).
-                                La close X vive QUI, allineata al titolo —
-                                per nasconderla (conferme, delete) passa
+                                La close X vive QUI, allineata al titolo — per
+                                nasconderla (conferme, delete) passa
                                 <code class="font-mono">:closable="false"</code
                                 >.
                             </span>
                         </div>
                         <div
-                            class="border-border-soft grid items-center gap-4 border-b bg-card px-4 py-2.5"
+                            class="grid items-center gap-4 border-b border-border-soft bg-card px-4 py-2.5"
                             style="grid-template-columns: 200px 220px 1fr"
                         >
                             <code class="font-mono text-2xs text-foreground"
@@ -3995,10 +3990,11 @@ return;
                                             class="text-13 text-muted-foreground"
                                         >
                                             Contenuto fullscreen — vista anno
-                                            aggregato, editor di calcoli, dossier
-                                            dettaglio. Per i wizard multi-step
-                                            (apertura anno, onboarding) c'è il
-                                            pattern dedicato in
+                                            aggregato, editor di calcoli,
+                                            dossier dettaglio. Per i wizard
+                                            multi-step (apertura anno,
+                                            onboarding) c'è il pattern dedicato
+                                            in
                                             <a href="#s-modal" class="underline"
                                                 >sezione 12</a
                                             >.
@@ -4028,7 +4024,7 @@ return;
                             <span>Caso d'uso</span>
                         </div>
                         <div
-                            class="border-border-soft grid items-center gap-4 border-b bg-card px-4 py-2.5"
+                            class="grid items-center gap-4 border-b border-border-soft bg-card px-4 py-2.5"
                             style="grid-template-columns: 130px 100px 1fr"
                         >
                             <code class="font-mono text-2xs text-foreground"
@@ -4046,7 +4042,7 @@ return;
                             </span>
                         </div>
                         <div
-                            class="border-border-soft grid items-center gap-4 border-b bg-card px-4 py-2.5"
+                            class="grid items-center gap-4 border-b border-border-soft bg-card px-4 py-2.5"
                             style="grid-template-columns: 130px 100px 1fr"
                         >
                             <code class="font-mono text-2xs text-foreground"
@@ -4059,12 +4055,12 @@ return;
                             <span
                                 class="text-2xs leading-snug text-muted-foreground/85"
                             >
-                                Form rapidi (edit cliente, nuova voce di
-                                spesa, conferma pagamento).
+                                Form rapidi (edit cliente, nuova voce di spesa,
+                                conferma pagamento).
                             </span>
                         </div>
                         <div
-                            class="border-border-soft grid items-center gap-4 border-b bg-card px-4 py-2.5"
+                            class="grid items-center gap-4 border-b border-border-soft bg-card px-4 py-2.5"
                             style="grid-template-columns: 130px 100px 1fr"
                         >
                             <code class="font-mono text-2xs text-foreground"
@@ -4103,7 +4099,9 @@ return;
 
                     <!-- 6.5 Quando usare code-pill -->
                     <h3 class="kicker mb-3">6.5 Quando usare code-pill</h3>
-                    <div class="mb-10 rounded-md border border-border bg-card p-5">
+                    <div
+                        class="mb-10 rounded-md border border-border bg-card p-5"
+                    >
                         <p
                             class="mb-3 max-w-2xl text-13 leading-relaxed text-muted-foreground"
                         >
@@ -4115,8 +4113,9 @@ return;
                             che l'utente già riconosce e cita: numero fattura,
                             codice F24, codice tributo, coefficiente
                             forfettario. Niente system-language interna (no
-                            <code class="kbd">M.CRE</code> / <code class="kbd">M.EDT</code>),
-                            niente identificatori di sezione modale.
+                            <code class="kbd">M.CRE</code> /
+                            <code class="kbd">M.EDT</code>), niente
+                            identificatori di sezione modale.
                         </p>
                         <ul class="space-y-1.5 text-13 text-foreground/85">
                             <li class="flex items-start gap-2">
@@ -4124,8 +4123,7 @@ return;
                                     class="mt-2 size-1 shrink-0 rounded-full bg-accent-vivid"
                                 />
                                 <span>
-                                    <strong
-                                        class="font-medium text-foreground"
+                                    <strong class="font-medium text-foreground"
                                         >Sì</strong
                                     >
                                     —
@@ -4139,13 +4137,11 @@ return;
                                     class="mt-1 size-3 shrink-0 text-destructive"
                                 />
                                 <span>
-                                    <strong
-                                        class="font-medium text-foreground"
+                                    <strong class="font-medium text-foreground"
                                         >No</strong
                                     >
-                                    — taxonomie interne dei modali. Se serve
-                                    un identificatore per analytics/debug,
-                                    usa
+                                    — taxonomie interne dei modali. Se serve un
+                                    identificatore per analytics/debug, usa
                                     <code class="kbd">data-modal-code</code>
                                     sull'elemento, invisibile all'utente.
                                 </span>
@@ -4394,7 +4390,8 @@ return;
                                     <strong class="font-medium text-foreground"
                                         >Min-width</strong
                                     >
-                                    — passa <code class="font-mono">min-w-[…]</code>
+                                    — passa
+                                    <code class="font-mono">min-w-[…]</code>
                                     al DataTable per attivare scroll-x sotto
                                     quella soglia.
                                 </li>
@@ -4448,9 +4445,7 @@ return;
                                         >Stato</strong
                                     >
                                     —
-                                    <code class="font-mono"
-                                        >.pill</code
-                                    >
+                                    <code class="font-mono">.pill</code>
                                 </li>
                                 <li>
                                     <strong class="font-medium text-foreground"
@@ -4468,9 +4463,9 @@ return;
                     <!-- 7.2 Esempio live: tabella fatture boxata -->
                     <h3 class="kicker mb-3">7.2 Esempio — lista fatture</h3>
                     <p class="mb-3 max-w-2xl text-2xs text-muted-foreground/85">
-                        Tabella dentro un box con border + radius. Header
-                        dentro al box (bg-muted), body sotto con divisori tra
-                        le righe. La pagination vive fuori dal box.
+                        Tabella dentro un box con border + radius. Header dentro
+                        al box (bg-muted), body sotto con divisori tra le righe.
+                        La pagination vive fuori dal box.
                     </p>
 
                     <DataTable class="min-w-[820px]">
@@ -4485,6 +4480,7 @@ return;
                         </colgroup>
 
                         <DataTableHeader
+                            selectable
                             :all-selected="demoAllSelected"
                             @toggle-all="toggleAll"
                         >
@@ -4499,6 +4495,7 @@ return;
                             <DataTableRow
                                 v-for="p in demoProjects"
                                 :key="p.code"
+                                selectable
                                 :selected="demoSelected.includes(p.code)"
                                 @toggle-select="toggleRow(p.code)"
                             >
@@ -4527,9 +4524,7 @@ return;
                                     <DropdownMenuItem
                                         >Vai al dettaglio</DropdownMenuItem
                                     >
-                                    <DropdownMenuItem
-                                        >Duplica</DropdownMenuItem
-                                    >
+                                    <DropdownMenuItem>Duplica</DropdownMenuItem>
                                     <DropdownMenuSeparator />
                                     <DropdownMenuItem class="text-destructive">
                                         Archivia
@@ -4551,16 +4546,14 @@ return;
                     <!-- 7.3 Empty state -->
                     <h3 class="kicker mb-3">7.3 Empty state</h3>
                     <div class="mb-6">
-                        <Table boxed>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Codice</TableHead>
-                                    <TableHead>Cliente</TableHead>
-                                    <TableHead>Data</TableHead>
-                                    <TableHead>Stato</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
+                        <DataTable>
+                            <DataTableHeader :has-actions="false">
+                                <TableHead>Codice</TableHead>
+                                <TableHead>Cliente</TableHead>
+                                <TableHead>Data</TableHead>
+                                <TableHead>Stato</TableHead>
+                            </DataTableHeader>
+                            <DataTableBody>
                                 <TableEmpty :colspan="4">
                                     <div
                                         class="flex flex-col items-center gap-3 text-center"
@@ -4587,8 +4580,8 @@ return;
                                         </Button>
                                     </div>
                                 </TableEmpty>
-                            </TableBody>
-                        </Table>
+                            </DataTableBody>
+                        </DataTable>
                     </div>
                     <p class="mb-10 text-2xs text-muted-foreground/85">
                         <strong class="font-medium text-foreground"
@@ -4623,7 +4616,7 @@ return;
                             <span>Cosa fa</span>
                         </div>
                         <div
-                            class="border-border-soft grid items-center gap-4 border-b bg-card px-4 py-2.5"
+                            class="grid items-center gap-4 border-b border-border-soft bg-card px-4 py-2.5"
                             style="grid-template-columns: 200px 240px 1fr"
                         >
                             <code class="font-mono text-2xs text-foreground"
@@ -4645,7 +4638,7 @@ return;
                             </span>
                         </div>
                         <div
-                            class="border-border-soft grid items-center gap-4 border-b bg-card px-4 py-2.5"
+                            class="grid items-center gap-4 border-b border-border-soft bg-card px-4 py-2.5"
                             style="grid-template-columns: 200px 240px 1fr"
                         >
                             <code class="font-mono text-2xs text-foreground"
@@ -4653,20 +4646,21 @@ return;
                             >
                             <code
                                 class="font-mono text-2xs text-muted-foreground"
-                                >allSelected, selectable?, hasActions?,
-                                slot</code
+                                >allSelected, selectable?=false,
+                                hasActions?=true, slot</code
                             >
                             <span
                                 class="text-2xs leading-snug text-muted-foreground/85"
                             >
-                                Header riga con auto-checkbox col 0 (select-all)
-                                + auto-cell vuota in fondo per actions. Slot:
-                                TableHead intermedi. Emit
+                                Header riga. Checkbox col 0 solo con
+                                <code class="font-mono">selectable</code>;
+                                auto-cell vuota in fondo per le actions
+                                (default). Slot: TableHead intermedi. Emit
                                 <code class="font-mono">toggle-all</code>.
                             </span>
                         </div>
                         <div
-                            class="border-border-soft grid items-center gap-4 border-b bg-card px-4 py-2.5"
+                            class="grid items-center gap-4 border-b border-border-soft bg-card px-4 py-2.5"
                             style="grid-template-columns: 200px 240px 1fr"
                         >
                             <code class="font-mono text-2xs text-foreground"
@@ -4679,13 +4673,13 @@ return;
                             <span
                                 class="text-2xs leading-snug text-muted-foreground/85"
                             >
-                                TableBody con la "monster-class" del card-look
-                                pre-applicata (bordi perimetrali via celle,
-                                radius su 4 angoli, hover/selected via td).
+                                Sorgente unica degli stati riga via td: hover
+                                (solo se interactive), active, selected, cursore
+                                e divisori. Mai dichiararli inline sulla riga.
                             </span>
                         </div>
                         <div
-                            class="border-border-soft grid items-center gap-4 border-b bg-card px-4 py-2.5"
+                            class="grid items-center gap-4 border-b border-border-soft bg-card px-4 py-2.5"
                             style="grid-template-columns: 200px 240px 1fr"
                         >
                             <code class="font-mono text-2xs text-foreground"
@@ -4693,15 +4687,20 @@ return;
                             >
                             <code
                                 class="font-mono text-2xs text-muted-foreground"
-                                >selected, selectable?, slot, slot#actions</code
+                                >interactive?, active?, selected?, selectable?,
+                                slot, slot#actions</code
                             >
                             <span
                                 class="text-2xs leading-snug text-muted-foreground/85"
                             >
-                                Riga con auto-checkbox col 0 + auto-DropdownMenu
-                                kebab in fondo (se slot
-                                <code class="font-mono">#actions</code>
-                                presente). Slot: TableCell intermedi. Emit
+                                Riga dati.
+                                <code class="font-mono">interactive</code>
+                                → cursore + hover + lega @click;
+                                <code class="font-mono">active</code> →
+                                dettaglio aperto;
+                                <code class="font-mono">selectable</code>
+                                → checkbox col 0. Auto-kebab in fondo se slot
+                                <code class="font-mono">#actions</code>. Emit
                                 <code class="font-mono">toggle-select</code>.
                             </span>
                         </div>
@@ -4730,37 +4729,38 @@ return;
 
                     <pre
                         class="mb-10 overflow-x-auto rounded-md border border-border bg-muted/30 p-4 font-mono text-2xs text-foreground/85"
-                    ><code>&lt;DataTable class="min-w-[820px]"&gt;
-  &lt;colgroup&gt;
-    &lt;col style="width: 36px;"&gt;    &lt;!-- checkbox --&gt;
-    &lt;col style="width: 120px;"&gt;   &lt;!-- codice --&gt;
-    &lt;col&gt;                         &lt;!-- cliente flex --&gt;
-    ...
-    &lt;col style="width: 40px;"&gt;    &lt;!-- actions --&gt;
-  &lt;/colgroup&gt;
-
-  &lt;DataTableHeader :all-selected="…" @toggle-all="…"&gt;
+                    ><code>&lt;!-- Pattern dominante: riga cliccabile → dettaglio + kebab --&gt;
+&lt;DataTable&gt;
+  &lt;DataTableHeader&gt;
     &lt;TableHead&gt;Codice&lt;/TableHead&gt;
     &lt;TableHead&gt;Cliente&lt;/TableHead&gt;
     ...
   &lt;/DataTableHeader&gt;
 
   &lt;DataTableBody&gt;
-    &lt;DataTableRow v-for="p in items" :selected="…" @toggle-select="…"&gt;
+    &lt;DataTableRow
+      v-for="p in items"
+      interactive
+      :active="openId === p.id"
+      @click="open(p)"
+    &gt;
       &lt;TableCell&gt;
         &lt;span class="code-pill"&gt;&#123;&#123; p.code &#125;&#125;&lt;/span&gt;
       &lt;/TableCell&gt;
       ...
       &lt;template #actions&gt;
-        &lt;DropdownMenuItem&gt;Vai al dettaglio&lt;/DropdownMenuItem&gt;
-        &lt;DropdownMenuItem class="text-destructive"&gt;Archivia&lt;/DropdownMenuItem&gt;
+        &lt;DropdownMenuItem&gt;Modifica&lt;/DropdownMenuItem&gt;
+        &lt;DropdownMenuItem variant="destructive"&gt;Archivia&lt;/DropdownMenuItem&gt;
       &lt;/template&gt;
     &lt;/DataTableRow&gt;
   &lt;/DataTableBody&gt;
 &lt;/DataTable&gt;
 
 &lt;!-- Pagination FUORI dal box --&gt;
-&lt;DataTablePagination :page="…" :per-page="…" :total="…" @update:page="…" /&gt;</code></pre>
+&lt;DataTablePagination :page="…" :per-page="…" :total="…" @update:page="…" /&gt;
+
+&lt;!-- Senza kebab: DataTableHeader :has-actions="false" --&gt;
+&lt;!-- Multi-select: aggiungi `selectable` a header + righe --&gt;</code></pre>
                 </section>
 
                 <!-- ─────────────────────────────────────────────────────────
@@ -4773,16 +4773,14 @@ return;
                         <h2 class="text-xl font-medium text-foreground">
                             08 Topbar
                         </h2>
-                        <span class="text-2xs text-muted-foreground"
-                            >v0</span
-                        >
+                        <span class="text-2xs text-muted-foreground">v0</span>
                     </div>
                     <p class="mb-6 max-w-2xl text-13 text-muted-foreground">
                         2 fasce orizzontali sopra ogni pagina. Top sempre
-                        visibile (breadcrumb + status + azioni primarie),
-                        bottom condizionale (search testuale, filtri, viste).
-                        I 4 mount-point Teleport sono sempre nel DOM, le
-                        pagine ci proiettano dentro il loro content.
+                        visibile (breadcrumb + status + azioni primarie), bottom
+                        condizionale (search testuale, filtri, viste). I 4
+                        mount-point Teleport sono sempre nel DOM, le pagine ci
+                        proiettano dentro il loro content.
                     </p>
 
                     <!-- 8.1 Anatomia -->
@@ -4792,7 +4790,7 @@ return;
                     >
                         <!-- Diagramma fascia top -->
                         <div
-                            class="border-border-soft flex h-12 items-center gap-3 border-b bg-background px-4"
+                            class="flex h-12 items-center gap-3 border-b border-border-soft bg-background px-4"
                         >
                             <div
                                 class="flex min-w-0 flex-1 items-center gap-1.5"
@@ -4806,7 +4804,7 @@ return;
                                     class="text-muted-foreground/40"
                                 />
                                 <span
-                                    class="text-13 font-medium tracking-wide uppercase text-foreground"
+                                    class="text-13 font-medium tracking-wide text-foreground uppercase"
                                     >Pagina</span
                                 >
                                 <span class="pill pill--success ml-2"
@@ -4814,7 +4812,7 @@ return;
                                 >
                             </div>
                             <div
-                                class="border-border-soft rounded border border-dashed bg-muted/40 px-2 py-1 font-mono text-2xs text-muted-foreground/85"
+                                class="rounded border border-dashed border-border-soft bg-muted/40 px-2 py-1 font-mono text-2xs text-muted-foreground/85"
                             >
                                 #page-topbar-actions
                             </div>
@@ -4822,20 +4820,20 @@ return;
 
                         <!-- Diagramma fascia bottom (subbar) -->
                         <div
-                            class="border-border-soft flex h-11 items-center gap-3 border-b px-4"
+                            class="flex h-11 items-center gap-3 border-b border-border-soft px-4"
                         >
                             <div
-                                class="border-border-soft rounded border border-dashed bg-muted/40 px-2 py-1 font-mono text-2xs text-muted-foreground/85"
+                                class="rounded border border-dashed border-border-soft bg-muted/40 px-2 py-1 font-mono text-2xs text-muted-foreground/85"
                             >
                                 #page-topbar-search
                             </div>
                             <div
-                                class="border-border-soft rounded border border-dashed bg-muted/40 px-2 py-1 font-mono text-2xs text-muted-foreground/85"
+                                class="rounded border border-dashed border-border-soft bg-muted/40 px-2 py-1 font-mono text-2xs text-muted-foreground/85"
                             >
                                 #page-topbar-filters
                             </div>
                             <div
-                                class="border-border-soft rounded border border-dashed bg-muted/40 px-2 py-1 font-mono text-2xs text-muted-foreground/85"
+                                class="rounded border border-dashed border-border-soft bg-muted/40 px-2 py-1 font-mono text-2xs text-muted-foreground/85"
                             >
                                 #page-topbar-views
                             </div>
@@ -4882,7 +4880,7 @@ return;
                             <span>Cosa fa</span>
                         </div>
                         <div
-                            class="border-border-soft grid items-center gap-4 border-b bg-card px-4 py-2.5"
+                            class="grid items-center gap-4 border-b border-border-soft bg-card px-4 py-2.5"
                             style="grid-template-columns: 130px 180px 1fr"
                         >
                             <code class="font-mono text-2xs text-foreground"
@@ -4901,7 +4899,7 @@ return;
                             </span>
                         </div>
                         <div
-                            class="border-border-soft grid items-center gap-4 border-b bg-card px-4 py-2.5"
+                            class="grid items-center gap-4 border-b border-border-soft bg-card px-4 py-2.5"
                             style="grid-template-columns: 130px 180px 1fr"
                         >
                             <code class="font-mono text-2xs text-foreground"
@@ -4921,7 +4919,7 @@ return;
                             </span>
                         </div>
                         <div
-                            class="border-border-soft grid items-center gap-4 border-b bg-card px-4 py-2.5"
+                            class="grid items-center gap-4 border-b border-border-soft bg-card px-4 py-2.5"
                             style="grid-template-columns: 130px 180px 1fr"
                         >
                             <code class="font-mono text-2xs text-foreground"
@@ -4974,15 +4972,14 @@ return;
                             <span>Quando usarlo</span>
                         </div>
                         <div
-                            class="border-border-soft grid items-center gap-4 border-b bg-card px-4 py-2.5"
+                            class="grid items-center gap-4 border-b border-border-soft bg-card px-4 py-2.5"
                             style="grid-template-columns: 110px 130px 1fr"
                         >
                             <code class="font-mono text-2xs text-foreground"
                                 >positive</code
                             >
                             <span
-                                ><span
-                                    class="pill pill--success"
+                                ><span class="pill pill--success"
                                     >In corso</span
                                 ></span
                             >
@@ -4993,15 +4990,14 @@ return;
                             </span>
                         </div>
                         <div
-                            class="border-border-soft grid items-center gap-4 border-b bg-card px-4 py-2.5"
+                            class="grid items-center gap-4 border-b border-border-soft bg-card px-4 py-2.5"
                             style="grid-template-columns: 110px 130px 1fr"
                         >
                             <code class="font-mono text-2xs text-foreground"
                                 >warning</code
                             >
                             <span
-                                ><span
-                                    class="pill pill--warning"
+                                ><span class="pill pill--warning"
                                     >Sospeso</span
                                 ></span
                             >
@@ -5013,15 +5009,14 @@ return;
                             </span>
                         </div>
                         <div
-                            class="border-border-soft grid items-center gap-4 border-b bg-card px-4 py-2.5"
+                            class="grid items-center gap-4 border-b border-border-soft bg-card px-4 py-2.5"
                             style="grid-template-columns: 110px 130px 1fr"
                         >
                             <code class="font-mono text-2xs text-foreground"
                                 >negative</code
                             >
                             <span
-                                ><span
-                                    class="pill pill--danger"
+                                ><span class="pill pill--danger"
                                     >Bloccato</span
                                 ></span
                             >
@@ -5039,8 +5034,7 @@ return;
                                 >neutral</code
                             >
                             <span
-                                ><span
-                                    class="pill pill--neutral"
+                                ><span class="pill pill--neutral"
                                     >Bozza</span
                                 ></span
                             >
@@ -5183,13 +5177,13 @@ setLayoutProps(&#123;
                         <span class="text-2xs text-muted-foreground">v0</span>
                     </div>
                     <p class="mb-6 max-w-2xl text-13 text-muted-foreground">
-                        Sidebar collapsible (expanded 13rem / rail 3rem).
-                        Header con logo, due sezioni — "Lavoro" e "Sistema" —
-                        con kicker label uppercase muted, voci flat con icona
+                        Sidebar collapsible (expanded 13rem / rail 3rem). Header
+                        con logo, due sezioni — "Lavoro" e "Sistema" — con
+                        kicker label uppercase muted, voci flat con icona
                         Phosphor (regular default, fill quando attiva o on
-                        hover), barretta accent w-[2px] come indicatore.
-                        Footer con avatar utente + dropdown menu. Bottone
-                        collapse pillola a cavallo del bordo destro.
+                        hover), barretta accent w-[2px] come indicatore. Footer
+                        con avatar utente + dropdown menu. Bottone collapse
+                        pillola a cavallo del bordo destro.
                     </p>
 
                     <!-- 9.1 Anatomia: expanded vs rail -->
@@ -5236,17 +5230,13 @@ setLayoutProps(&#123;
                                         <div
                                             class="flex items-center gap-2 px-4 py-1.75 text-13 text-foreground/75"
                                         >
-                                            <PhUsers
-                                                class="size-4 shrink-0"
-                                            />
+                                            <PhUsers class="size-4 shrink-0" />
                                             Clienti
                                         </div>
                                         <div
                                             class="flex items-center gap-2 px-4 py-1.75 text-13 text-foreground/75"
                                         >
-                                            <PhBell
-                                                class="size-4 shrink-0"
-                                            />
+                                            <PhBell class="size-4 shrink-0" />
                                             Scadenze
                                         </div>
                                         <div
@@ -5301,9 +5291,7 @@ setLayoutProps(&#123;
                                         />
                                     </div>
                                     <!-- Group: hairline divider centrata al posto del kicker -->
-                                    <div
-                                        class="relative h-6"
-                                    >
+                                    <div class="relative h-6">
                                         <span
                                             class="absolute top-1/2 left-1/2 h-px w-5 -translate-x-1/2 -translate-y-1/2 bg-border"
                                         />
@@ -5343,7 +5331,7 @@ setLayoutProps(&#123;
                                 <Button
                                     variant="outline"
                                     size="icon"
-                                    class="-ml-5 mt-3 size-6"
+                                    class="mt-3 -ml-5 size-6"
                                     aria-label="Espandi sidebar"
                                 >
                                     <PhCaretRight :size="11" weight="bold" />
@@ -5367,14 +5355,14 @@ setLayoutProps(&#123;
                         </div>
                         <!-- Default -->
                         <div
-                            class="border-border-soft grid items-center gap-4 border-b bg-card px-4 py-2.5"
+                            class="grid items-center gap-4 border-b border-border-soft bg-card px-4 py-2.5"
                             style="grid-template-columns: 110px 1fr 1fr"
                         >
                             <code class="font-mono text-2xs text-foreground"
                                 >default</code
                             >
                             <div
-                                class="border-border-soft inline-flex max-w-[200px] items-center gap-2 rounded border bg-sidebar px-4 py-1.5 text-13 text-foreground/75"
+                                class="inline-flex max-w-[200px] items-center gap-2 rounded border border-border-soft bg-sidebar px-4 py-1.5 text-13 text-foreground/75"
                             >
                                 <PhReceipt class="size-4 shrink-0" />
                                 Fatture
@@ -5382,26 +5370,28 @@ setLayoutProps(&#123;
                             <span
                                 class="text-2xs leading-snug text-muted-foreground/85"
                             >
-                                <code class="font-mono"
-                                    >text-foreground/75</code
+                                <code class="font-mono">text-foreground/75</code
                                 >, icona regular
                             </span>
                         </div>
                         <!-- Hover -->
                         <div
-                            class="border-border-soft grid items-center gap-4 border-b bg-card px-4 py-2.5"
+                            class="grid items-center gap-4 border-b border-border-soft bg-card px-4 py-2.5"
                             style="grid-template-columns: 110px 1fr 1fr"
                         >
                             <code class="font-mono text-2xs text-foreground"
                                 >hover</code
                             >
                             <div
-                                class="border-border-soft relative inline-flex max-w-[200px] items-center gap-2 rounded border bg-sidebar px-4 py-1.5 text-13 text-foreground"
+                                class="relative inline-flex max-w-[200px] items-center gap-2 rounded border border-border-soft bg-sidebar px-4 py-1.5 text-13 text-foreground"
                             >
                                 <span
                                     class="absolute top-1/2 left-0 h-5 w-[2px] -translate-y-1/2 rounded-r-[2px] bg-muted-foreground/40"
                                 />
-                                <PhReceipt weight="fill" class="size-4 shrink-0" />
+                                <PhReceipt
+                                    weight="fill"
+                                    class="size-4 shrink-0"
+                                />
                                 Fatture
                             </div>
                             <span
@@ -5412,9 +5402,7 @@ setLayoutProps(&#123;
                                     >bg-muted-foreground/40</code
                                 >
                                 fade-in, icona crossfade regular → fill, testo
-                                <code class="font-mono"
-                                    >text-foreground</code
-                                >
+                                <code class="font-mono">text-foreground</code>
                             </span>
                         </div>
                         <!-- Active -->
@@ -5426,12 +5414,15 @@ setLayoutProps(&#123;
                                 >active</code
                             >
                             <div
-                                class="border-border-soft relative inline-flex max-w-[200px] items-center gap-2 rounded border bg-sidebar px-4 py-1.5 text-13 font-medium text-foreground"
+                                class="relative inline-flex max-w-[200px] items-center gap-2 rounded border border-border-soft bg-sidebar px-4 py-1.5 text-13 font-medium text-foreground"
                             >
                                 <span
                                     class="absolute top-1/2 left-0 h-5 w-[2px] -translate-y-1/2 rounded-r-[2px] bg-accent-vivid"
                                 />
-                                <PhReceipt weight="fill" class="size-4 shrink-0" />
+                                <PhReceipt
+                                    weight="fill"
+                                    class="size-4 shrink-0"
+                                />
                                 Fatture
                             </div>
                             <span
@@ -5460,7 +5451,8 @@ setLayoutProps(&#123;
                                 <strong class="font-medium text-foreground"
                                     >Width</strong
                                 >
-                                — 3rem (48px). Espansa a 13rem (208px) on toggle.
+                                — 3rem (48px). Espansa a 13rem (208px) on
+                                toggle.
                             </li>
                             <li>
                                 <strong class="font-medium text-foreground"
@@ -5499,8 +5491,7 @@ setLayoutProps(&#123;
                                 — in rail mode il
                                 <code class="font-mono">SidebarMenuButton</code>
                                 viene forzato a
-                                <code class="font-mono">size-8</code> con
-                                avatar
+                                <code class="font-mono">size-8</code> con avatar
                                 <code class="font-mono">size-5</code> centrato
                                 (override del
                                 <code class="font-mono">p-2!</code> del
@@ -5536,7 +5527,7 @@ setLayoutProps(&#123;
                             target rotta deve essere una funzione Wayfinder.
                         </p>
                         <pre
-                            class="border-border-soft overflow-x-auto rounded border bg-muted/30 p-3 font-mono text-2xs text-foreground/85"
+                            class="overflow-x-auto rounded border border-border-soft bg-muted/30 p-3 font-mono text-2xs text-foreground/85"
                         ><code>const sections: NavSection[] = [
   &#123;
     label: 'Lavoro',
@@ -5666,7 +5657,7 @@ setLayoutProps(&#123;
                             <span>Cosa fa</span>
                         </div>
                         <div
-                            class="border-border-soft grid items-center gap-4 border-b bg-card px-4 py-2.5"
+                            class="grid items-center gap-4 border-b border-border-soft bg-card px-4 py-2.5"
                             style="grid-template-columns: 200px 220px 1fr"
                         >
                             <code class="font-mono text-2xs text-foreground"
@@ -6080,10 +6071,10 @@ setLayoutProps(&#123; pageTitle: 'Clienti', subbar: true &#125;)
                         <strong class="font-medium text-foreground"
                             >mini-pills</strong
                         >
-                        sono il pattern unico Studiofinance: visivamente discrete,
-                        lasciano respirare il content e funzionano bene da 3 a 6
-                        step. Il nome dello step è già nella description, non
-                        serve la mappa completa.
+                        sono il pattern unico Studiofinance: visivamente
+                        discrete, lasciano respirare il content e funzionano
+                        bene da 3 a 6 step. Il nome dello step è già nella
+                        description, non serve la mappa completa.
                     </p>
                     <div
                         class="mb-4 rounded-md border border-border bg-card p-5"
@@ -6362,9 +6353,9 @@ setLayoutProps(&#123; pageTitle: 'Clienti', subbar: true &#125;)
                                 </EmptyMedia>
                                 <EmptyTitle>Nessuna fattura ancora</EmptyTitle>
                                 <EmptyDescription>
-                                    Importa il primo file XML o crea una
-                                    fattura manualmente. Numerazione e totali
-                                    vengono calcolati automaticamente.
+                                    Importa il primo file XML o crea una fattura
+                                    manualmente. Numerazione e totali vengono
+                                    calcolati automaticamente.
                                 </EmptyDescription>
                             </EmptyHeader>
                             <EmptyContent>
@@ -6386,8 +6377,8 @@ setLayoutProps(&#123; pageTitle: 'Clienti', subbar: true &#125;)
                                 <EmptyTitle>Nessun risultato</EmptyTitle>
                                 <EmptyDescription>
                                     Nessuna fattura corrisponde a "Studio
-                                    Bianchi". Prova con meno parole o rimuovi
-                                    i filtri attivi.
+                                    Bianchi". Prova con meno parole o rimuovi i
+                                    filtri attivi.
                                 </EmptyDescription>
                             </EmptyHeader>
                             <EmptyContent>
@@ -6631,8 +6622,8 @@ setLayoutProps(&#123; pageTitle: 'Clienti', subbar: true &#125;)
                     </div>
                     <p class="mb-6 max-w-2xl text-13 text-muted-foreground">
                         Anteprima rich on-hover: link cliente, fattura,
-                        scadenza. Solo per content non-essenziale (l'utente
-                        può navigarci sopra senza). Per info breve usa
+                        scadenza. Solo per content non-essenziale (l'utente può
+                        navigarci sopra senza). Per info breve usa
                         <code class="kbd">Tooltip</code>; per dettaglio
                         cliccabile usa <code class="kbd">Popover</code>.
                     </p>
@@ -7248,7 +7239,7 @@ setLayoutProps(&#123; pageTitle: 'Clienti', subbar: true &#125;)
                     class="mb-16 scroll-mt-6"
                 >
                     <div
-                        class="border-border-soft mb-6 flex items-baseline justify-between border-b pb-3"
+                        class="mb-6 flex items-baseline justify-between border-b border-border-soft pb-3"
                     >
                         <h2 class="text-xl font-medium text-muted-foreground">
                             {{ s.label }}

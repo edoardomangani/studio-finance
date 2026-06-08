@@ -276,13 +276,17 @@ Sobrie e ferme. Una sola forma (radius 8px), una sola altezza di parete (border 
 
 ### Tables
 
-Da quaderno tecnico. Header con kicker uppercase, body riga 36px, divisori orizzontali soft, niente zebra. Hover row sussurra, selected row dichiara.
+Da quaderno tecnico. Header con kicker uppercase, body riga 36px, divisori orizzontali soft, niente zebra. Hover row sussurra, active row dichiara.
+
+**Composizione canonica.** Ogni tabella di lista usa `DataTable` → `DataTableHeader` + `DataTableBody` → `DataTableRow`. Le celle restano esplicite (`<TableCell>`): lo standard cattura il chrome (box, hover/active/selected, divisori, cella kebab), non la formattazione per-cella. Hover, active, selected, cursore e divisori hanno **un'unica sorgente di verità in `DataTableBody`**, mai dichiarati inline sulla riga. Le primitive shadcn nude (`Table`, `TableRow`, …) restano per i casi edge.
 
 - **Boxed mode:** Tabella dentro un box border, radius 6px, header `panel-tracing` dentro al box, body con divisori `line-tracing-soft`. Pagination vive **fuori** dal box.
-- **Header:** `kicker` (text-2xs uppercase tracking-wider), text ink-secondary, h-9.
+- **Header:** `kicker` (text-2xs uppercase tracking-wider), text ink-secondary, h-9. **Niente hover, niente cursore** sulle righe header/footer: lo stato vive solo sulle righe body.
 - **Body row:** h-9.
-- **Hover:** bg `panel-tracing` (zinc-100). Stessa famiglia tonale della sidebar; la riga si dichiara senza chiamare l'accent.
-- **Selected:** bg `petrol-ink-vivid` al 2% di opacità. Marker leggerissimo: chi è abituato a "tutto bianco" lo nota; chi non guarda non viene distratto. Il segnale primario di selezione è la checkbox spuntata, non lo sfondo.
+- **Interactive:** una riga è cliccabile (apre un dettaglio) solo se marcata `interactive`. Solo allora prende `cursor-pointer` e l'hover. Le righe non navigabili (sola lettura, totali, espansioni) non hanno né cursore né hover.
+- **Hover:** bg `muted/50` (panel-tracing al 50%, leggermente sopra il canvas). Sussurro neutro, più chiaro del panel pieno per non appesantire la riga; la dichiara senza chiamare l'accent. Solo su righe `interactive`.
+- **Selected:** bg `petrol-ink-vivid` al 2% di opacità. Stato della **multi-select via checkbox** (opt-in, raro). Marker leggerissimo: il segnale primario è la checkbox spuntata, non lo sfondo.
+- **Active:** bg `petrol-ink-strong` al 5% + barra inset 2px `petrol-ink-strong` sul bordo sinistro. È la riga **il cui dettaglio è aperto** (sheet o pannello laterale): a differenza di `selected` (transitorio, multi-riga, checkbox) è singola e indica "stai guardando questa". La barra inset la distingue dall'hover.
 - **Numeriche:** classe `.numeric`, text-right.
 - **Sticky columns:** opt-in per colonna con prop `sticky="left"|"right"`, `stickyOffset`. Quando ci sono sticky, checkbox iniziale e cella actions finale diventano automaticamente sticky.
 - **Zebra:** off. La densità basta; le zebre aggiungono rumore.
@@ -339,6 +343,10 @@ Mono compatta inline per identificatori che l'utente già riconosce: `FT 2026-04
 **The Mono-Only-For-Real-Codes Rule.** `.code-pill` è riservato a token che l'utente riconosce e cita (numero fattura, codice F24, codice tributo, coefficiente). Mai per taxonomie interne dei modali (M.CRE/M.EDT/M.DEL): system-language che leak all'utente.
 
 **The Whispering-Selected-Row Rule.** La riga selezionata in tabella usa `petrol-ink-vivid` al 2% di opacità: marker quasi invisibile. La selezione primaria è la checkbox spuntata, non lo sfondo. Sopra il 5% di opacità la riga diventa rumorosa e compete con le altre informazioni della tabella.
+
+**The Selected-vs-Active Rule.** Due stati distinti, mai confusi. **Selected** = multi-select via checkbox, transitorio, può valere su più righe, whisper `petrol-ink-vivid/2`. **Active** = la singola riga il cui dettaglio è aperto (sheet/pannello), `petrol-ink-strong/5` + barra inset 2px a sinistra. La barra è inset assoluto (shadow), non `border-left`, così non viola il divieto sui bordi laterali colorati.
+
+**The One-Source-Hover Rule.** Hover, active, selected, cursore e divisori riga si dichiarano **solo** in `DataTableBody`, mai come classi inline sulla riga di pagina (`hover:bg-*`, `cursor-pointer`, shadow inset). Una classe di stato riga su una pagina è un bug: significa che lo stato non sta passando dal data-attribute della `DataTableRow`.
 
 ## 6. Do's and Don'ts
 

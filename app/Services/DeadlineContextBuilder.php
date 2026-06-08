@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Enums\DeadlineKind;
+use App\Enums\DeadlineStatus;
 use App\Enums\PaymentStatus;
 use App\Enums\QuotaType;
 use App\Models\Deadline;
@@ -29,68 +30,57 @@ class DeadlineContextBuilder
      *                               scadenze referenziate (es. vista anno): i
      *                               conteggi rate si fanno in-memory, senza query.
      *                               false (lista paginata) → conteggio via DB.
+     * @param  Collection<int, Payment>|null  $paidPayments  pagamenti `paid` già caricati
+     *                                                       (con `deadline`) da riusare invece di riquerare: la vista
+     *                                                       anno passa qui l'union del loader. Filtrati per-spesa dal
+     *                                                       calcolo, quindi un superset è sicuro. null → query.
      */
-    public function build(Collection $deadlines, bool $completeScope = false): DeadlineContext
+    public function build(Collection $deadlines, bool $completeScope = false, ?Collection $paidPayments = null): DeadlineContext
     {
         $payable = $deadlines->filter(
             fn (Deadline $d): bool => $d->kind === DeadlineKind::Payment && $d->annualExpense !== null,
         );
 
         if ($payable->isEmpty()) {
-            return new DeadlineContext([], new Collection, []);
+            return new DeadlineContext([], new Collection, [], [], []);
         }
 
         $userId = (int) $payable->first()->user_id;
         $amountsByYear = $this->loadYears($payable, $userId);
 
         $expenseIds = $payable->pluck('annual_expense_id')->unique()->values();
-        $paidPayments = Payment::query()
+        $paidPayments ??= Payment::query()
             ->where('user_id', $userId)
             ->where('status', PaymentStatus::Paid)
             ->whereIn('annual_expense_id', $expenseIds)
             ->with('deadline')
             ->get();
 
-        $siblingCounts = $completeScope
-            ? $this->countSiblings($payable)
-            : $this->querySiblings($userId, $expenseIds->all());
+        // Rate con quota (acconti/minimi/saldi/…): una sola fonte (in-memory per
+        // la vista anno, una query per la lista paginata dove i fratelli possono
+        // stare su altre pagine), da cui derivo conteggio totale e conteggio
+        // delle sole aperte (servono al saldo per stimare gli acconti da versare).
+        $siblings = $completeScope
+            ? $payable->filter(fn (Deadline $d): bool => $d->quota_type !== null)->values()
+            : Deadline::query()
+                ->where('user_id', $userId)
+                ->whereIn('annual_expense_id', $expenseIds)
+                ->whereNotNull('quota_type')
+                ->get(['id', 'annual_expense_id', 'quota_type', 'status', 'due_at']);
 
-        return new DeadlineContext($amountsByYear, $paidPayments, $siblingCounts);
-    }
-
-    /**
-     * Conteggio rate per (annual_expense_id:quota_type) dalla collezione già in
-     * memoria (scope completo: vista anno). Nessuna query.
-     *
-     * @param  Collection<int, Deadline>  $payable
-     * @return array<string, int>
-     */
-    private function countSiblings(Collection $payable): array
-    {
-        return $payable
-            ->filter(fn (Deadline $d): bool => $d->quota_type !== null)
-            ->groupBy(fn (Deadline $d): string => $d->annual_expense_id.':'.$d->quota_type->value)
+        $key = fn (Deadline $d): string => $d->annual_expense_id.':'.$d->quota_type->value;
+        $siblingCounts = $siblings->groupBy($key)->map->count()->all();
+        $openSiblingCounts = $siblings
+            ->filter(fn (Deadline $d): bool => $d->status === DeadlineStatus::Open)
+            ->groupBy($key)
             ->map->count()
             ->all();
-    }
 
-    /**
-     * Come [[countSiblings]] ma via DB, per la lista paginata: i fratelli di una
-     * rata possono stare su un'altra pagina, quindi va contato l'insieme reale.
-     *
-     * @param  array<int, int>  $expenseIds
-     * @return array<string, int>
-     */
-    private function querySiblings(int $userId, array $expenseIds): array
-    {
-        return Deadline::query()
-            ->where('user_id', $userId)
-            ->whereIn('annual_expense_id', $expenseIds)
-            ->whereNotNull('quota_type')
-            ->get(['annual_expense_id', 'quota_type'])
-            ->groupBy(fn (Deadline $d): string => $d->annual_expense_id.':'.$d->quota_type->value)
-            ->map->count()
-            ->all();
+        // Scadenze per spesa (id, due_at, status): la catena bolli ne ha bisogno
+        // per dare a ogni rata solo il suo periodo invece del cumulato.
+        $siblingDeadlines = $siblings->groupBy('annual_expense_id')->all();
+
+        return new DeadlineContext($amountsByYear, $paidPayments, $siblingCounts, $openSiblingCounts, $siblingDeadlines);
     }
 
     /**

@@ -1,6 +1,7 @@
 <?php
 
 use App\Enums\DeadlineKind;
+use App\Enums\DeadlineStatus;
 use App\Enums\ExpenseCalculationType;
 use App\Enums\QuotaType;
 use App\Models\AnnualExpense;
@@ -56,9 +57,12 @@ function aPaymentDeadline(AnnualExpense $expense, ?QuotaType $quota, string $due
     ]);
 }
 
-/** Pagamento pagato collegato a una scadenza (concorre al "già versato"). */
+/** Pagamento pagato collegato a una scadenza: registrarlo la completa (come
+ *  fa RegisterPayment), così non resta anche "aperta". */
 function aPaidPayment(Deadline $deadline, float $amount): Payment
 {
+    $deadline->update(['status' => DeadlineStatus::Completed]);
+
     return Payment::factory()->paid($amount)->create([
         'user_id' => $deadline->user_id,
         'annual_expense_id' => $deadline->annual_expense_id,
@@ -220,6 +224,61 @@ it('conguaglio contributivo: definitivo meno i minimi già versati', function ()
     expect(expectationFor($adjustment))->toBe(1500.0);
 });
 
+it('conguaglio: stima i minimi ancora aperti (da pagare ma non versati)', function () {
+    $year = aYear(2026);
+    $contribution = anExpense($year, [
+        'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome,
+        'is_pension_contribution' => true,
+        'rate' => 10.00,
+        'minimum' => 500.00,
+        'amount' => null,
+    ]);
+    Invoice::factory()->create([
+        'user_id' => $this->user->id,
+        'issued_at' => '2026-05-10',
+        'amount' => 20000.00,
+        'stamp_amount' => 0.00,
+        'art_15_amount' => 0.00,
+    ]);
+
+    // Due rate del minimo ancora APERTE (nessun pagamento): vanno comunque
+    // sottratte al saldo come previsto (verranno versate), non lasciate dentro.
+    aPaymentDeadline($contribution, QuotaType::ContributionMinimum, '2026-06-30');
+    aPaymentDeadline($contribution, QuotaType::ContributionMinimum, '2026-09-30');
+    $adjustment = aPaymentDeadline($contribution, QuotaType::ContributionAdjustment, '2027-12-31');
+
+    // definitivo 2000 − minimi previsti (2 × 250) = 1500, non 2000.
+    expect(expectationFor($adjustment))->toBe(1500.0);
+});
+
+it('conguaglio: non sottrae il minimo non dovuto (resta nel saldo)', function () {
+    $year = aYear(2026);
+    $contribution = anExpense($year, [
+        'calculation_type' => ExpenseCalculationType::PercentageOfIrpefIncome,
+        'is_pension_contribution' => true,
+        'rate' => 10.00,
+        'minimum' => 500.00,
+        'amount' => null,
+    ]);
+    Invoice::factory()->create([
+        'user_id' => $this->user->id,
+        'issued_at' => '2026-05-10',
+        'amount' => 20000.00,
+        'stamp_amount' => 0.00,
+        'art_15_amount' => 0.00,
+    ]);
+
+    // Una rata aperta (stimata) + una "non dovuta" (esclusa: rientra nel saldo).
+    aPaymentDeadline($contribution, QuotaType::ContributionMinimum, '2026-06-30');
+    $notDue = aPaymentDeadline($contribution, QuotaType::ContributionMinimum, '2026-09-30');
+    $notDue->update(['status' => DeadlineStatus::NotDue]);
+
+    $adjustment = aPaymentDeadline($contribution, QuotaType::ContributionAdjustment, '2027-12-31');
+
+    // definitivo 2000 − solo la rata aperta (250) = 1750.
+    expect(expectationFor($adjustment))->toBe(1750.0);
+});
+
 it('bolli: somma dei bolli emessi entro la data della scadenza', function () {
     $year = aYear(2026);
     $bolli = anExpense($year, ['calculation_type' => ExpenseCalculationType::SumOfBolli, 'amount' => null]);
@@ -237,9 +296,32 @@ it('bolli: somma dei bolli emessi entro la data della scadenza', function () {
     $q1 = aPaymentDeadline($bolli, QuotaType::FullAmount, '2026-05-31');
     $q2 = aPaymentDeadline($bolli, QuotaType::FullAmount, '2026-09-30');
 
-    // Q1 (≤ 31/5): gennaio + aprile = €4. Q2 (≤ 30/9): + agosto = €6 (nessun pagato).
+    // Q1 (≤ 31/5): gennaio + aprile = €4. Q2 mostra SOLO il proprio periodo
+    // (agosto = €2): Q1 è aperta ma verrà pagata, quindi non si cumula.
     expect(expectationFor($q1))->toBe(4.0)
-        ->and(expectationFor($q2))->toBe(6.0);
+        ->and(expectationFor($q2))->toBe(2.0);
+});
+
+it('bolli: una rata non dovuta fa scivolare l arretrato sulla successiva', function () {
+    $year = aYear(2026);
+    $bolli = anExpense($year, ['calculation_type' => ExpenseCalculationType::SumOfBolli, 'amount' => null]);
+
+    foreach (['2026-01-15', '2026-04-15', '2026-08-15'] as $date) {
+        Invoice::factory()->create([
+            'user_id' => $this->user->id,
+            'issued_at' => $date,
+            'amount' => 1000.00,
+            'stamp_amount' => 2.00,
+            'art_15_amount' => 0.00,
+        ]);
+    }
+
+    $q1 = aPaymentDeadline($bolli, QuotaType::FullAmount, '2026-05-31');
+    $q1->update(['status' => DeadlineStatus::NotDue]); // saltata
+    $q2 = aPaymentDeadline($bolli, QuotaType::FullAmount, '2026-09-30');
+
+    // Q1 non dovuta (gen+apr = €4 non versati) → Q2 porta l'arretrato: €4 + ago €2 = €6.
+    expect(expectationFor($q2))->toBe(6.0);
 });
 
 it('bolli: scala i bolli già pagati (saldo che si azzera pagando)', function () {

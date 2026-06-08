@@ -11,30 +11,23 @@
  */
 import { Head, setLayoutProps } from '@inertiajs/vue3';
 import {
-    PhArchive,
     PhCheckCircle,
     PhCircleDashed,
-    PhDotsThreeVertical,
     PhFunnel,
     PhListBullets,
     PhMagnifyingGlass,
-    PhPencil,
     PhPlus,
 } from '@phosphor-icons/vue';
 import { ref } from 'vue';
 import type { Component } from 'vue';
-import DeadlineController from '@/actions/App/Http/Controllers/DeadlineController';
 import FilterPanel from '@/components/FilterPanel.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ConfirmDialog } from '@/components/ui/dialog';
 import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { InputGroup, InputGroupAddon, InputGroupInput } from '@/components/ui/input-group';
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput,
+} from '@/components/ui/input-group';
 import {
     Pagination,
     PaginationContent,
@@ -43,23 +36,10 @@ import {
     PaginationNext,
     PaginationPrevious,
 } from '@/components/ui/pagination';
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableEmpty,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/components/ui/table';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { useArchiveAction } from '@/composables/useArchiveAction';
 import { useDeadlineFilters } from '@/composables/useDeadlineFilters';
-import { formatDateIT, formatEUR } from '@/lib/format';
 import DeadlineFilters from '@/pages/deadlines/DeadlineFilters.vue';
-import DeadlineFormDialog from '@/pages/deadlines/DeadlineFormDialog.vue';
-import DeadlineSheet from '@/pages/deadlines/DeadlineSheet.vue';
-import { DEADLINE_STATUS_META } from '@/pages/deadlines/statusMeta';
+import DeadlinesTable from '@/pages/deadlines/DeadlinesTable.vue';
 import type {
     AnnualExpenseForPicker,
     DeadlineListItem,
@@ -101,41 +81,13 @@ setLayoutProps({
     subbar: true,
 });
 
-// Dialog crea/modifica scadenza ad-hoc: formDeadline null = creazione.
-const formOpen = ref(false);
-const formDeadline = ref<DeadlineListItem | null>(null);
-
-function openCreate(): void {
-    formDeadline.value = null;
-    formOpen.value = true;
-}
-
-function openEdit(deadline: DeadlineListItem): void {
-    formDeadline.value = deadline;
-    formOpen.value = true;
-}
-
-// Archiviazione (solo ad-hoc non pagate): kebab → ConfirmDialog → DELETE.
-const { archiveOpen, archiveTarget, askArchive, confirmArchive } = useArchiveAction<DeadlineListItem>(
-    (deadline) => DeadlineController.destroy.url({ deadline: deadline.id }),
-);
-
-// Archiviabile: solo ad-hoc e solo se il pagamento collegato non è registrato.
-function isArchivable(deadline: DeadlineListItem): boolean {
-    return deadline.is_custom && deadline.payment?.status !== 'paid';
-}
-
-// Side-sheet: aperto al click su una riga, alimentato dai dati di riga.
-const sheetOpen = ref(false);
-const selectedDeadline = ref<DeadlineListItem | null>(null);
-
-function openDeadline(deadline: DeadlineListItem): void {
-    selectedDeadline.value = deadline;
-    sheetOpen.value = true;
-}
+// Tabella (con sheet, form ad-hoc e archivio) estratta in [[DeadlinesTable]]:
+// la pagina resta chrome (search/filtri/paginazione) + la creazione, aperta
+// via il metodo esposto dalla tabella.
+const table = ref<InstanceType<typeof DeadlinesTable> | null>(null);
 
 // Chrome filtri (search + toggle stato + pannello faccette + paginazione)
-// estratta in composable: la pagina resta vista + dialog/sheet/archive.
+// estratta in composable.
 const {
     searchTerm,
     statusTab,
@@ -154,7 +106,7 @@ const {
     <Head title="Scadenze" />
 
     <Teleport to="#page-topbar-actions" defer>
-        <Button size="sm" @click="openCreate">
+        <Button size="sm" @click="table?.openCreate()">
             <PhPlus :size="14" weight="bold" />
             Nuova scadenza
         </Button>
@@ -188,7 +140,7 @@ const {
                 <Badge
                     v-if="activeFilterCount > 0"
                     variant="secondary"
-                    class="ml-1 h-4 min-w-4 px-1 text-2xs tabular"
+                    class="tabular ml-1 h-4 min-w-4 px-1 text-2xs"
                 >
                     {{ activeFilterCount }}
                 </Badge>
@@ -214,91 +166,23 @@ const {
         </div>
     </Teleport>
 
-    <Table boxed>
-        <TableHeader>
-            <TableRow>
-                <TableHead class="w-[100px]">Scadenza</TableHead>
-                <TableHead>Descrizione</TableHead>
-                <TableHead>Voce di spesa</TableHead>
-                <TableHead class="w-[110px]">Tipo</TableHead>
-                <TableHead class="w-[70px] text-right">Anno</TableHead>
-                <TableHead class="w-[120px] text-right">Previsto</TableHead>
-                <TableHead class="w-[120px]">Stato</TableHead>
-                <TableHead class="w-[48px]" />
-            </TableRow>
-        </TableHeader>
-        <TableBody>
-            <TableEmpty v-if="deadlines.data.length === 0" :colspan="8">
-                <span v-if="hasActiveFilters">Nessuna scadenza trovata con questi filtri.</span>
-                <span v-else>Nessuna scadenza. Apri un anno per generarle o creane una dal pulsante in alto.</span>
-            </TableEmpty>
-            <TableRow
-                v-for="deadline in deadlines.data"
-                v-else
-                :key="deadline.id"
-                class="cursor-pointer transition-colors hover:bg-muted/40"
-                :class="
-                    sheetOpen && selectedDeadline?.id === deadline.id
-                        ? 'bg-accent-strong/5 shadow-[inset_2px_0_0_0_var(--accent-strong)]'
-                        : ''
-                "
-                @click="openDeadline(deadline)"
-            >
-                <TableCell class="tabular text-muted-foreground">
-                    {{ formatDateIT(deadline.due_at) }}
-                </TableCell>
-                <TableCell class="text-foreground">
-                    <span class="block truncate" :title="deadline.name">{{ deadline.name }}</span>
-                </TableCell>
-                <TableCell class="text-muted-foreground">
-                    <span v-if="deadline.annual_expense_name" class="block truncate" :title="deadline.annual_expense_name">
-                        {{ deadline.annual_expense_name }}
-                    </span>
-                    <span v-else>—</span>
-                </TableCell>
-                <TableCell class="text-muted-foreground">{{ deadline.kind_label }}</TableCell>
-                <TableCell class="tabular text-right text-muted-foreground">{{ deadline.year }}</TableCell>
-                <TableCell class="tabular text-right text-foreground">
-                    <span v-if="deadline.expected_amount !== null">{{ formatEUR(deadline.expected_amount) }}</span>
-                    <span v-else class="text-muted-foreground">—</span>
-                </TableCell>
-                <TableCell>
-                    <Badge :variant="DEADLINE_STATUS_META[deadline.status].variant" class="gap-1">
-                        <component :is="DEADLINE_STATUS_META[deadline.status].icon" :size="12" />
-                        {{ deadline.status_label }}
-                    </Badge>
-                </TableCell>
-                <TableCell class="text-right" @click.stop>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger as-child>
-                            <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon-sm"
-                                aria-label="Azioni scadenza"
-                            >
-                                <PhDotsThreeVertical :size="14" weight="bold" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem @select="openEdit(deadline)">
-                                <PhPencil :size="14" />
-                                Modifica
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                v-if="isArchivable(deadline)"
-                                variant="destructive"
-                                @select="askArchive(deadline)"
-                            >
-                                <PhArchive :size="14" />
-                                Archivia
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </TableCell>
-            </TableRow>
-        </TableBody>
-    </Table>
+    <DeadlinesTable
+        ref="table"
+        :deadlines="deadlines.data"
+        :annual-expenses="annualExpenses"
+        :year-options="yearOptions"
+        :kind-options="kindOptions"
+    >
+        <template #empty>
+            <span v-if="hasActiveFilters">
+                Nessuna scadenza trovata con questi filtri.
+            </span>
+            <span v-else>
+                Nessuna scadenza. Apri un anno per generarle o creane una dal
+                pulsante in alto.
+            </span>
+        </template>
+    </DeadlinesTable>
 
     <footer
         v-if="deadlines.last_page > 1"
@@ -351,25 +235,4 @@ const {
             />
         </template>
     </FilterPanel>
-
-    <DeadlineSheet v-model:open="sheetOpen" :deadline="selectedDeadline" />
-
-    <DeadlineFormDialog
-        v-model:open="formOpen"
-        :deadline="formDeadline"
-        :annual-expenses="annualExpenses"
-        :year-options="yearOptions"
-        :kind-options="kindOptions"
-    />
-
-    <ConfirmDialog
-        v-model:open="archiveOpen"
-        title="Archiviare la scadenza?"
-        :description="archiveTarget
-            ? `«${archiveTarget.name}» verrà nascosta dall'elenco. Puoi crearne un'altra in qualsiasi momento.`
-            : undefined"
-        confirm-label="Archivia"
-        destructive
-        @confirm="confirmArchive"
-    />
 </template>

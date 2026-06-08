@@ -1,6 +1,8 @@
 <?php
 
+use App\Http\Controllers\AnnualExpenseController;
 use App\Http\Controllers\ClientController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeadlineController;
 use App\Http\Controllers\ImportXmlController;
 use App\Http\Controllers\InvoiceController;
@@ -18,7 +20,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('onboarding', [OnboardingController::class, 'store'])->name('onboarding.store');
 
     Route::middleware(['onboarded'])->group(function () {
-        Route::inertia('dashboard', 'Dashboard')->name('dashboard');
+        Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
         // Clienti — CRUD completo (resource controller). Soft delete = archivia.
         // Rate limit difensivo (60 req/min per utente loggato) per evitare
@@ -64,6 +66,12 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('years/create', [YearController::class, 'create'])
             ->name('years.create')
             ->middleware('throttle:60,1');
+        // Confronto pluriennale (vista report secondaria). Statica → PRIMA del
+        // segmento dinamico `years/{year}`.
+        Route::get('years/compare', [YearController::class, 'compare'])
+            ->name('years.compare')
+            ->middleware('throttle:60,1');
+        // Ingresso sezione: redirect all'anno corrente (o confronto se vuoto).
         Route::get('years', [YearController::class, 'index'])
             ->name('years.index')
             ->middleware('throttle:60,1');
@@ -73,6 +81,19 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('years/{year}', [YearController::class, 'show'])
             ->whereNumber('year')
             ->name('years.show')
+            ->middleware('throttle:60,1');
+
+        // Spese annuali dalla vista anno: creazione una-tantum (costo specifico
+        // dell'anno), modifica valori (correzione post-apertura), eliminazione
+        // (solo una-tantum senza pagamenti). Le voci ricorrenti restano i template.
+        Route::post('annual-expenses', [AnnualExpenseController::class, 'store'])
+            ->name('annual-expenses.store')
+            ->middleware('throttle:60,1');
+        Route::patch('annual-expenses/{annualExpense}', [AnnualExpenseController::class, 'update'])
+            ->name('annual-expenses.update')
+            ->middleware('throttle:60,1');
+        Route::delete('annual-expenses/{annualExpense}', [AnnualExpenseController::class, 'destroy'])
+            ->name('annual-expenses.destroy')
             ->middleware('throttle:60,1');
 
         // Scadenze — vista cronologica pluriennale (lista, importo previsto per
@@ -113,6 +134,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->middleware('throttle:60,1');
         Route::post('payments', [PaymentController::class, 'store'])
             ->name('payments.store')
+            ->middleware('throttle:60,1');
+        // Modifica/elimina: SOLO pagamenti manuali (i pagamenti da scadenza si
+        // gestiscono dalla scadenza, che possiede il ciclo di vita). Il guard
+        // è nel controller; il route-model binding applica la tenancy.
+        Route::patch('payments/{payment}', [PaymentController::class, 'update'])
+            ->name('payments.update')
+            ->middleware('throttle:60,1');
+        Route::delete('payments/{payment}', [PaymentController::class, 'destroy'])
+            ->name('payments.destroy')
             ->middleware('throttle:60,1');
 
         // Design system page: showroom dei componenti, accessibile solo in dev.

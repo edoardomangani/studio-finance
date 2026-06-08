@@ -27,7 +27,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/components/ui/select';
-import type { AnnualExpenseForPicker, DeadlineKind, DeadlineListItem, EnumOption, YearOption } from '@/types';
+import type {
+    AnnualExpenseForPicker,
+    DeadlineKind,
+    DeadlineListItem,
+    EnumOption,
+    YearOption,
+} from '@/types';
 
 const props = defineProps<{
     annualExpenses: AnnualExpenseForPicker[];
@@ -70,14 +76,16 @@ const isEditing = computed(() => !!props.deadline);
 // La spesa è modificabile solo su una ad-hoc di pagamento non ancora pagata.
 const canEditExpense = computed(
     () =>
-        !!props.deadline
-        && props.deadline.is_custom
-        && props.deadline.kind === 'payment'
-        && props.deadline.payment?.status !== 'paid',
+        !!props.deadline &&
+        props.deadline.is_custom &&
+        props.deadline.kind === 'payment' &&
+        props.deadline.payment?.status !== 'paid',
 );
 
 const kindLabel = computed(
-    () => props.kindOptions.find((o) => o.value === form.kind)?.label ?? form.kind,
+    () =>
+        props.kindOptions.find((o) => o.value === form.kind)?.label ??
+        form.kind,
 );
 
 watch(open, (isOpen) => {
@@ -95,9 +103,10 @@ watch(open, (isOpen) => {
             annual_expense_id: props.deadline.annual_expense_id,
             year_id: null,
             // Per le ad-hoc expected_amount = previsto manuale salvato.
-            manual_expected_amount: props.deadline.expected_amount !== null
-                ? String(props.deadline.expected_amount)
-                : '',
+            manual_expected_amount:
+                props.deadline.expected_amount !== null
+                    ? String(props.deadline.expected_amount)
+                    : '',
         });
     } else {
         form.defaults(emptyForm());
@@ -121,22 +130,26 @@ function submit(): void {
             ...(canEditExpense.value
                 ? {
                       annual_expense_id: data.annual_expense_id,
-                      manual_expected_amount: data.manual_expected_amount.trim() || null,
+                      manual_expected_amount:
+                          data.manual_expected_amount.trim() || null,
                   }
                 : {}),
         }));
 
-        form.patch(DeadlineController.update.url({ deadline: props.deadline.id }), {
-            preserveScroll: true,
-            onSuccess: () => {
-                open.value = false;
+        form.patch(
+            DeadlineController.update.url({ deadline: props.deadline.id }),
+            {
+                preserveScroll: true,
+                onSuccess: () => {
+                    open.value = false;
+                },
+                onError: (errors) => {
+                    if (Object.keys(errors).length === 0) {
+                        toast.error('Aggiornamento non riuscito. Riprova.');
+                    }
+                },
             },
-            onError: (errors) => {
-                if (Object.keys(errors).length === 0) {
-                    toast.error('Aggiornamento non riuscito. Riprova.');
-                }
-            },
-        });
+        );
 
         return;
     }
@@ -144,11 +157,13 @@ function submit(): void {
     // Creazione: azzera i campi non pertinenti al tipo.
     form.transform((data) => ({
         ...data,
-        annual_expense_id: data.kind === 'payment' ? data.annual_expense_id : null,
+        annual_expense_id:
+            data.kind === 'payment' ? data.annual_expense_id : null,
         year_id: data.kind === 'fulfillment' ? data.year_id : null,
-        manual_expected_amount: data.kind === 'payment'
-            ? (data.manual_expected_amount.trim() || null)
-            : null,
+        manual_expected_amount:
+            data.kind === 'payment'
+                ? data.manual_expected_amount.trim() || null
+                : null,
     }));
 
     form.post(DeadlineController.store.url(), {
@@ -169,9 +184,11 @@ function submit(): void {
     <ResponsiveDialog
         v-model:open="open"
         :title="isEditing ? 'Modifica scadenza' : 'Nuova scadenza'"
-        :description="isEditing
-            ? 'Aggiorna la scadenza. Il tipo non cambia dopo la creazione.'
-            : 'Aggiungi un obbligo non previsto dalle scadenze tipo. Lo registri poi come tutte le altre.'"
+        :description="
+            isEditing
+                ? 'Aggiorna la scadenza. Il tipo non cambia dopo la creazione.'
+                : 'Aggiungi un obbligo non previsto dalle scadenze tipo. Lo registri poi come tutte le altre.'
+        "
         submit-form="deadline-form"
         :submit-label="isEditing ? 'Salva modifiche' : 'Crea scadenza'"
         :submitting="form.processing"
@@ -179,11 +196,16 @@ function submit(): void {
         <form id="deadline-form" @submit.prevent="submit">
             <FieldGroup>
                 <!-- Tipo: scelta solo in creazione (poi immutabile). -->
-                <FormField v-if="!isEditing" label="Tipo" for="deadline-kind" required>
+                <FormField
+                    v-if="!isEditing"
+                    label="Tipo"
+                    for="deadline-kind"
+                    required
+                >
                     <RadioGroup
                         id="deadline-kind"
                         :model-value="form.kind"
-                        class="gap-2 flex"
+                        class="flex gap-2"
                         @update:model-value="setKind"
                     >
                         <ChoiceCardRadio
@@ -191,7 +213,9 @@ function submit(): void {
                             :key="opt.value"
                             :value="opt.value"
                             :title="opt.label"
-                            :description="KIND_DESCRIPTIONS[opt.value as DeadlineKind]"
+                            :description="
+                                KIND_DESCRIPTIONS[opt.value as DeadlineKind]
+                            "
                         />
                     </RadioGroup>
                 </FormField>
@@ -199,12 +223,17 @@ function submit(): void {
                 <!-- In modifica il tipo è contesto in sola lettura. -->
                 <Field v-else orientation="horizontal" class="justify-between">
                     <span class="text-13 text-muted-foreground">Tipo</span>
-                    <span class="text-13 font-medium text-foreground">{{ kindLabel }}</span>
+                    <span class="text-13 font-medium text-foreground">{{
+                        kindLabel
+                    }}</span>
                 </Field>
 
                 <!-- Spesa: picker quando creabile/modificabile, altrimenti read-only. -->
                 <FormField
-                    v-if="form.kind === 'payment' && (!isEditing || canEditExpense)"
+                    v-if="
+                        form.kind === 'payment' &&
+                        (!isEditing || canEditExpense)
+                    "
                     label="Spesa"
                     for="deadline-expense"
                     required
@@ -226,13 +255,18 @@ function submit(): void {
                     class="justify-between"
                 >
                     <span class="text-13 text-muted-foreground">Spesa</span>
-                    <span class="text-13 text-foreground">{{ deadline?.annual_expense_name ?? '—' }}</span>
+                    <span class="text-13 text-foreground">{{
+                        deadline?.annual_expense_name ?? '—'
+                    }}</span>
                 </Field>
 
                 <!-- Previsto manuale: suggerimento opzionale, solo su ad-hoc di
                      pagamento modificabili (stessa condizione della spesa). -->
                 <FormField
-                    v-if="form.kind === 'payment' && (!isEditing || canEditExpense)"
+                    v-if="
+                        form.kind === 'payment' &&
+                        (!isEditing || canEditExpense)
+                    "
                     label="Importo previsto"
                     for="deadline-expected"
                 >
@@ -243,10 +277,15 @@ function submit(): void {
                         placeholder="0.00"
                         class="tabular"
                     />
-                    <template #hint>Suggerimento precompilato alla registrazione. Facoltativo.</template>
-                    <template v-if="form.errors.manual_expected_amount" #error>{{
-                        form.errors.manual_expected_amount
-                    }}</template>
+                    <template #hint
+                        >Suggerimento precompilato alla registrazione.
+                        Facoltativo.</template
+                    >
+                    <template
+                        v-if="form.errors.manual_expected_amount"
+                        #error
+                        >{{ form.errors.manual_expected_amount }}</template
+                    >
                 </FormField>
 
                 <!-- Anno: select solo in creazione di un adempimento. -->
@@ -261,12 +300,18 @@ function submit(): void {
                             <SelectValue placeholder="Seleziona…" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem v-for="y in yearOptions" :key="y.id" :value="y.id">
+                            <SelectItem
+                                v-for="y in yearOptions"
+                                :key="y.id"
+                                :value="y.id"
+                            >
                                 {{ y.year }}
                             </SelectItem>
                         </SelectContent>
                     </Select>
-                    <template v-if="form.errors.year_id" #error>{{ form.errors.year_id }}</template>
+                    <template v-if="form.errors.year_id" #error>{{
+                        form.errors.year_id
+                    }}</template>
                 </FormField>
 
                 <FormField label="Nome" for="deadline-name" required>
@@ -275,12 +320,24 @@ function submit(): void {
                         v-model="form.name"
                         placeholder="Es. Imposta di bollo straordinaria"
                     />
-                    <template v-if="form.errors.name" #error>{{ form.errors.name }}</template>
+                    <template v-if="form.errors.name" #error>{{
+                        form.errors.name
+                    }}</template>
                 </FormField>
 
-                <FormField label="Data di scadenza" for="deadline-date" required>
-                    <Input id="deadline-date" v-model="form.due_at" type="date" />
-                    <template v-if="form.errors.due_at" #error>{{ form.errors.due_at }}</template>
+                <FormField
+                    label="Data di scadenza"
+                    for="deadline-date"
+                    required
+                >
+                    <Input
+                        id="deadline-date"
+                        v-model="form.due_at"
+                        type="date"
+                    />
+                    <template v-if="form.errors.due_at" #error>{{
+                        form.errors.due_at
+                    }}</template>
                 </FormField>
             </FieldGroup>
         </form>

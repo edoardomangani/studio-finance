@@ -26,7 +26,7 @@ const handleDelete = () => {
 
 <template>
     <div
-        class="border-border-soft flex items-center justify-between gap-3 border-b px-3 py-2 last:border-b-0"
+        class="flex items-center justify-between gap-3 border-b border-border-soft px-3 py-2 last:border-b-0"
     >
         <div class="flex min-w-0 items-center gap-3">
             <PhKey class="size-4 shrink-0 text-muted-foreground" />
@@ -43,9 +43,8 @@ const handleDelete = () => {
                     </span>
                 </div>
                 <p class="mt-0.5 text-xs text-muted-foreground">
-                    Aggiunta {{ passkey.created_at_diff }}<template
-                        v-if="passkey.last_used_at_diff"
-                    >
+                    Aggiunta {{ passkey.created_at_diff
+                    }}<template v-if="passkey.last_used_at_diff">
                         · ultimo uso {{ passkey.last_used_at_diff }}</template
                     >
                 </p>

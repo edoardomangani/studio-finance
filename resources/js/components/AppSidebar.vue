@@ -26,8 +26,8 @@ import {
     PhTag,
     PhUsers,
 } from '@phosphor-icons/vue';
-import { computed  } from 'vue';
-import type {Component} from 'vue';
+import { computed } from 'vue';
+import type { Component } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavUser from '@/components/NavUser.vue';
 import { Button } from '@/components/ui/button';
@@ -67,7 +67,10 @@ type NavSection = { label: string; items: NavLink[] };
 const { isCurrentOrParentUrl, currentUrl } = useCurrentUrl();
 const { state, toggleSidebar } = useSidebar();
 
-const SETTINGS_PREFIXES = ['/settings/expense-items', '/settings/recurring-deadlines'];
+const SETTINGS_PREFIXES = [
+    '/settings/expense-items',
+    '/settings/recurring-deadlines',
+];
 
 /* Modalità settings: la sidebar swap il content quando l'utente è dentro
  * uno dei tab di sistema. /settings/profile (personali) NON triggerano lo
@@ -96,7 +99,11 @@ const mainSections: NavSection[] = [
     {
         label: 'Sistema',
         items: [
-            { label: 'Impostazioni', icon: PhGearSix, href: expenseItemsIndex() },
+            {
+                label: 'Impostazioni',
+                icon: PhGearSix,
+                href: expenseItemsIndex(),
+            },
             { label: 'Design system', icon: PhBookOpen, href: designSystem() },
         ],
     },
@@ -122,7 +129,11 @@ const sections = computed(() =>
 </script>
 
 <template>
-    <Sidebar collapsible="icon" variant="sidebar" class="border-r border-sidebar-border">
+    <Sidebar
+        collapsible="icon"
+        variant="sidebar"
+        class="border-r border-sidebar-border"
+    >
         <!-- Header altezza FISSA in entrambe modalità per non far ballare
              il contenuto sotto quando si collassa. Il logo (visibile solo
              in expanded) sta dentro, centrato verticalmente. -->
@@ -147,7 +158,9 @@ const sections = computed(() =>
                                 class="group/nav relative flex items-center gap-2 px-4 py-1.75 text-13 text-foreground/75 transition-colors hover:text-foreground"
                             >
                                 <PhArrowLeft :size="14" class="shrink-0" />
-                                <span class="truncate group-data-[collapsible=icon]:hidden">
+                                <span
+                                    class="truncate group-data-[collapsible=icon]:hidden"
+                                >
                                     Indietro
                                 </span>
                             </Link>
@@ -174,14 +187,20 @@ const sections = computed(() =>
                                 :href="item.href"
                                 class="group/nav relative flex items-center gap-2 px-4 py-1.75 text-13 transition-colors"
                                 :class="
-                                    isCurrentOrParentUrl(item.activeMatch ?? item.href)
+                                    isCurrentOrParentUrl(
+                                        item.activeMatch ?? item.href,
+                                    )
                                         ? 'font-medium text-foreground'
                                         : 'text-foreground/75 hover:text-foreground'
                                 "
                             >
                                 <!-- Active: barra accent piena, sempre visibile -->
                                 <span
-                                    v-if="isCurrentOrParentUrl(item.activeMatch ?? item.href)"
+                                    v-if="
+                                        isCurrentOrParentUrl(
+                                            item.activeMatch ?? item.href,
+                                        )
+                                    "
                                     class="absolute top-1/2 left-0 h-5 w-[2px] -translate-y-1/2 rounded-r-[2px] bg-accent-vivid"
                                     aria-hidden="true"
                                 />
@@ -193,7 +212,11 @@ const sections = computed(() =>
                                 />
                                 <!-- Icona: active=fill sempre. Idle=regular↔fill crossfade su hover. -->
                                 <component
-                                    v-if="isCurrentOrParentUrl(item.activeMatch ?? item.href)"
+                                    v-if="
+                                        isCurrentOrParentUrl(
+                                            item.activeMatch ?? item.href,
+                                        )
+                                    "
                                     :is="item.icon"
                                     weight="fill"
                                     class="size-4 shrink-0"
@@ -213,7 +236,9 @@ const sections = computed(() =>
                                         class="absolute size-4 opacity-0 transition-opacity group-hover/nav:opacity-100"
                                     />
                                 </span>
-                                <span class="truncate group-data-[collapsible=icon]:hidden">
+                                <span
+                                    class="truncate group-data-[collapsible=icon]:hidden"
+                                >
                                     {{ item.label }}
                                 </span>
                             </Link>
@@ -237,15 +262,10 @@ const sections = computed(() =>
     <Button
         variant="outline"
         size="icon"
-        :aria-label="state === 'expanded' ? 'Collassa sidebar' : 'Espandi sidebar'"
-        class="
-            fixed top-3.5 z-50 hidden lg:inline-flex
-            text-muted-foreground bg-card hover:bg-card
-            transition-[left,background-color,border-color,color]
-            duration-200 ease-linear
-            peer-data-[state=expanded]:left-[calc(var(--sidebar-width)-12px)]
-            peer-data-[state=collapsed]:left-[calc(var(--sidebar-width-icon)-12px)]
+        :aria-label="
+            state === 'expanded' ? 'Collassa sidebar' : 'Espandi sidebar'
         "
+        class="fixed top-3.5 z-50 hidden bg-card text-muted-foreground transition-[left,background-color,border-color,color] duration-200 ease-linear peer-data-[state=collapsed]:left-[calc(var(--sidebar-width-icon)-12px)] peer-data-[state=expanded]:left-[calc(var(--sidebar-width)-12px)] hover:bg-card lg:inline-flex"
         @click="toggleSidebar"
     >
         <PhCaretLeft v-if="state === 'expanded'" :size="11" weight="bold" />

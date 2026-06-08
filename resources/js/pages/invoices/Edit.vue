@@ -12,9 +12,10 @@
 import { Head, Link, setLayoutProps } from '@inertiajs/vue3';
 import { PhFloppyDisk } from '@phosphor-icons/vue';
 import { ref } from 'vue';
-import InvoiceForm from '@/pages/invoices/InvoiceForm.vue';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
+import { originTrail, withOrigin } from '@/lib/origin';
+import InvoiceForm from '@/pages/invoices/InvoiceForm.vue';
 import { index as invoicesIndex, show as invoiceShow } from '@/routes/invoices';
 import type { ClientForPicker, Invoice } from '@/types';
 
@@ -23,13 +24,29 @@ const props = defineProps<{
     clients: ClientForPicker[];
 }>();
 
+// Origine = trail fino alla fattura (l'ultimo crumb è lo Show). Default
+// deep-link: Fatture / N.
+const origin = originTrail();
+const trail =
+    origin.length > 0
+        ? origin
+        : [
+              { label: 'Fatture', href: invoicesIndex().url },
+              {
+                  label: props.invoice.number,
+                  href: invoiceShow(props.invoice.id).url,
+              },
+          ];
+
+// Annulla torna allo Show conservando l'origine dello Show (trail senza l'ultimo).
+const cancelUrl = withOrigin(
+    invoiceShow(props.invoice.id).url,
+    trail.slice(0, -1),
+);
+
 setLayoutProps({
     pageTitle: `Modifica fattura ${props.invoice.number}`,
-    pageCrumbs: [
-        { label: 'Fatture', href: invoicesIndex().url },
-        { label: props.invoice.number, href: invoiceShow(props.invoice.id).url },
-        { label: 'Modifica' },
-    ],
+    pageCrumbs: [...trail, { label: 'Modifica' }],
     subbar: false,
 });
 
@@ -41,7 +58,7 @@ const invoiceForm = ref<InstanceType<typeof InvoiceForm> | null>(null);
 
     <Teleport to="#page-topbar-actions" defer>
         <Button as-child variant="outline" size="sm">
-            <Link :href="invoiceShow(invoice.id).url">Annulla</Link>
+            <Link :href="cancelUrl">Annulla</Link>
         </Button>
         <Button
             type="submit"
@@ -56,10 +73,6 @@ const invoiceForm = ref<InstanceType<typeof InvoiceForm> | null>(null);
     </Teleport>
 
     <div class="mx-auto w-full max-w-[820px] px-4 py-6 md:px-6">
-        <InvoiceForm
-            ref="invoiceForm"
-            :clients="clients"
-            :invoice="invoice"
-        />
+        <InvoiceForm ref="invoiceForm" :clients="clients" :invoice="invoice" />
     </div>
 </template>

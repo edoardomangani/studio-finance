@@ -1,12 +1,15 @@
 <script setup lang="ts">
 /**
- * DataTableBody — wrapper di TableBody con hover/selected pre-applicati.
+ * DataTableBody — sorgente unica per gli stati visivi delle righe dati:
+ * hover, active, selected, cursore, divisori. Le righe (DataTableRow)
+ * dichiarano lo stato via data-attribute; qui si traduce in colore.
  *
- * Il radius + border perimetrale arriva dal container <Table boxed>, non
- * dalle celle. Le sticky columns (opt-in via classi su TableCell) hanno bg-card
- * applicato automaticamente qui sotto.
+ * Gli stili vivono sul `<td>` (non sul `<tr>`) così la cella copre il
+ * contenuto delle colonne sticky che scorre sotto. Il radius + border
+ * perimetrale arriva dal container <Table boxed>.
  *
- * Slot default: `<DataTableRow>` ×N.
+ * Slot default: `<DataTableRow>` ×N (più eventuali righe speciali plain
+ * come la riga di espansione, che non essendo `interactive` non prende hover).
  */
 import { cn } from '@/lib/utils'
 import TableBody from './TableBody.vue'
@@ -15,16 +18,18 @@ import TableBody from './TableBody.vue'
 <template>
   <TableBody
     :class="cn(
-      // Bg base delle celle (necessario per coprire il content sticky sotto)
-      '[&_td]:bg-card',
-      // Hover: zinc-100 (panel-tracing), visibile sopra il canvas-tracing zinc-50
-      '[&_tr:hover_td]:bg-secondary',
-      // Selected: petrol-vivid 6% — segnale leggero senza scurire troppo
+      // Bg base delle celle (copre il content sticky sotto)
+      '[&_td]:bg-card [&_td]:transition-colors',
+      // Cursore + hover solo sulle righe dichiarate interattive
+      '[&_tr[data-interactive]]:cursor-pointer',
+      '[&_tr[data-interactive]:hover_td]:bg-muted/40',
+      // Selected (checkbox multi-select): whisper petrol-vivid 2%
       '[&_tr[data-state=selected]_td]:bg-accent-vivid/2',
-      // Border interno tra le righe
+      // Active (dettaglio aperto): fill accent-strong 5% + barra inset 2px
+      '[&_tr[data-active]_td]:bg-accent-strong/5',
+      '[&_tr[data-active]]:shadow-[inset_2px_0_0_0_var(--accent-strong)]',
+      // Divisori interni tra le righe
       '[&_tr:not(:last-child)_td]:border-b [&_tr:not(:last-child)_td]:border-border-soft',
-      // Smooth color transition
-      '[&_td]:transition-colors',
     )"
   >
     <slot />

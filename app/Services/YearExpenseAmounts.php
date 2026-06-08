@@ -33,11 +33,24 @@ class YearExpenseAmounts
      *
      * @param  Collection<int, AnnualExpense>  $expenses  spese dell'anno
      * @param  Collection<int, Invoice>  $invoices  fatture dell'anno (già ordinate per la vista)
-     * @param  Collection<int, Payment>  $cashPayments  pagamenti pagati per cassa nell'anno (per i contributi)
-     * @param  Collection<int, Payment>  $expensePayments  pagamenti pagati collegati alle spese dell'anno
+     * @param  Collection<int, Payment>  $paidPayments  union dei pagamenti `paid` rilevanti
+     *                                                  per l'anno (per cassa ∪ per competenza,
+     *                                                  RB9): unica query del loader. I due
+     *                                                  sottoinsiemi sono derivati qui in memoria.
      */
-    public function compute(int $year, float $coefficient, Collection $expenses, Collection $invoices, Collection $cashPayments, Collection $expensePayments): YearAmounts
+    public function compute(int $year, float $coefficient, Collection $expenses, Collection $invoices, Collection $paidPayments): YearAmounts
     {
+        $expenseIds = $expenses->pluck('id');
+
+        // Per cassa: pagati nell'anno solare (contributi, RB9). Per competenza:
+        // collegati alle spese dell'anno, a prescindere dall'anno di cassa.
+        $cashPayments = $paidPayments->filter(
+            fn (Payment $p): bool => $p->paid_at !== null && (int) $p->paid_at->year === $year,
+        );
+        $expensePayments = $paidPayments->filter(
+            fn (Payment $p): bool => $expenseIds->contains($p->annual_expense_id),
+        );
+
         $figures = $this->yearStatement->figures($invoices, $coefficient, $cashPayments);
         $monthsElapsed = self::monthsElapsed($year);
         $paymentsByExpense = $expensePayments->groupBy('annual_expense_id');
@@ -48,7 +61,7 @@ class YearExpenseAmounts
             ])
             ->all();
 
-        return new YearAmounts($invoices, $figures, $monthsElapsed, $expenses, $map);
+        return new YearAmounts($invoices, $figures, $monthsElapsed, $expenses, $map, $paidPayments->values());
     }
 
     /**

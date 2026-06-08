@@ -16,17 +16,26 @@
  * page reload). Il parse arricchisce ma non sostituisce: nuovi file
  * vengono appended.
  */
-import { Head, router, setLayoutProps, useForm, usePage } from '@inertiajs/vue3';
-import { PhCaretDoubleDown, PhCaretDoubleUp, PhUploadSimple } from '@phosphor-icons/vue';
+import {
+    Head,
+    router,
+    setLayoutProps,
+    useForm,
+    usePage,
+} from '@inertiajs/vue3';
+import {
+    PhCaretDoubleDown,
+    PhCaretDoubleUp,
+    PhUploadSimple,
+} from '@phosphor-icons/vue';
 import { computed, ref, watch } from 'vue';
 import ImportXmlController from '@/actions/App/Http/Controllers/ImportXmlController';
 import { Accordion } from '@/components/ui/accordion';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/dialog';
 import { Spinner } from '@/components/ui/spinner';
-import InvoicePreviewCard, {
-    type ImportPreviewLocal,
-} from '@/pages/invoices/InvoicePreviewCard.vue';
+import InvoicePreviewCard from '@/pages/invoices/InvoicePreviewCard.vue';
+import type { ImportPreviewLocal } from '@/pages/invoices/InvoicePreviewCard.vue';
 import { index as invoicesIndex } from '@/routes/invoices';
 import type {
     ClientForPicker,
@@ -110,17 +119,21 @@ watch(
  *  parse fallito (vede l'errore), cliente non matchato (sceglie), o
  *  discrepanze rilevate (banner + hint inline). Tutto OK → collassata. */
 function shouldAutoExpand(p: ImportPreviewServer): boolean {
-    if (!p.parsed) return true;
-    if ((p.matched_client_id ?? null) === null) return true;
+    if (!p.parsed) {
+        return true;
+    }
+
+    if ((p.matched_client_id ?? null) === null) {
+        return true;
+    }
 
     return !!(p.discrepancies && Object.keys(p.discrepancies).length > 0);
 }
 
 function toLocal(p: ImportPreviewServer): ImportPreviewLocal {
     const matched = p.matched_client_id ?? null;
-    const matchedClient = matched !== null
-        ? props.clients.find((c) => c.id === matched)
-        : null;
+    const matchedClient =
+        matched !== null ? props.clients.find((c) => c.id === matched) : null;
 
     // Default ritenuta: il parser XML non sa nulla della ritenuta bancaria
     // 8% (è un'operazione bancaria, non documentale). Se il cliente
@@ -165,10 +178,12 @@ const counts = computed(() => {
             continue;
         }
 
-        const hasClient = p.client_mode === 'existing'
-            ? p.existing_client_id !== null
-            : p.new_client.name.trim() !== ''
-                && (p.new_client.vat_number.trim() !== '' || p.new_client.tax_code.trim() !== '');
+        const hasClient =
+            p.client_mode === 'existing'
+                ? p.existing_client_id !== null
+                : p.new_client.name.trim() !== '' &&
+                  (p.new_client.vat_number.trim() !== '' ||
+                      p.new_client.tax_code.trim() !== '');
 
         if (hasClient) {
             pronto++;
@@ -180,12 +195,15 @@ const counts = computed(() => {
     return { pronto, daConfermare, scartato };
 });
 
-const canSubmit = computed(() => counts.value.pronto > 0 && !submitForm.processing);
+const canSubmit = computed(
+    () => counts.value.pronto > 0 && !submitForm.processing,
+);
 
 // ─── Drop zone handlers ──────────────────────────────────────────────────
 
 function onFilesPicked(event: Event): void {
     const target = event.target as HTMLInputElement;
+
     if (target.files) {
         uploadFiles(Array.from(target.files));
         target.value = '';
@@ -197,8 +215,13 @@ function onDrop(event: DragEvent): void {
     isDragging.value = false;
 
     const files = event.dataTransfer?.files;
+
     if (files && files.length > 0) {
-        uploadFiles(Array.from(files).filter((f) => f.name.toLowerCase().endsWith('.xml')));
+        uploadFiles(
+            Array.from(files).filter((f) =>
+                f.name.toLowerCase().endsWith('.xml'),
+            ),
+        );
     }
 }
 
@@ -225,11 +248,8 @@ function uploadFiles(files: File[]): void {
 const anyExpanded = computed(() => openIds.value.length > 0);
 
 function toggleExpandAll(): void {
-    openIds.value = anyExpanded.value
-        ? []
-        : previewList.value.map((p) => p.id);
+    openIds.value = anyExpanded.value ? [] : previewList.value.map((p) => p.id);
 }
-
 
 /** Scroll del drop zone in viewport + flash visivo. Chiamato quando una
  *  card scartata emette `reupload-request` (utente vuole sostituire un
@@ -251,9 +271,15 @@ function submit(): void {
     const payload = previewList.value
         .filter((p) => p.parsed && !p.excluded)
         .filter((p) => {
-            if (p.client_mode === 'existing') return p.existing_client_id !== null;
-            return p.new_client.name.trim() !== ''
-                && (p.new_client.vat_number.trim() !== '' || p.new_client.tax_code.trim() !== '');
+            if (p.client_mode === 'existing') {
+                return p.existing_client_id !== null;
+            }
+
+            return (
+                p.new_client.name.trim() !== '' &&
+                (p.new_client.vat_number.trim() !== '' ||
+                    p.new_client.tax_code.trim() !== '')
+            );
         })
         .map((p) => ({
             number: p.number,
@@ -264,13 +290,17 @@ function submit(): void {
             art_15_amount: p.art_15_amount,
             bank_withholding: p.bank_withholding,
             client_mode: p.client_mode,
-            existing_client_id: p.client_mode === 'existing' ? p.existing_client_id : null,
-            new_client: p.client_mode === 'new' ? {
-                name: p.new_client.name.trim(),
-                vat_number: p.new_client.vat_number.trim() || null,
-                tax_code: p.new_client.tax_code.trim() || null,
-                bank_withholding: p.new_client.bank_withholding,
-            } : null,
+            existing_client_id:
+                p.client_mode === 'existing' ? p.existing_client_id : null,
+            new_client:
+                p.client_mode === 'new'
+                    ? {
+                          name: p.new_client.name.trim(),
+                          vat_number: p.new_client.vat_number.trim() || null,
+                          tax_code: p.new_client.tax_code.trim() || null,
+                          bank_withholding: p.new_client.bank_withholding,
+                      }
+                    : null,
         }));
 
     submitForm.previews = payload;
@@ -284,6 +314,7 @@ const resetDialogOpen = ref(false);
 function reset(): void {
     if (previewList.value.length === 0) {
         router.visit(invoicesIndex().url);
+
         return;
     }
 
@@ -339,14 +370,10 @@ function humanizeErrorField(path: string): string {
         <Button type="button" variant="outline" size="sm" @click="reset">
             {{ previewList.length === 0 ? 'Annulla' : 'Svuota' }}
         </Button>
-        <Button
-            type="button"
-            size="sm"
-            :disabled="!canSubmit"
-            @click="submit"
-        >
+        <Button type="button" size="sm" :disabled="!canSubmit" @click="submit">
             <Spinner v-if="submitForm.processing" />
-            Importa {{ counts.pronto }} {{ counts.pronto === 1 ? 'fattura' : 'fatture' }}
+            Importa {{ counts.pronto }}
+            {{ counts.pronto === 1 ? 'fattura' : 'fatture' }}
         </Button>
     </Teleport>
 
@@ -354,10 +381,14 @@ function humanizeErrorField(path: string): string {
         <!-- ─── Drop zone ─── -->
         <div
             ref="dropZoneRef"
-            class="rounded-md border border-dashed transition-colors bg-card"
+            class="rounded-md border border-dashed bg-card transition-colors"
             :class="[
-                isDragging ? 'border-accent-vivid bg-accent-vivid/5' : 'border-border hover:border-foreground/30',
-                dropZoneHighlight ? 'ring-2 ring-accent-vivid/60 ring-offset-2 ring-offset-background' : '',
+                isDragging
+                    ? 'border-accent-vivid bg-accent-vivid/5'
+                    : 'border-border hover:border-foreground/30',
+                dropZoneHighlight
+                    ? 'ring-2 ring-accent-vivid/60 ring-offset-2 ring-offset-background'
+                    : '',
             ]"
             @dragover.prevent="isDragging = true"
             @dragleave.prevent="isDragging = false"
@@ -369,10 +400,14 @@ function humanizeErrorField(path: string): string {
                 <PhUploadSimple :size="24" class="text-muted-foreground" />
                 <span class="text-13 font-medium text-foreground">
                     Carica i file XML qui
-                    <span class="text-muted-foreground"> (drag&amp;drop o tocca)</span>
+                    <span class="text-muted-foreground">
+                        (drag&amp;drop o tocca)</span
+                    >
                 </span>
                 <span class="text-xs text-muted-foreground">
-                    Max 20 file, 1 MB ciascuno. I file <code class="font-mono">.p7m</code> firmati non sono supportati.
+                    Max 20 file, 1 MB ciascuno. I file
+                    <code class="font-mono">.p7m</code> firmati non sono
+                    supportati.
                 </span>
                 <input
                     type="file"
@@ -380,14 +415,17 @@ function humanizeErrorField(path: string): string {
                     accept=".xml,application/xml,text/xml"
                     class="sr-only"
                     @change="onFilesPicked"
-                >
+                />
             </label>
         </div>
 
         <p v-if="uploadForm.errors.files" class="mt-2 text-xs text-destructive">
             {{ uploadForm.errors.files }}
         </p>
-        <div v-if="uploadForm.processing" class="mt-3 flex items-center gap-2 text-xs text-muted-foreground">
+        <div
+            v-if="uploadForm.processing"
+            class="mt-3 flex items-center gap-2 text-xs text-muted-foreground"
+        >
             <Spinner />
             Parsing dei file in corso…
         </div>
@@ -404,32 +442,65 @@ function humanizeErrorField(path: string): string {
             class="mt-10 md:mt-14"
             aria-label="Come funziona l'import"
         >
-            <div class="flex items-center mb-4 h-8">
+            <div class="mb-4 flex h-8 items-center">
                 <p class="kicker">Come funziona</p>
             </div>
-    
+
             <ol
                 class="grid list-none grid-cols-1 divide-y divide-border-soft border-y border-border-soft md:grid-cols-3 md:divide-x md:divide-y-0"
             >
-                <li class="px-0 py-6 md:px-6 md:py-7 md:first:pl-0 md:last:pr-0">
-                    <p class="tabular text-2xl font-light text-muted-foreground/40">01</p>
-                    <p class="mt-3 text-13 font-medium text-foreground">Anteprima editabile</p>
-                    <p class="mt-1.5 max-w-[28ch] text-xs leading-relaxed text-muted-foreground">
-                        Ogni XML diventa una card con numero, data, importi e cliente.
+                <li
+                    class="px-0 py-6 md:px-6 md:py-7 md:first:pl-0 md:last:pr-0"
+                >
+                    <p
+                        class="tabular text-2xl font-light text-muted-foreground/40"
+                    >
+                        01
+                    </p>
+                    <p class="mt-3 text-13 font-medium text-foreground">
+                        Anteprima editabile
+                    </p>
+                    <p
+                        class="mt-1.5 max-w-[28ch] text-xs leading-relaxed text-muted-foreground"
+                    >
+                        Ogni XML diventa una card con numero, data, importi e
+                        cliente.
                     </p>
                 </li>
-                <li class="px-0 py-6 md:px-6 md:py-7 md:first:pl-0 md:last:pr-0">
-                    <p class="tabular text-2xl font-light text-muted-foreground/40">02</p>
-                    <p class="mt-3 text-13 font-medium text-foreground">Controllo calcoli</p>
-                    <p class="mt-1.5 max-w-[28ch] text-xs leading-relaxed text-muted-foreground">
-                        StudioFinance segnala se bollo o cassa divergono dallo standard.
+                <li
+                    class="px-0 py-6 md:px-6 md:py-7 md:first:pl-0 md:last:pr-0"
+                >
+                    <p
+                        class="tabular text-2xl font-light text-muted-foreground/40"
+                    >
+                        02
+                    </p>
+                    <p class="mt-3 text-13 font-medium text-foreground">
+                        Controllo calcoli
+                    </p>
+                    <p
+                        class="mt-1.5 max-w-[28ch] text-xs leading-relaxed text-muted-foreground"
+                    >
+                        StudioFinance segnala se bollo o cassa divergono dallo
+                        standard.
                     </p>
                 </li>
-                <li class="px-0 py-6 md:px-6 md:py-7 md:first:pl-0 md:last:pr-0">
-                    <p class="tabular text-2xl font-light text-muted-foreground/40">03</p>
-                    <p class="mt-3 text-13 font-medium text-foreground">Import in blocco</p>
-                    <p class="mt-1.5 max-w-[28ch] text-xs leading-relaxed text-muted-foreground">
-                        Confermi l'import e tutto entra. Clienti già a sistema riconosciuti.
+                <li
+                    class="px-0 py-6 md:px-6 md:py-7 md:first:pl-0 md:last:pr-0"
+                >
+                    <p
+                        class="tabular text-2xl font-light text-muted-foreground/40"
+                    >
+                        03
+                    </p>
+                    <p class="mt-3 text-13 font-medium text-foreground">
+                        Import in blocco
+                    </p>
+                    <p
+                        class="mt-1.5 max-w-[28ch] text-xs leading-relaxed text-muted-foreground"
+                    >
+                        Confermi l'import e tutto entra. Clienti già a sistema
+                        riconosciuti.
                     </p>
                 </li>
             </ol>
@@ -446,17 +517,34 @@ function humanizeErrorField(path: string): string {
             <div class="flex items-center gap-2 text-xs text-muted-foreground">
                 <span class="kicker">Anteprime ({{ previewList.length }})</span>
                 <span class="text-muted-foreground/40">·</span>
-                <span><strong class="text-foreground">{{ counts.pronto }}</strong> pronte</span>
+                <span
+                    ><strong class="text-foreground">{{
+                        counts.pronto
+                    }}</strong>
+                    pronte</span
+                >
                 <span v-if="counts.daConfermare > 0">
-                    · <strong class="text-warning">{{ counts.daConfermare }}</strong> da confermare
+                    ·
+                    <strong class="text-warning">{{
+                        counts.daConfermare
+                    }}</strong>
+                    da confermare
                 </span>
                 <span v-if="counts.scartato > 0">
                     · <strong>{{ counts.scartato }}</strong> scartate
                 </span>
             </div>
             <div class="flex items-center gap-2">
-                <Button type="button" variant="ghost" size="sm" @click="toggleExpandAll">
-                    <component :is="anyExpanded ? PhCaretDoubleUp : PhCaretDoubleDown" :size="14" />
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    @click="toggleExpandAll"
+                >
+                    <component
+                        :is="anyExpanded ? PhCaretDoubleUp : PhCaretDoubleDown"
+                        :size="14"
+                    />
                     {{ anyExpanded ? 'Comprimi tutte' : 'Espandi tutte' }}
                 </Button>
             </div>
@@ -467,11 +555,7 @@ function humanizeErrorField(path: string): string {
              parallelo). `v-model="openIds"` è l'unica fonte di verità
              dell'expand state — InvoicePreviewCard è un AccordionItem,
              non gestisce expand internamente. -->
-        <Accordion
-            v-model="openIds"
-            type="multiple"
-            class="space-y-3"
-        >
+        <Accordion v-model="openIds" type="multiple" class="space-y-3">
             <InvoicePreviewCard
                 v-for="(preview, i) in previewList"
                 :key="preview.id"
@@ -482,9 +566,13 @@ function humanizeErrorField(path: string): string {
         </Accordion>
 
         <!-- Submit errors riepilogati in fondo -->
-        <div v-if="Object.keys(submitForm.errors).length > 0" class="mt-6 rounded-md border border-destructive/30 bg-destructive/5 p-4">
+        <div
+            v-if="Object.keys(submitForm.errors).length > 0"
+            class="mt-6 rounded-md border border-destructive/30 bg-destructive/5 p-4"
+        >
             <p class="text-13 font-medium text-destructive">
-                Errori di validazione su alcune fatture. Controlla i campi evidenziati.
+                Errori di validazione su alcune fatture. Controlla i campi
+                evidenziati.
             </p>
             <ul class="mt-2 text-xs text-destructive">
                 <li v-for="(error, field) in submitForm.errors" :key="field">
