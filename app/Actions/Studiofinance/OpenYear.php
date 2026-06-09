@@ -4,12 +4,15 @@ namespace App\Actions\Studiofinance;
 
 use App\Enums\DeadlineKind;
 use App\Enums\DeadlineStatus;
+use App\Enums\ExpenseKind;
 use App\Enums\PaymentStatus;
 use App\Exceptions\YearAlreadyOpenException;
 use App\Models\AnnualExpense;
 use App\Models\User;
 use App\Models\Year;
+use App\Services\YearAmountsLoader;
 use App\Services\YearOpeningPlanner;
+use App\Services\YearStatement;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -32,6 +35,11 @@ use Illuminate\Support\Facades\DB;
  */
 class OpenYear
 {
+    public function __construct(
+        private readonly YearAmountsLoader $amountsLoader,
+        private readonly YearStatement $yearStatement,
+    ) {}
+
     /**
      * @param  Plan  $plan
      *
@@ -45,13 +53,17 @@ class OpenYear
 
             $year = $this->resolveYear($user, $yearNumber, $coefficient, $plan['note'] ?? null);
 
+            // Credito IS ereditato dall'anno N-1 (RB5): default per l'IS quando il
+            // wizard non l'ha sovrascritto. Calcolato una volta prima del loop.
+            $priorCredit = $this->priorYearCredit($user, $yearNumber);
+
             // Spese dell'anno N: autoritative dal piano. updateOrCreate sulla
             // coppia (year_id, expense_item_id) così un'eventuale spesa già
             // presente (anno N era pre-aperto) viene riusata e riallineata ai
             // valori del wizard. Una tantum (expense_item_id null) → create.
             $expensesByItem = [];
             foreach ($plan['expenses'] as $row) {
-                $expense = $this->upsertYearExpense($year, $row);
+                $expense = $this->upsertYearExpense($year, $row, $priorCredit);
                 if ($expense->expense_item_id !== null) {
                     $expensesByItem[$expense->expense_item_id] = $expense;
                 }
@@ -96,10 +108,32 @@ class OpenYear
     }
 
     /**
+     * Credito IS di fine anno N-1 da ereditare (0 se l'anno precedente non
+     * esiste). È il default del `previous_year_credit` dell'IS all'apertura.
+     */
+    private function priorYearCredit(User $user, int $yearNumber): float
+    {
+        $prior = $user->years()->where('year', $yearNumber - 1)->first();
+
+        if ($prior === null) {
+            return 0.0;
+        }
+
+        return $this->yearStatement->creditCarriedForward($this->amountsLoader->load($prior));
+    }
+
+    /**
      * @param  array<string, mixed>  $row
      */
-    private function upsertYearExpense(Year $year, array $row): AnnualExpense
+    private function upsertYearExpense(Year $year, array $row, float $priorCredit): AnnualExpense
     {
+        // Auto-precompute RB5: l'IS eredita il credito di fine anno N-1, ma solo
+        // se il wizard non ha già messo un valore esplicito (override rispettato).
+        $credit = $row['previous_year_credit'] ?? null;
+        if ($credit === null && ($row['kind'] ?? null) === ExpenseKind::Tax->value && $priorCredit > 0) {
+            $credit = $priorCredit;
+        }
+
         $attributes = [
             'name' => $row['name'],
             'calculation_type' => $row['calculation_type'],
@@ -108,7 +142,7 @@ class OpenYear
             'minimum' => $row['minimum'] ?? null,
             'maximum' => $row['maximum'] ?? null,
             'amount' => $row['amount'] ?? null,
-            'previous_year_credit' => $row['previous_year_credit'] ?? null,
+            'previous_year_credit' => $credit,
         ];
 
         $itemId = $row['expense_item_id'] ?? null;

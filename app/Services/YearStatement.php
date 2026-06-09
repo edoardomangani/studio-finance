@@ -115,6 +115,26 @@ class YearStatement
     }
 
     /**
+     * Credito IS che si trascina all'anno successivo (RB5): quando le deduzioni
+     * (ritenute dell'anno + credito ereditato) superano l'IS calcolata, l'eccesso
+     * è un credito a favore. `max(0, (ritenute + credito N-1) − IS calcolata)`,
+     * all'unità come l'IS. Diventa il `previous_year_credit` di default dell'anno
+     * dopo, all'apertura.
+     */
+    public function creditCarriedForward(YearAmounts $amounts): float
+    {
+        $is = $amounts->expenses->first(fn (AnnualExpense $e): bool => $e->isImpostaSostitutiva());
+
+        if ($is === null) {
+            return 0.0;
+        }
+
+        $deductions = $amounts->figures->withholdings + (float) ($is->previous_year_credit ?? 0);
+
+        return round(max(0, $deductions - $this->impostaSostitutivaFromAmounts($amounts)), 0);
+    }
+
+    /**
      * Famiglia di importi annui di una spesa. expected = previsto (somma dei mesi,
      * passato dal chiamante); calculated = ricalcolato sull'anno (lordo/netto secondo
      * is_pension, coi minimali); definitive = manuale ?? calculated.
