@@ -108,20 +108,47 @@ const totals = computed(() => {
                         invoice.client.name
                     }}</span>
                 </TableCell>
-                <TableCell class="tabular text-right text-muted-foreground">{{
-                    formatEUR(invoice.amount)
-                }}</TableCell>
-                <TableCell class="tabular text-right text-muted-foreground">{{
-                    formatEUR(invoice.stamp_amount)
-                }}</TableCell>
-                <TableCell class="tabular text-right text-muted-foreground">{{
-                    formatEUR(invoice.inarcassa_amount)
-                }}</TableCell>
-                <TableCell class="tabular text-right text-muted-foreground">{{
-                    formatEUR(invoice.art_15_amount)
-                }}</TableCell>
                 <TableCell
-                    class="tabular text-right font-medium text-foreground"
+                    class="tabular text-right"
+                    :class="
+                        invoice.amount < 0
+                            ? 'text-destructive'
+                            : 'text-muted-foreground'
+                    "
+                    >{{ formatEUR(invoice.amount) }}</TableCell
+                >
+                <TableCell
+                    class="tabular text-right"
+                    :class="
+                        invoice.stamp_amount < 0
+                            ? 'text-destructive'
+                            : 'text-muted-foreground'
+                    "
+                    >{{ formatEUR(invoice.stamp_amount) }}</TableCell
+                >
+                <TableCell
+                    class="tabular text-right"
+                    :class="
+                        invoice.inarcassa_amount < 0
+                            ? 'text-destructive'
+                            : 'text-muted-foreground'
+                    "
+                    >{{ formatEUR(invoice.inarcassa_amount) }}</TableCell
+                >
+                <TableCell
+                    class="tabular text-right"
+                    :class="
+                        invoice.art_15_amount < 0
+                            ? 'text-destructive'
+                            : 'text-muted-foreground'
+                    "
+                    >{{ formatEUR(invoice.art_15_amount) }}</TableCell
+                >
+                <TableCell
+                    class="tabular text-right font-medium"
+                    :class="
+                        invoice.total < 0 ? 'text-destructive' : 'text-foreground'
+                    "
                     >{{ formatEUR(invoice.total) }}</TableCell
                 >
                 <TableCell class="text-right">
@@ -159,11 +186,11 @@ const totals = computed(() => {
                 <TableCell class="text-foreground">Totale</TableCell>
                 <TableCell />
                 <TableCell />
-                <TableCell class="tabular text-right text-foreground">{{ formatEUR(totals.amount) }}</TableCell>
-                <TableCell class="tabular text-right text-foreground">{{ formatEUR(totals.stamp) }}</TableCell>
-                <TableCell class="tabular text-right text-foreground">{{ formatEUR(totals.inarcassa) }}</TableCell>
-                <TableCell class="tabular text-right text-foreground">{{ formatEUR(totals.art15) }}</TableCell>
-                <TableCell class="tabular text-right text-foreground">{{ formatEUR(totals.total) }}</TableCell>
+                <TableCell class="tabular text-right" :class="totals.amount < 0 ? 'text-destructive' : 'text-foreground'">{{ formatEUR(totals.amount) }}</TableCell>
+                <TableCell class="tabular text-right" :class="totals.stamp < 0 ? 'text-destructive' : 'text-foreground'">{{ formatEUR(totals.stamp) }}</TableCell>
+                <TableCell class="tabular text-right" :class="totals.inarcassa < 0 ? 'text-destructive' : 'text-foreground'">{{ formatEUR(totals.inarcassa) }}</TableCell>
+                <TableCell class="tabular text-right" :class="totals.art15 < 0 ? 'text-destructive' : 'text-foreground'">{{ formatEUR(totals.art15) }}</TableCell>
+                <TableCell class="tabular text-right" :class="totals.total < 0 ? 'text-destructive' : 'text-foreground'">{{ formatEUR(totals.total) }}</TableCell>
                 <TableCell />
                 <TableCell />
             </TableRow>
