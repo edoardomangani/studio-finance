@@ -14,6 +14,7 @@ import { PhCheck } from '@phosphor-icons/vue';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import ActionSheet from '@/components/ActionSheet.vue';
+import DateField from '@/components/forms/DateField.vue';
 import FormField from '@/components/forms/FormField.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -316,10 +317,9 @@ function submit(): void {
                     </FormField>
 
                     <FormField label="Data del pagamento" for="payment-date">
-                        <Input
+                        <DateField
                             id="payment-date"
                             v-model="form.paid_at"
-                            type="date"
                             :max="todayISO()"
                         />
                         <template v-if="form.errors.paid_at" #error>{{

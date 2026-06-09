@@ -30,13 +30,44 @@ import {
 } from '@/components/ui/popover';
 import { formatDateIT } from '@/lib/format';
 
-withDefaults(
+const props = withDefaults(
     defineProps<{
         id?: string;
         placeholder?: string;
+        /** Limiti ISO `YYYY-MM-DD`, opzionali (es. max = oggi). */
+        min?: string;
+        max?: string;
     }>(),
     { placeholder: 'gg/mm/aaaa' },
 );
+
+// Limiti come CalendarDate per il Calendar + per il check sul testo.
+const minDate = computed<CalendarDate | undefined>(() => parseISO(props.min));
+const maxDate = computed<CalendarDate | undefined>(() => parseISO(props.max));
+
+function parseISO(iso: string | undefined): CalendarDate | undefined {
+    if (!iso) {
+        return undefined;
+    }
+
+    try {
+        return parseDate(iso);
+    } catch {
+        return undefined;
+    }
+}
+
+function isInRange(date: CalendarDate): boolean {
+    if (minDate.value && date.compare(minDate.value) < 0) {
+        return false;
+    }
+
+    if (maxDate.value && date.compare(maxDate.value) > 0) {
+        return false;
+    }
+
+    return true;
+}
 
 const modelValue = defineModel<string>({ default: '' });
 
@@ -48,6 +79,7 @@ const textValue = ref(modelValue.value ? formatDateIT(modelValue.value) : '');
 // Sync esterno → input (selezione dal Calendar, reset del form, ecc.).
 watch(modelValue, (iso) => {
     const formatted = iso ? formatDateIT(iso) : '';
+
     if (formatted !== textValue.value) {
         textValue.value = formatted;
     }
@@ -66,8 +98,8 @@ const calendarValue = computed<CalendarDate | undefined>(() => {
 });
 
 /** Converte `dd/mm/yyyy` → ISO `YYYY-MM-DD`, rifiutando date inesistenti
- *  (es. 31/02/2026): costruisco il CalendarDate e ricontrollo i campi, così
- *  l'eventuale clamp/overflow viene scartato. */
+ *  (es. 31/02/2026) e fuori dai limiti min/max: costruisco il CalendarDate,
+ *  ricontrollo i campi (scarta clamp/overflow) e verifico il range. */
 function parseITDate(input: string): string | null {
     const match = input.trim().match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
 
@@ -86,21 +118,49 @@ function parseITDate(input: string): string | null {
             return null;
         }
 
+        if (!isInRange(date)) {
+            return null;
+        }
+
         return date.toString();
     } catch {
         return null;
     }
 }
 
-function onTextInput(): void {
-    const trimmed = textValue.value.trim();
+// Inserisce le `/` mentre si digita: tengo solo le cifre (max 8) e le spezzo
+// in gg/mm/aaaa. La barra compare alla terza e alla quinta cifra; cancellando
+// si riassorbe da sola (nessuna `/` orfana).
+function maskITDate(raw: string): string {
+    const digits = raw.replace(/\D/g, '').slice(0, 8);
 
-    if (trimmed === '') {
+    let out = digits.slice(0, 2);
+
+    if (digits.length > 2) {
+        out += '/' + digits.slice(2, 4);
+    }
+
+    if (digits.length > 4) {
+        out += '/' + digits.slice(4, 8);
+    }
+
+    return out;
+}
+
+function onTextInput(): void {
+    const masked = maskITDate(textValue.value);
+
+    if (masked !== textValue.value) {
+        textValue.value = masked;
+    }
+
+    if (masked === '') {
         modelValue.value = '';
+
         return;
     }
 
-    const iso = parseITDate(trimmed);
+    const iso = parseITDate(masked);
 
     if (iso) {
         modelValue.value = iso;
@@ -124,7 +184,14 @@ function onCalendarSelect(value: unknown): void {
 
 <template>
     <!-- Mobile (<md): input nativo. Touch keyboard del SO gestisce il picker. -->
-    <Input :id="id" v-model="modelValue" type="date" class="md:hidden" />
+    <Input
+        :id="id"
+        v-model="modelValue"
+        type="date"
+        :min="min"
+        :max="max"
+        class="md:hidden"
+    />
 
     <!-- Desktop (md+): input digitabile dd/mm/yyyy + trigger calendario. -->
     <div class="relative hidden md:block">
@@ -158,6 +225,8 @@ function onCalendarSelect(value: unknown): void {
                 <Calendar
                     :model-value="calendarValue"
                     :placeholder="calendarValue"
+                    :min-value="minDate"
+                    :max-value="maxDate"
                     layout="month-and-year"
                     weekday-format="short"
                     locale="it-IT"

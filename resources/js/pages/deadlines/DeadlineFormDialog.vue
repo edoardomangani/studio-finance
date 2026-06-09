@@ -14,6 +14,7 @@ import { computed, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import DeadlineController from '@/actions/App/Http/Controllers/DeadlineController';
 import AnnualExpensePicker from '@/components/AnnualExpensePicker.vue';
+import DateField from '@/components/forms/DateField.vue';
 import FormField from '@/components/forms/FormField.vue';
 import ResponsiveDialog from '@/components/ResponsiveDialog.vue';
 import { ChoiceCardRadio } from '@/components/ui/choice';
@@ -330,11 +331,7 @@ function submit(): void {
                     for="deadline-date"
                     required
                 >
-                    <Input
-                        id="deadline-date"
-                        v-model="form.due_at"
-                        type="date"
-                    />
+                    <DateField id="deadline-date" v-model="form.due_at" />
                     <template v-if="form.errors.due_at" #error>{{
                         form.errors.due_at
                     }}</template>
