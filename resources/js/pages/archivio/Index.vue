@@ -8,6 +8,7 @@
 import { Head, router, setLayoutProps } from '@inertiajs/vue3';
 import { PhArrowCounterClockwise } from '@phosphor-icons/vue';
 import { computed, ref } from 'vue';
+import { toast } from 'vue-sonner';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/dialog';
@@ -52,6 +53,11 @@ const confirmTitle = computed<string>(() =>
     pending.value ? `Ripristina "${pending.value.row.name}"?` : '',
 );
 
+// Colonne: Nome · Dettaglio · [Importo] · Archiviato · azioni.
+function colspanFor(tab: TabDef): number {
+    return 4 + (tab.hasAmount ? 1 : 0);
+}
+
 function askRestore(type: ArchiveType, row: ArchiveRow): void {
     pending.value = { type, row };
     confirmOpen.value = true;
@@ -71,6 +77,9 @@ function confirmRestore(): void {
             onSuccess: () => {
                 confirmOpen.value = false;
                 pending.value = null;
+            },
+            onError: () => {
+                toast.error('Ripristino non riuscito. Riprova.');
             },
             onFinish: () => {
                 restoring.value = false;
@@ -110,7 +119,7 @@ function confirmRestore(): void {
                 <DataTableBody>
                     <TableEmpty
                         v-if="props.archive[t.type].length === 0"
-                        :colspan="t.hasAmount ? 5 : 4"
+                        :colspan="colspanFor(t)"
                     >
                         Niente di archiviato qui.
                     </TableEmpty>

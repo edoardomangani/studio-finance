@@ -53,7 +53,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::patch('settings/professional', [ProfessionalController::class, 'update'])
             ->name('professional.update');
         Route::post('settings/professional/propagate', [ProfessionalController::class, 'propagate'])
-            ->name('professional.propagate');
+            ->name('professional.propagate')
+            ->middleware('throttle:30,1');
 
         // Cataloghi di sistema — expense items template (Index.vue dedicato,
         // CTA in topbar, sidebar in modalità settings).

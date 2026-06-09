@@ -27,15 +27,22 @@ class ProfessionalProfile extends Model
         ];
     }
 
+    /** Regime forfettario: aliquota start-up e durata (periodi d'imposta), poi standard. */
+    private const STARTUP_YEARS = 5;
+
+    private const STARTUP_RATE = 5.0;
+
+    private const STANDARD_RATE = 15.0;
+
     /**
-     * Aliquota imposta sostitutiva per un anno: 5% nei primi 5 periodi d'imposta
-     * dall'inizio attività (regime forfettario start-up), 15% dal sesto in poi.
+     * Aliquota imposta sostitutiva per un anno: agevolata nei primi periodi
+     * d'imposta dall'inizio attività (start-up), standard dal successivo.
      */
     public function impostaSostitutivaRateFor(int $year): float
     {
         $startup = $year >= $this->business_start_year
-            && $year <= $this->business_start_year + 4;
+            && $year < $this->business_start_year + self::STARTUP_YEARS;
 
-        return $startup ? 5.0 : 15.0;
+        return $startup ? self::STARTUP_RATE : self::STANDARD_RATE;
     }
 }

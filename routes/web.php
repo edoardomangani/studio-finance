@@ -10,6 +10,7 @@ use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\YearController;
+use App\Services\ArchiveService;
 use Illuminate\Support\Facades\Route;
 
 // Ingresso app: niente landing. Loggato → dashboard, altrimenti → login.
@@ -161,6 +162,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('archivio/{type}/{id}/restore', [ArchivioController::class, 'restore'])
             ->name('archivio.restore')
             ->whereNumber('id')
+            ->whereIn('type', ArchiveService::types())
             ->middleware('throttle:60,1');
 
         // Design system page: showroom dei componenti, accessibile solo in dev.

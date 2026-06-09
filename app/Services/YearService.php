@@ -92,6 +92,25 @@ class YearService
     }
 
     /**
+     * Anni esistenti per la checklist di propagazione profilo (F11): id, numero
+     * e coefficiente. Lista leggera (niente KPI), scoped via BelongsToUser.
+     *
+     * @return array<int, array{id: int, year: int, profitability_coefficient: float}>
+     */
+    public function forPropagationChecklist(): array
+    {
+        return Year::query()
+            ->orderByDesc('year')
+            ->get(['id', 'year', 'profitability_coefficient'])
+            ->map(fn (Year $y): array => [
+                'id' => $y->id,
+                'year' => $y->year,
+                'profitability_coefficient' => (float) $y->profitability_coefficient,
+            ])
+            ->all();
+    }
+
+    /**
      * Piano editabile di apertura per un anno (spese da template + scadenze
      * con date calcolate + rilevazione cross-year).
      *

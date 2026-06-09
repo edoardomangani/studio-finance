@@ -26,7 +26,11 @@ class PropagateProfile
         }
 
         // Scoped via BelongsToUser: id estranei all'utente vengono esclusi.
-        $years = Year::query()->whereIn('id', $yearIds)->with('annualExpenses')->get();
+        // Le spese servono solo per l'aliquota IS (propagazione anno-inizio).
+        $years = Year::query()
+            ->whereIn('id', $yearIds)
+            ->when($startYear, fn ($q) => $q->with('annualExpenses'))
+            ->get();
 
         DB::transaction(function () use ($profile, $years, $coefficient, $startYear): void {
             foreach ($years as $year) {

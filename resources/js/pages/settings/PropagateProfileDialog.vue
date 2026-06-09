@@ -7,6 +7,7 @@
  */
 import { useForm } from '@inertiajs/vue3';
 import { computed, watch } from 'vue';
+import { toast } from 'vue-sonner';
 import ProfessionalController from '@/actions/App/Http/Controllers/Settings/ProfessionalController';
 import ResponsiveDialog from '@/components/ResponsiveDialog.vue';
 import { Button } from '@/components/ui/button';
@@ -72,6 +73,12 @@ function submit(): void {
     form.post(ProfessionalController.propagate.url(), {
         preserveScroll: true,
         onSuccess: () => emit('update:open', false),
+        onError: (errors) => {
+            // Gli errori di campo (year_ids) restano inline; per il resto un avviso.
+            if (!errors.year_ids) {
+                toast.error('Propagazione non riuscita. Riprova.');
+            }
+        },
     });
 }
 

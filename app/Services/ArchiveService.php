@@ -27,6 +27,18 @@ class ArchiveService
     ];
 
     /**
+     * Tipi archiviabili (segmenti URL ammessi): vincola la rotta di restore, così
+     * un tipo fuori whitelist è 404 a livello di routing e il service riceve
+     * sempre un tipo valido.
+     *
+     * @return list<string>
+     */
+    public static function types(): array
+    {
+        return array_keys(self::MODELS);
+    }
+
+    /**
      * @return array<string, array<int, array<string, mixed>>>
      */
     public function forIndex(): array
@@ -41,12 +53,13 @@ class ArchiveService
     }
 
     /**
-     * Ripristina un record cestinato. `onlyTrashed()->findOrFail` è scoped
-     * all'utente: un id estraneo (o non cestinato) dà 404, mai un restore altrui.
+     * Ripristina un record cestinato. Il `type` è già nella whitelist (vincolo
+     * di rotta). `onlyTrashed()->findOrFail` è scoped all'utente: un id estraneo
+     * (o non cestinato) dà 404, mai un restore altrui.
      */
     public function restore(string $type, int $id): void
     {
-        $model = self::MODELS[$type] ?? abort(404);
+        $model = self::MODELS[$type];
 
         $model::onlyTrashed()->findOrFail($id)->restore();
     }
