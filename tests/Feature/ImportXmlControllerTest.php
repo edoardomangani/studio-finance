@@ -159,6 +159,59 @@ it('store: crea fattura usando cliente esistente', function (): void {
     expect(Invoice::first()->client_id)->toBe($client->id);
 });
 
+it('store: rispetta stamp_charged_to_client=false (bollo fuori dal totale)', function (): void {
+    $user = onboardedImportUser();
+    $this->actingAs($user);
+
+    $client = Client::factory()->for($user)->create();
+
+    $this->post('/invoices/import', [
+        'previews' => [
+            [
+                'number' => '2026/300',
+                'issued_at' => '2026-03-15',
+                'amount' => 1000.00,
+                'inarcassa_amount' => 40.08,
+                'stamp_amount' => 2.00,
+                'art_15_amount' => 0.00,
+                'stamp_charged_to_client' => false,
+                'bank_withholding' => false,
+                'client_mode' => 'existing',
+                'existing_client_id' => $client->id,
+            ],
+        ],
+    ])->assertRedirect('/invoices');
+
+    $invoice = Invoice::first();
+    expect($invoice->stamp_charged_to_client)->toBeFalse()
+        ->and((float) $invoice->total)->toBe(1040.08);
+});
+
+it('store: default stamp_charged_to_client=true quando omesso', function (): void {
+    $user = onboardedImportUser();
+    $this->actingAs($user);
+
+    $client = Client::factory()->for($user)->create();
+
+    $this->post('/invoices/import', [
+        'previews' => [
+            [
+                'number' => '2026/301',
+                'issued_at' => '2026-03-16',
+                'amount' => 1000.00,
+                'inarcassa_amount' => 40.08,
+                'stamp_amount' => 2.00,
+                'art_15_amount' => 0.00,
+                'bank_withholding' => false,
+                'client_mode' => 'existing',
+                'existing_client_id' => $client->id,
+            ],
+        ],
+    ])->assertRedirect('/invoices');
+
+    expect(Invoice::first()->stamp_charged_to_client)->toBeTrue();
+});
+
 it('store: crea cliente nuovo + fattura in transazione', function (): void {
     $user = onboardedImportUser();
     $this->actingAs($user);

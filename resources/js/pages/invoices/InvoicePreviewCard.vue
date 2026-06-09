@@ -39,7 +39,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
+import { DecimalInput, Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
 import { formatDateIT, formatEUR } from '@/lib/format';
@@ -57,6 +57,8 @@ export type ImportPreviewLocal = {
     inarcassa_amount: string;
     stamp_amount: string;
     art_15_amount: string;
+    /** Rivalsa bollo: true = bollo nel totale, false = a carico studio. */
+    stamp_charged_to_client: boolean;
     bank_withholding: boolean;
     client_mode: 'existing' | 'new';
     existing_client_id: number | null;
@@ -166,7 +168,7 @@ const totalFloat = computed(() => {
     return (
         toFloat(p.amount) +
         toFloat(p.inarcassa_amount) +
-        toFloat(p.stamp_amount) +
+        (p.stamp_charged_to_client ? toFloat(p.stamp_amount) : 0) +
         toFloat(p.art_15_amount)
     );
 });
@@ -450,14 +452,11 @@ const triggerAriaLabel = computed(
                             label="Imponibile"
                             :for="`prev-${preview.id}-amount`"
                         >
-                            <Input
+                            <DecimalInput
                                 :id="`prev-${preview.id}-amount`"
                                 v-model="preview.amount"
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                max="9999999.99"
-                                inputmode="decimal"
+                                :min="0"
+                                :max="9999999.99"
                                 class="tabular text-right"
                             />
                         </FormField>
@@ -470,14 +469,11 @@ const triggerAriaLabel = computed(
                                     : undefined
                             "
                         >
-                            <Input
+                            <DecimalInput
                                 :id="`prev-${preview.id}-stamp`"
                                 v-model="preview.stamp_amount"
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                max="9999999.99"
-                                inputmode="decimal"
+                                :min="0"
+                                :max="9999999.99"
                                 :class="[
                                     'tabular text-right',
                                     stampDiscrepancy
@@ -504,14 +500,11 @@ const triggerAriaLabel = computed(
                                     : undefined
                             "
                         >
-                            <Input
+                            <DecimalInput
                                 :id="`prev-${preview.id}-cassa`"
                                 v-model="preview.inarcassa_amount"
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                max="9999999.99"
-                                inputmode="decimal"
+                                :min="0"
+                                :max="9999999.99"
                                 :class="[
                                     'tabular text-right',
                                     inarcassaDiscrepancy
@@ -535,18 +528,28 @@ const triggerAriaLabel = computed(
                             label="Art.15"
                             :for="`prev-${preview.id}-art15`"
                         >
-                            <Input
+                            <DecimalInput
                                 :id="`prev-${preview.id}-art15`"
                                 v-model="preview.art_15_amount"
-                                type="number"
-                                step="0.01"
-                                min="0"
-                                max="9999999.99"
-                                inputmode="decimal"
+                                :min="0"
+                                :max="9999999.99"
                                 class="tabular text-right"
                             />
                         </FormField>
                     </div>
+
+                    <Field orientation="horizontal">
+                        <Switch
+                            :id="`prev-${preview.id}-stamp-charged`"
+                            v-model="preview.stamp_charged_to_client"
+                        />
+                        <FieldLabel
+                            :for="`prev-${preview.id}-stamp-charged`"
+                            class="font-normal"
+                        >
+                            Bollo a carico del cliente
+                        </FieldLabel>
+                    </Field>
 
                     <Field orientation="horizontal">
                         <Switch

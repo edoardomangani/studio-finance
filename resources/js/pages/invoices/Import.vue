@@ -151,6 +151,8 @@ function toLocal(p: ImportPreviewServer): ImportPreviewLocal {
         inarcassa_amount: (p.inarcassa_amount ?? 0).toFixed(2),
         stamp_amount: (p.stamp_amount ?? 0).toFixed(2),
         art_15_amount: (p.art_15_amount ?? 0).toFixed(2),
+        // L'XML non porta la rivalsa bollo: default a carico cliente.
+        stamp_charged_to_client: true,
         bank_withholding: withholdingDefault,
         client_mode: matched !== null ? 'existing' : 'new',
         existing_client_id: matched,
@@ -288,6 +290,7 @@ function submit(): void {
             inarcassa_amount: p.inarcassa_amount,
             stamp_amount: p.stamp_amount,
             art_15_amount: p.art_15_amount,
+            stamp_charged_to_client: p.stamp_charged_to_client,
             bank_withholding: p.bank_withholding,
             client_mode: p.client_mode,
             existing_client_id:
@@ -338,6 +341,7 @@ const FIELD_LABELS: Record<string, string> = {
     inarcassa_amount: 'Cassa Inarcassa',
     stamp_amount: 'Bollo',
     art_15_amount: 'Art.15',
+    stamp_charged_to_client: 'Bollo a carico del cliente',
     bank_withholding: 'Ritenuta bancaria',
     client_mode: 'Modalità cliente',
     existing_client_id: 'Cliente esistente',

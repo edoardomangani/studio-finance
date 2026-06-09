@@ -173,6 +173,7 @@ export type ImportInvoiceSubmit = {
     inarcassa_amount: string;
     stamp_amount: string;
     art_15_amount: string;
+    stamp_charged_to_client: boolean;
     bank_withholding: boolean;
     client_mode: 'existing' | 'new';
     existing_client_id: number | null;
