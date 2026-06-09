@@ -32,9 +32,8 @@ import FormSection from '@/components/forms/FormSection.vue';
 import ManagePasskeys from '@/components/ManagePasskeys.vue';
 import ManageTwoFactor from '@/components/ManageTwoFactor.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
-import PropagateProfileDialog from '@/pages/settings/PropagateProfileDialog.vue';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { DecimalInput, Input } from '@/components/ui/input';
 import { Kbd } from '@/components/ui/kbd';
 import {
     NumberField,
@@ -45,7 +44,7 @@ import {
 } from '@/components/ui/number-field';
 import { Spinner } from '@/components/ui/spinner';
 import { useShortcut } from '@/composables/useShortcut';
-import { clampNumber } from '@/lib/clampNumber';
+import PropagateProfileDialog from '@/pages/settings/PropagateProfileDialog.vue';
 import { send } from '@/routes/verification';
 import type { ProfessionalProfile } from '@/types';
 
@@ -279,23 +278,12 @@ useShortcut(
                 required
                 hint="Per architetti iscritti a Inarcassa è 78%."
             >
-                <Input
+                <DecimalInput
                     id="prof-coef"
                     v-model="professionalForm.profitability_coefficient"
-                    type="number"
-                    inputmode="decimal"
-                    step="0.01"
-                    min="0"
-                    max="100"
+                    :min="0"
+                    :max="100"
                     class="tabular"
-                    @blur="
-                        professionalForm.profitability_coefficient =
-                            clampNumber(
-                                professionalForm.profitability_coefficient,
-                                0,
-                                100,
-                            )
-                    "
                 />
                 <template
                     v-if="professionalForm.errors.profitability_coefficient"

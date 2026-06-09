@@ -18,7 +18,7 @@ import FormField from '@/components/forms/FormField.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { FieldGroup } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
+import { DecimalInput, Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
 import { formatDateIT, formatEUR, todayISO } from '@/lib/format';
 import { DEADLINE_STATUS_META } from '@/pages/deadlines/statusMeta';
@@ -328,11 +328,11 @@ function submit(): void {
                     </FormField>
 
                     <FormField label="Importo" for="payment-amount">
-                        <Input
+                        <DecimalInput
                             id="payment-amount"
                             v-model="form.amount"
-                            inputmode="decimal"
-                            placeholder="0.00"
+                            :min="0"
+                            placeholder="0,00"
                             class="tabular"
                         />
                         <template #hint>

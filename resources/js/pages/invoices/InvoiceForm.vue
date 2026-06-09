@@ -26,7 +26,7 @@ import DateField from '@/components/forms/DateField.vue';
 import FormField from '@/components/forms/FormField.vue';
 import FormSection from '@/components/forms/FormSection.vue';
 import { Field, FieldLabel } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
+import { DecimalInput, Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { useInvoiceTotals } from '@/composables/useInvoiceTotals';
 import { formatEUR, todayISO } from '@/lib/format';
@@ -212,14 +212,11 @@ defineExpose({ processing: computed(() => form.processing) });
         <FormSection title="Importi">
             <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
                 <FormField label="Imponibile (€)" for="invoice-amount" required>
-                    <Input
+                    <DecimalInput
                         id="invoice-amount"
                         v-model="form.amount"
-                        type="number"
-                        step="0.01"
-                        min="-9999999.99"
-                        max="9999999.99"
-                        inputmode="decimal"
+                        :min="-9999999.99"
+                        :max="9999999.99"
                         class="tabular text-right"
                         placeholder="0,00"
                     />
@@ -231,14 +228,11 @@ defineExpose({ processing: computed(() => form.processing) });
                 <!-- Bollo PRIMA della cassa: ordine di calcolo. Cassa è
                      derivata da (imponibile + bollo). -->
                 <FormField label="Bollo" for="invoice-stamp">
-                    <Input
+                    <DecimalInput
                         id="invoice-stamp"
                         v-model="form.stamp_amount"
-                        type="number"
-                        step="0.01"
-                        min="-9999999.99"
-                        max="9999999.99"
-                        inputmode="decimal"
+                        :min="-9999999.99"
+                        :max="9999999.99"
                         class="tabular text-right"
                         @input="markStampDirty"
                     />
@@ -248,14 +242,11 @@ defineExpose({ processing: computed(() => form.processing) });
                 </FormField>
 
                 <FormField label="Cassa Inarcassa 4%" for="invoice-inarcassa">
-                    <Input
+                    <DecimalInput
                         id="invoice-inarcassa"
                         v-model="form.inarcassa_amount"
-                        type="number"
-                        step="0.01"
-                        min="-9999999.99"
-                        max="9999999.99"
-                        inputmode="decimal"
+                        :min="-9999999.99"
+                        :max="9999999.99"
                         class="tabular text-right"
                         @input="markInarcassaDirty"
                     />
@@ -265,14 +256,11 @@ defineExpose({ processing: computed(() => form.processing) });
                 </FormField>
 
                 <FormField label="Art.15 (anticipate)" for="invoice-art15">
-                    <Input
+                    <DecimalInput
                         id="invoice-art15"
                         v-model="form.art_15_amount"
-                        type="number"
-                        step="0.01"
-                        min="-9999999.99"
-                        max="9999999.99"
-                        inputmode="decimal"
+                        :min="-9999999.99"
+                        :max="9999999.99"
                         class="tabular text-right"
                     />
                     <template v-if="form.errors.art_15_amount" #error>

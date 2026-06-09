@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/dialog';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
+import { DecimalInput, Input } from '@/components/ui/input';
 import {
     Select,
     SelectContent,
@@ -37,7 +37,6 @@ import {
     TableHead,
 } from '@/components/ui/table';
 import { useArchiveAction } from '@/composables/useArchiveAction';
-import { clampNumber } from '@/lib/clampNumber';
 import { formatEUR, formatPercent } from '@/lib/format';
 import type { EnumOption, ExpenseCalculationType, ExpenseItem, ExpenseKind } from '@/types';
 
@@ -321,23 +320,13 @@ function formatDefault(item: ExpenseItem): string {
                     class="grid grid-cols-1 gap-4 md:grid-cols-3"
                 >
                     <FormField label="Aliquota (%)" for="item-rate">
-                        <Input
+                        <DecimalInput
                             id="item-rate"
                             v-model="form.default_rate"
-                            type="number"
-                            inputmode="decimal"
-                            step="0.01"
-                            min="0"
-                            max="100"
+                            :min="0"
+                            :max="100"
                             class="tabular text-right"
                             placeholder="0,00"
-                            @blur="
-                                form.default_rate = clampNumber(
-                                    form.default_rate,
-                                    0,
-                                    100,
-                                )
-                            "
                         />
                         <template v-if="form.errors.default_rate" #error>{{
                             form.errors.default_rate
@@ -345,13 +334,10 @@ function formatDefault(item: ExpenseItem): string {
                     </FormField>
 
                     <FormField label="Minimale (€)" for="item-min">
-                        <Input
+                        <DecimalInput
                             id="item-min"
                             v-model="form.default_minimum"
-                            type="number"
-                            inputmode="decimal"
-                            step="0.01"
-                            min="0"
+                            :min="0"
                             class="tabular text-right"
                             placeholder="0,00"
                         />
@@ -361,13 +347,10 @@ function formatDefault(item: ExpenseItem): string {
                     </FormField>
 
                     <FormField label="Massimale (€)" for="item-max">
-                        <Input
+                        <DecimalInput
                             id="item-max"
                             v-model="form.default_maximum"
-                            type="number"
-                            inputmode="decimal"
-                            step="0.01"
-                            min="0"
+                            :min="0"
                             class="tabular text-right"
                             placeholder="0,00"
                         />
@@ -382,13 +365,10 @@ function formatDefault(item: ExpenseItem): string {
                     label="Importo annuale (€)"
                     for="item-amount"
                 >
-                    <Input
+                    <DecimalInput
                         id="item-amount"
                         v-model="form.default_amount"
-                        type="number"
-                        inputmode="decimal"
-                        step="0.01"
-                        min="0"
+                        :min="0"
                         class="tabular text-right"
                         placeholder="0,00"
                     />

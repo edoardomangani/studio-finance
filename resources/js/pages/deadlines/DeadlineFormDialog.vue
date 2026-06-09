@@ -18,7 +18,7 @@ import FormField from '@/components/forms/FormField.vue';
 import ResponsiveDialog from '@/components/ResponsiveDialog.vue';
 import { ChoiceCardRadio } from '@/components/ui/choice';
 import { Field, FieldGroup } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
+import { DecimalInput, Input } from '@/components/ui/input';
 import { RadioGroup } from '@/components/ui/radio-group';
 import {
     Select,
@@ -270,11 +270,11 @@ function submit(): void {
                     label="Importo previsto"
                     for="deadline-expected"
                 >
-                    <Input
+                    <DecimalInput
                         id="deadline-expected"
                         v-model="form.manual_expected_amount"
-                        inputmode="decimal"
-                        placeholder="0.00"
+                        :min="0"
+                        placeholder="0,00"
                         class="tabular"
                     />
                     <template #hint

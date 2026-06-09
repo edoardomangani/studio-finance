@@ -16,7 +16,7 @@ import AnnualExpensePicker from '@/components/AnnualExpensePicker.vue';
 import FormField from '@/components/forms/FormField.vue';
 import ResponsiveDialog from '@/components/ResponsiveDialog.vue';
 import { FieldGroup } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
+import { DecimalInput, Input } from '@/components/ui/input';
 import { todayISO } from '@/lib/format';
 import type { AnnualExpenseForPicker, PaymentListItem } from '@/types';
 
@@ -137,11 +137,11 @@ function submit(): void {
                 </FormField>
 
                 <FormField label="Importo" for="payment-amount" required>
-                    <Input
+                    <DecimalInput
                         id="payment-amount"
                         v-model="form.amount"
-                        inputmode="decimal"
-                        placeholder="0.00"
+                        :min="0"
+                        placeholder="0,00"
                         class="tabular"
                     />
                     <template v-if="form.errors.amount" #error>{{

@@ -19,7 +19,7 @@ import ResponsiveDialog from '@/components/ResponsiveDialog.vue';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/dialog';
 import { FieldGroup } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
+import { DecimalInput, Input } from '@/components/ui/input';
 import { formatEUR } from '@/lib/format';
 import type { YearShowExpense } from '@/types';
 
@@ -175,20 +175,21 @@ function submit(): void {
 
                     <template v-if="isPercentage">
                         <FormField label="Aliquota (%)" for="expense-rate" required>
-                            <Input
+                            <DecimalInput
                                 id="expense-rate"
                                 v-model="form.rate"
-                                inputmode="decimal"
+                                :min="0"
+                                :max="100"
                                 class="tabular"
                             />
                             <template v-if="form.errors.rate" #error>{{ form.errors.rate }}</template>
                         </FormField>
 
                         <FormField label="Minimale" for="expense-minimum">
-                            <Input
+                            <DecimalInput
                                 id="expense-minimum"
                                 v-model="form.minimum"
-                                inputmode="decimal"
+                                :min="0"
                                 placeholder="—"
                                 class="tabular"
                             />
@@ -196,10 +197,10 @@ function submit(): void {
                         </FormField>
 
                         <FormField label="Massimale" for="expense-maximum">
-                            <Input
+                            <DecimalInput
                                 id="expense-maximum"
                                 v-model="form.maximum"
-                                inputmode="decimal"
+                                :min="0"
                                 placeholder="—"
                                 class="tabular"
                             />
@@ -211,10 +212,10 @@ function submit(): void {
                             label="Credito anno precedente"
                             for="expense-credit"
                         >
-                            <Input
+                            <DecimalInput
                                 id="expense-credit"
                                 v-model="form.previous_year_credit"
-                                inputmode="decimal"
+                                :min="0"
                                 placeholder="—"
                                 class="tabular"
                             />
@@ -225,10 +226,10 @@ function submit(): void {
                     </template>
 
                     <FormField v-else-if="isFixed" label="Importo annuale" for="expense-amount" required>
-                        <Input
+                        <DecimalInput
                             id="expense-amount"
                             v-model="form.amount"
-                            inputmode="decimal"
+                            :min="0"
                             class="tabular"
                         />
                         <template v-if="form.errors.amount" #error>{{ form.errors.amount }}</template>
@@ -244,10 +245,10 @@ function submit(): void {
                             for="expense-effective"
                             :hint="`Lascia vuoto per usare il calcolato: ${formatEUR(expense.calculated)}.`"
                         >
-                            <Input
+                            <DecimalInput
                                 id="expense-effective"
                                 v-model="form.effective_amount"
-                                inputmode="decimal"
+                                :min="0"
                                 placeholder="—"
                                 class="tabular"
                             />

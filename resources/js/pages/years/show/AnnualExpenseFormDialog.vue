@@ -12,7 +12,7 @@ import AnnualExpenseController from '@/actions/App/Http/Controllers/AnnualExpens
 import FormField from '@/components/forms/FormField.vue';
 import ResponsiveDialog from '@/components/ResponsiveDialog.vue';
 import { FieldGroup } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
+import { DecimalInput, Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { EXPENSE_KIND_META } from '@/lib/expenseKind';
 import type { ExpenseKind } from '@/types';
@@ -78,11 +78,11 @@ function submit(): void {
                 </FormField>
 
                 <FormField label="Importo annuale" for="annual-expense-amount" required>
-                    <Input
+                    <DecimalInput
                         id="annual-expense-amount"
                         v-model="form.amount"
-                        inputmode="decimal"
-                        placeholder="0.00"
+                        :min="0"
+                        placeholder="0,00"
                         class="tabular"
                     />
                     <template v-if="form.errors.amount" #error>{{ form.errors.amount }}</template>

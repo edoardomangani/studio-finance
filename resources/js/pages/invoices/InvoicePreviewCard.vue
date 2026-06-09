@@ -42,7 +42,7 @@ import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { DecimalInput, Input } from '@/components/ui/input';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Switch } from '@/components/ui/switch';
-import { formatDateIT, formatEUR } from '@/lib/format';
+import { formatDateIT, formatEUR, parseDecimal } from '@/lib/format';
 import type { ClientForPicker, ImportDiscrepancy } from '@/types';
 
 export type ImportPreviewLocal = {
@@ -152,12 +152,6 @@ const clientLabel = computed(() => {
     return preview.value.new_client.name || '— cliente nuovo';
 });
 
-function toFloat(v: string): number {
-    const n = parseFloat(v);
-
-    return Number.isFinite(n) ? n : 0;
-}
-
 const totalFloat = computed(() => {
     if (!preview.value.parsed) {
         return 0;
@@ -166,10 +160,10 @@ const totalFloat = computed(() => {
     const p = preview.value;
 
     return (
-        toFloat(p.amount) +
-        toFloat(p.inarcassa_amount) +
-        (p.stamp_charged_to_client ? toFloat(p.stamp_amount) : 0) +
-        toFloat(p.art_15_amount)
+        parseDecimal(p.amount) +
+        parseDecimal(p.inarcassa_amount) +
+        (p.stamp_charged_to_client ? parseDecimal(p.stamp_amount) : 0) +
+        parseDecimal(p.art_15_amount)
     );
 });
 

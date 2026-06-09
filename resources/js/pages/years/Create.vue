@@ -22,7 +22,7 @@ import { toast } from 'vue-sonner';
 import FormField from '@/components/forms/FormField.vue';
 import { Button } from '@/components/ui/button';
 import { WizardStepper } from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
+import { DecimalInput } from '@/components/ui/input';
 import {
     NumberField,
     NumberFieldContent,
@@ -32,7 +32,6 @@ import {
 } from '@/components/ui/number-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Spinner } from '@/components/ui/spinner';
-import { clampNumber } from '@/lib/clampNumber';
 import WizardDeadlinesStep from '@/pages/years/WizardDeadlinesStep.vue';
 import WizardExpensesStep from '@/pages/years/WizardExpensesStep.vue';
 import {
@@ -292,22 +291,12 @@ function submit(): void {
                         :invalid="!!form.errors.profitability_coefficient"
                         hint="Precompilato dal profilo, modificabile per quest'anno."
                     >
-                        <Input
+                        <DecimalInput
                             id="wizard-coeff"
                             v-model="form.profitability_coefficient"
-                            type="number"
-                            inputmode="decimal"
-                            step="0.01"
-                            min="0"
-                            max="100"
+                            :min="0"
+                            :max="100"
                             class="tabular"
-                            @blur="
-                                form.profitability_coefficient = clampNumber(
-                                    form.profitability_coefficient,
-                                    0,
-                                    100,
-                                )
-                            "
                         />
                         <template
                             v-if="form.errors.profitability_coefficient"

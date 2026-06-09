@@ -13,7 +13,7 @@
  * truth = il useForm dell'orchestratore).
  */
 import { Checkbox } from '@/components/ui/checkbox';
-import { Input } from '@/components/ui/input';
+import { DecimalInput } from '@/components/ui/input';
 import {
     DataTable,
     DataTableBody,
@@ -23,7 +23,6 @@ import {
     TableEmpty,
     TableHead,
 } from '@/components/ui/table';
-import { clampNumber } from '@/lib/clampNumber';
 import type { ExpenseCalculationType, YearWizardExpense } from '@/types';
 
 // Two-way: l'orchestratore possiede lo useForm, qui editiamo le righe via
@@ -107,32 +106,23 @@ function isFixed(type: ExpenseCalculationType): boolean {
                     </TableCell>
 
                     <TableCell class="text-right">
-                        <Input
+                        <DecimalInput
                             v-if="isPercentage(expense.calculation_type)"
                             v-model="expense.rate"
-                            type="number"
-                            inputmode="decimal"
-                            step="0.01"
-                            min="0"
-                            max="100"
+                            :min="0"
+                            :max="100"
                             :disabled="!expense.included"
                             class="tabular text-right"
                             :aria-label="`Aliquota ${expense.name}`"
-                            @blur="
-                                expense.rate = clampNumber(expense.rate, 0, 100)
-                            "
                         />
                         <span v-else class="text-muted-foreground">—</span>
                     </TableCell>
 
                     <TableCell class="text-right">
-                        <Input
+                        <DecimalInput
                             v-if="isPercentage(expense.calculation_type)"
                             v-model="expense.minimum"
-                            type="number"
-                            inputmode="decimal"
-                            step="0.01"
-                            min="0"
+                            :min="0"
                             :disabled="!expense.included"
                             class="tabular text-right"
                             :aria-label="`Minimale ${expense.name}`"
@@ -141,13 +131,10 @@ function isFixed(type: ExpenseCalculationType): boolean {
                     </TableCell>
 
                     <TableCell class="text-right">
-                        <Input
+                        <DecimalInput
                             v-if="isPercentage(expense.calculation_type)"
                             v-model="expense.maximum"
-                            type="number"
-                            inputmode="decimal"
-                            step="0.01"
-                            min="0"
+                            :min="0"
                             :disabled="!expense.included"
                             class="tabular text-right"
                             :aria-label="`Massimale ${expense.name}`"
@@ -156,13 +143,10 @@ function isFixed(type: ExpenseCalculationType): boolean {
                     </TableCell>
 
                     <TableCell class="text-right">
-                        <Input
+                        <DecimalInput
                             v-if="isFixed(expense.calculation_type)"
                             v-model="expense.amount"
-                            type="number"
-                            inputmode="decimal"
-                            step="0.01"
-                            min="0"
+                            :min="0"
                             :disabled="!expense.included"
                             class="tabular text-right"
                             :aria-label="`Quota ${expense.name}`"

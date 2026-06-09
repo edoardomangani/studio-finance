@@ -30,6 +30,7 @@
  * `Invoice::withholdingAmount()` accessor delega lì). Aggiornare entrambi.
  */
 import { computed, ref, watch } from 'vue';
+import { parseDecimal } from '@/lib/format';
 
 const WITHHOLDING_RATE_LEGACY = 0.08; // bonifici fino al 29/2/2024
 const WITHHOLDING_RATE = 0.11; // bonifici dal 1/3/2024
@@ -50,17 +51,7 @@ export type InvoiceTotalsForm = {
 };
 
 function toFloat(v: number | string | null | undefined): number {
-    if (typeof v === 'number') {
-        return Number.isFinite(v) ? v : 0;
-    }
-
-    if (typeof v !== 'string' || v === '') {
-        return 0;
-    }
-
-    const n = parseFloat(v.replace(',', '.'));
-
-    return Number.isFinite(n) ? n : 0;
+    return parseDecimal(v, 0);
 }
 
 export function useInvoiceTotals(form: InvoiceTotalsForm) {

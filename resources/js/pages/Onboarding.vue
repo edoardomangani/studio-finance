@@ -11,7 +11,7 @@ import { Head, useForm } from '@inertiajs/vue3';
 import FormField from '@/components/forms/FormField.vue';
 import { Button } from '@/components/ui/button';
 import { FieldGroup } from '@/components/ui/field';
-import { Input } from '@/components/ui/input';
+import { DecimalInput, Input } from '@/components/ui/input';
 import {
     NumberField,
     NumberFieldContent,
@@ -20,7 +20,6 @@ import {
     NumberFieldInput,
 } from '@/components/ui/number-field';
 import { Spinner } from '@/components/ui/spinner';
-import { clampNumber } from '@/lib/clampNumber';
 import { store as onboardingStore } from '@/routes/onboarding';
 
 defineProps<{
@@ -94,22 +93,12 @@ function submit() {
                         :invalid="!!form.errors.profitability_coefficient"
                         hint="Per gli architetti iscritti a Inarcassa è 78%."
                     >
-                        <Input
+                        <DecimalInput
                             id="onb-coef"
                             v-model="form.profitability_coefficient"
-                            type="number"
-                            inputmode="decimal"
-                            step="0.01"
-                            min="0"
-                            max="100"
+                            :min="0"
+                            :max="100"
                             class="tabular"
-                            @blur="
-                                form.profitability_coefficient = clampNumber(
-                                    form.profitability_coefficient,
-                                    0,
-                                    100,
-                                )
-                            "
                         />
                         <template
                             v-if="form.errors.profitability_coefficient"
