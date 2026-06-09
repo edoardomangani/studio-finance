@@ -43,7 +43,11 @@ const TABS: TabDef[] = [
     { type: 'payments', label: 'Pagamenti', hasAmount: true },
 ];
 
-const activeTab = ref<ArchiveType>('clients');
+// Apre sul primo tab con contenuto: atterrare su un tab vuoto quando altrove
+// ci sono record archiviati è disorientante.
+const firstNonEmpty =
+    TABS.find((t) => props.archive[t.type].length > 0)?.type ?? 'clients';
+const activeTab = ref<ArchiveType>(firstNonEmpty);
 
 const pending = ref<{ type: ArchiveType; row: ArchiveRow } | null>(null);
 const confirmOpen = ref(false);
@@ -92,7 +96,7 @@ function confirmRestore(): void {
 <template>
     <Head title="Archivio" />
 
-    <Tabs v-model="activeTab" class="gap-4">
+    <Tabs v-model="activeTab">
         <TabsList>
             <TabsTrigger v-for="t in TABS" :key="t.type" :value="t.type">
                 {{ t.label }}
@@ -121,7 +125,7 @@ function confirmRestore(): void {
                         v-if="props.archive[t.type].length === 0"
                         :colspan="colspanFor(t)"
                     >
-                        Niente di archiviato qui.
+                        Nessun elemento archiviato.
                     </TableEmpty>
                     <DataTableRow
                         v-for="row in props.archive[t.type]"

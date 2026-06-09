@@ -60,6 +60,8 @@ function toggleYear(id: number, checked: boolean | 'indeterminate'): void {
         checked === true
             ? [...form.year_ids, id]
             : form.year_ids.filter((x) => x !== id);
+
+    form.clearErrors('year_ids');
 }
 
 function toggleAll(): void {
@@ -67,6 +69,13 @@ function toggleAll(): void {
 }
 
 function submit(): void {
+    // Guard client: niente round-trip se nessun anno è selezionato (errore subito).
+    if (form.year_ids.length === 0) {
+        form.setError('year_ids', 'Seleziona almeno un anno.');
+
+        return;
+    }
+
     form.coefficient = props.propagateCoefficient;
     form.start_year = props.propagateStartYear;
 
