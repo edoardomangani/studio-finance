@@ -24,6 +24,53 @@ function openPaymentDeadline(int $year = 2026): Deadline
         ->firstOrFail();
 }
 
+/** Un adempimento aperto dell'anno aperto, recante l'utente attivo. */
+function openFulfillmentDeadline(int $year = 2026): Deadline
+{
+    $user = onboardedUserWithTemplates();
+    test()->actingAs($user);
+    app(OpenYear::class)($user, app(YearOpeningPlanner::class)->plan($user, $year));
+
+    return Deadline::query()
+        ->where('kind', DeadlineKind::Fulfillment)
+        ->where('status', DeadlineStatus::Open)
+        ->firstOrFail();
+}
+
+it('segna un adempimento come svolto: open→completed', function () {
+    $deadline = openFulfillmentDeadline();
+
+    $this->post(route('deadlines.fulfill', $deadline))->assertRedirect();
+
+    expect($deadline->fresh()->status)->toBe(DeadlineStatus::Completed);
+});
+
+it('annulla il completamento di un adempimento: torna aperto', function () {
+    $deadline = openFulfillmentDeadline();
+    $this->post(route('deadlines.fulfill', $deadline));
+
+    $this->post(route('deadlines.reopen', $deadline))->assertRedirect();
+
+    expect($deadline->fresh()->status)->toBe(DeadlineStatus::Open);
+});
+
+it('non segna svolto un pagamento (solo adempimenti)', function () {
+    $deadline = openPaymentDeadline();
+
+    $this->post(route('deadlines.fulfill', $deadline))->assertStatus(422);
+
+    expect($deadline->fresh()->status)->toBe(DeadlineStatus::Open);
+});
+
+it('non segna svolto un adempimento già completato', function () {
+    $deadline = openFulfillmentDeadline();
+    $this->post(route('deadlines.fulfill', $deadline));
+
+    $this->post(route('deadlines.fulfill', $deadline))->assertStatus(422);
+
+    expect($deadline->fresh()->status)->toBe(DeadlineStatus::Completed);
+});
+
 it('annulla il completamento: torna aperta e azzera il pagamento', function () {
     $deadline = openPaymentDeadline();
     $this->post(route('deadlines.payment', $deadline), ['amount' => 500, 'paid_at' => '2026-03-15']);
@@ -83,4 +130,5 @@ it('non consente reversibilità sulle scadenze di un altro utente (tenancy)', fu
 
     $this->post(route('deadlines.reopen', $deadline))->assertNotFound();
     $this->post(route('deadlines.mark-not-due', $deadline))->assertNotFound();
+    $this->post(route('deadlines.fulfill', $deadline))->assertNotFound();
 });

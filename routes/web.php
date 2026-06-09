@@ -129,6 +129,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('deadlines/{deadline}/mark-not-due', [DeadlineController::class, 'markNotDue'])
             ->name('deadlines.mark-not-due')
             ->middleware('throttle:60,1');
+        // Adempimento svolto: open→completed (solo kind=fulfillment).
+        Route::post('deadlines/{deadline}/fulfill', [DeadlineController::class, 'markFulfilled'])
+            ->name('deadlines.fulfill')
+            ->middleware('throttle:60,1');
 
         // Pagamenti — vista pluriennale (RB9) + registrazione manuale extra-
         // scadenza (F8). URL in inglese, label sidebar in italiano. Lo store

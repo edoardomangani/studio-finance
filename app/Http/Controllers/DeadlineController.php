@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Studiofinance\CreateDeadline;
+use App\Actions\Studiofinance\MarkDeadlineFulfilled;
 use App\Actions\Studiofinance\MarkDeadlineNotDue;
 use App\Actions\Studiofinance\RegisterPayment;
 use App\Actions\Studiofinance\ReopenDeadline;
@@ -156,6 +157,22 @@ class DeadlineController extends Controller
         $markNotDue($deadline);
 
         $this->flashSuccess('Scadenza segnata come non dovuta.');
+
+        return back();
+    }
+
+    /**
+     * Marca un adempimento aperto come svolto: open→completed. Solo per
+     * kind=fulfillment (i pagamenti si chiudono registrando il pagamento).
+     */
+    public function markFulfilled(Deadline $deadline, MarkDeadlineFulfilled $markFulfilled): RedirectResponse
+    {
+        abort_unless($deadline->kind === DeadlineKind::Fulfillment, 422);
+        abort_unless($deadline->status === DeadlineStatus::Open, 422);
+
+        $markFulfilled($deadline);
+
+        $this->flashSuccess('Adempimento completato.');
 
         return back();
     }

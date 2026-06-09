@@ -4,9 +4,10 @@
  * [[deadlines/Index.vue]]. Si alimenta dai dati di riga (nessuna fetch).
  *
  * Layout su [[ActionSheet]] (bottom drawer mobile / pannello destro desktop):
- * scadenza di pagamento APERTA → form di registrazione (F7) con primario a
- * check in alto a destra (planned→paid, open→completed). Altri stati →
- * lettura + reversibilità (F9) confermata inline nel footer.
+ * pagamento APERTO → form di registrazione (F7), primario a check in alto
+ * (planned→paid, open→completed); adempimento APERTO → check in alto che lo
+ * segna svolto (open→completed). Altri stati → lettura + reversibilità (F9)
+ * confermata inline nel footer.
  */
 import { router, useForm } from '@inertiajs/vue3';
 import { PhCheck } from '@phosphor-icons/vue';
@@ -22,6 +23,7 @@ import { Spinner } from '@/components/ui/spinner';
 import { formatDateIT, formatEUR, todayISO } from '@/lib/format';
 import { DEADLINE_STATUS_META } from '@/pages/deadlines/statusMeta';
 import {
+    fulfill as fulfillRoute,
     markNotDue as markNotDueRoute,
     payment as registerPaymentRoute,
     reopen as reopenRoute,
@@ -38,6 +40,15 @@ const isPayableOpen = computed(
     () =>
         props.deadline?.kind === 'payment' && props.deadline?.status === 'open',
 );
+
+// Adempimento aperto: si chiude con il check in header (open→completed).
+const isFulfillableOpen = computed(
+    () =>
+        props.deadline?.kind === 'fulfillment' &&
+        props.deadline?.status === 'open',
+);
+
+const fulfilling = ref(false);
 
 const expectedHint = computed(() => {
     if (!props.deadline) {
@@ -121,7 +132,9 @@ function askUndoCompletion(): void {
 
     pending.value = {
         description:
-            'Il completamento verrà annullato: importo e data del pagamento verranno azzerati.',
+            props.deadline.kind === 'fulfillment'
+                ? 'Il completamento verrà annullato: l’adempimento tornerà aperto.'
+                : 'Il completamento verrà annullato: importo e data del pagamento verranno azzerati.',
         confirmLabel: 'Annulla completamento',
         url: reopenRoute({ deadline: props.deadline.id }).url,
         destructive: true,
@@ -169,6 +182,32 @@ function runReversal(): void {
     );
 }
 
+function markFulfilled(): void {
+    if (!props.deadline) {
+        return;
+    }
+
+    router.post(
+        fulfillRoute({ deadline: props.deadline.id }).url,
+        {},
+        {
+            preserveScroll: true,
+            onStart: () => {
+                fulfilling.value = true;
+            },
+            onFinish: () => {
+                fulfilling.value = false;
+            },
+            onSuccess: () => {
+                open.value = false;
+            },
+            onError: () => {
+                toast.error('Operazione non riuscita. Riprova.');
+            },
+        },
+    );
+}
+
 function restoreExpected(): void {
     if (props.deadline?.expected_amount != null) {
         form.amount = String(props.deadline.expected_amount);
@@ -198,7 +237,7 @@ function submit(): void {
 
 <template>
     <ActionSheet v-model:open="open" :title="deadline?.name ?? 'Scadenza'">
-        <!-- Primario stile iOS: check in alto a destra (submit del form). -->
+        <!-- Primario stile iOS: check in alto a destra. -->
         <template v-if="isPayableOpen" #primary>
             <Button
                 type="submit"
@@ -208,6 +247,18 @@ function submit(): void {
                 :disabled="form.processing"
             >
                 <Spinner v-if="form.processing" />
+                <PhCheck v-else :size="18" weight="bold" />
+            </Button>
+        </template>
+        <template v-else-if="isFulfillableOpen" #primary>
+            <Button
+                type="button"
+                size="icon"
+                aria-label="Segna come svolto"
+                :disabled="fulfilling"
+                @click="markFulfilled"
+            >
+                <Spinner v-if="fulfilling" />
                 <PhCheck v-else :size="18" weight="bold" />
             </Button>
         </template>
@@ -328,8 +379,12 @@ function submit(): void {
             </dl>
 
             <p v-else class="pt-4 text-13 text-muted-foreground">
-                <span v-if="deadline.kind === 'fulfillment'"
-                    >Adempimento, nessun pagamento collegato.</span
+                <span v-if="isFulfillableOpen"
+                    >Adempimento senza pagamento: usa il check in alto per
+                    segnarlo come svolto.</span
+                >
+                <span v-else-if="deadline.kind === 'fulfillment'"
+                    >Adempimento svolto.</span
                 >
                 <span v-else-if="deadline.status === 'not_due'"
                     >Scadenza segnata come non dovuta.</span
