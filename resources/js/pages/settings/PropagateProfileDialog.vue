@@ -44,6 +44,7 @@ const description = computed<string>(() => {
     if (props.propagateCoefficient && props.propagateStartYear) {
         return 'Hai modificato coefficiente e anno di inizio attività. Scegli a quali anni applicarli.';
     }
+
     if (props.propagateCoefficient) {
         return 'Hai modificato il coefficiente di redditività. Scegli a quali anni applicarlo.';
     }

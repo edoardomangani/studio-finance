@@ -91,6 +91,7 @@ function statusFor(year: YearListItem): Status {
     if (year.pre_opened) {
         return { label: 'Pre-aperto', variant: 'secondary' };
     }
+
     if (year.time_state === 'current') {
         return { label: 'In corso', variant: 'warning' };
     }
