@@ -76,6 +76,18 @@ class AnnualExpense extends Model
     }
 
     /**
+     * Contributo integrativo (Inarcassa, 4% sul volume d'affari): rivalsa
+     * addebitata in fattura al cliente, NON deducibile dal reddito IRPEF.
+     * Nella famiglia previdenza è l'unico calcolato sul volume d'affari IVA —
+     * il calcolo sul fatturato (e non sul reddito) ne è la natura fiscale.
+     */
+    public function isIntegrativePension(): bool
+    {
+        return $this->isPension()
+            && $this->calculation_type === ExpenseCalculationType::PercentageOfIvaRevenue;
+    }
+
+    /**
      * Imposta sostitutiva: scala ritenute bancarie + credito anno precedente.
      */
     public function isImpostaSostitutiva(): bool

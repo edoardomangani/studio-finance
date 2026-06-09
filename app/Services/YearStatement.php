@@ -170,15 +170,17 @@ class YearStatement
     }
 
     /**
-     * Contributi previdenziali pagati nell'anno: somma dei pagamenti per cassa
-     * collegati a spese di tipo previdenza.
+     * Contributi previdenziali pagati nell'anno e deducibili dall'IRPEF: somma
+     * dei pagamenti per cassa su spese di previdenza, ESCLUSO l'integrativo
+     * (rivalsa addebitata al cliente, non un costo deducibile del professionista).
      *
      * @param  Collection<int, Payment>  $cashPayments
      */
     public function pensionContributionsPaid(Collection $cashPayments): float
     {
         return round((float) $cashPayments
-            ->filter(fn (Payment $payment): bool => (bool) $payment->annualExpense?->isPension())
+            ->filter(fn (Payment $payment): bool => (bool) $payment->annualExpense?->isPension()
+                && ! $payment->annualExpense->isIntegrativePension())
             ->sum('amount'), 2);
     }
 
