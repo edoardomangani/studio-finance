@@ -56,6 +56,11 @@ COPY --from=php-build --chown=www-data:www-data /var/www/html ./
 COPY --from=assets --chown=www-data:www-data /app/public/build ./public/build
 
 # serversideup/php espone nginx sulla 8080 (gira come www-data, non-root)
+# NGINX_FASTCGI_BUFFER_SIZE: il primo buffer FastCGI contiene gli header di
+# risposta; il default 8k va in 502 "upstream sent too big header" su pagine
+# con header grossi (es. /years/{anno} con error-bag/flash). Alzato a 32k.
 ENV APP_ENV=production \
-    APP_DEBUG=false
+    APP_DEBUG=false \
+    NGINX_FASTCGI_BUFFER_SIZE=32k \
+    NGINX_FASTCGI_BUFFERS="16 16k"
 EXPOSE 8080

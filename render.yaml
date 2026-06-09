@@ -33,3 +33,7 @@ services:
         value: stderr
       - key: PORT
         value: "8080"
+      - key: NGINX_FASTCGI_BUFFER_SIZE   # default 8k -> 502 su header grossi
+        value: 32k
+      - key: NGINX_FASTCGI_BUFFERS
+        value: 16 16k
