@@ -29,14 +29,7 @@ import {
     InputGroupAddon,
     InputGroupInput,
 } from '@/components/ui/input-group';
-import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationItem,
-    PaginationNext,
-    PaginationPrevious,
-} from '@/components/ui/pagination';
+import { DataTablePagination } from '@/components/ui/table';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useDeadlineFilters } from '@/composables/useDeadlineFilters';
 import DeadlineFilters from '@/pages/deadlines/DeadlineFilters.vue';
@@ -187,38 +180,13 @@ const {
         </template>
     </DeadlinesTable>
 
-    <footer
+    <DataTablePagination
         v-if="deadlines.last_page > 1"
-        class="mt-3 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between"
-    >
-        <span class="tabular text-xs text-muted-foreground">
-            {{ deadlines.from }}–{{ deadlines.to }} di {{ deadlines.total }}
-        </span>
-        <Pagination
-            :total="deadlines.total"
-            :items-per-page="deadlines.per_page"
-            :page="deadlines.current_page"
-            :sibling-count="1"
-            show-edges
-            @update:page="goToPage"
-        >
-            <PaginationContent v-slot="{ items }">
-                <PaginationPrevious />
-                <template v-for="(item, idx) in items">
-                    <PaginationItem
-                        v-if="item.type === 'page'"
-                        :key="item.value"
-                        :value="item.value"
-                        :is-active="item.value === deadlines.current_page"
-                    >
-                        {{ item.value }}
-                    </PaginationItem>
-                    <PaginationEllipsis v-else :key="`e-${idx}`" :index="idx" />
-                </template>
-                <PaginationNext />
-            </PaginationContent>
-        </Pagination>
-    </footer>
+        :page="deadlines.current_page"
+        :per-page="deadlines.per_page"
+        :total="deadlines.total"
+        @update:page="goToPage"
+    />
 
     <FilterPanel
         v-model:open="filtersOpen"

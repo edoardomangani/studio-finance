@@ -21,14 +21,7 @@ import {
     InputGroupAddon,
     InputGroupInput,
 } from '@/components/ui/input-group';
-import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationItem,
-    PaginationNext,
-    PaginationPrevious,
-} from '@/components/ui/pagination';
+import { DataTablePagination } from '@/components/ui/table';
 import PaymentFilters from '@/pages/payments/PaymentFilters.vue';
 import PaymentsTable from '@/pages/payments/PaymentsTable.vue';
 import { index as paymentsIndex } from '@/routes/payments';
@@ -213,38 +206,13 @@ function goToPage(page: number): void {
         </template>
     </PaymentsTable>
 
-    <footer
+    <DataTablePagination
         v-if="payments.last_page > 1"
-        class="mt-3 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between"
-    >
-        <span class="tabular text-xs text-muted-foreground">
-            {{ payments.from }}–{{ payments.to }} di {{ payments.total }}
-        </span>
-        <Pagination
-            :total="payments.total"
-            :items-per-page="payments.per_page"
-            :page="payments.current_page"
-            :sibling-count="1"
-            show-edges
-            @update:page="goToPage"
-        >
-            <PaginationContent v-slot="{ items }">
-                <PaginationPrevious />
-                <template v-for="(item, idx) in items">
-                    <PaginationItem
-                        v-if="item.type === 'page'"
-                        :key="item.value"
-                        :value="item.value"
-                        :is-active="item.value === payments.current_page"
-                    >
-                        {{ item.value }}
-                    </PaginationItem>
-                    <PaginationEllipsis v-else :key="`e-${idx}`" :index="idx" />
-                </template>
-                <PaginationNext />
-            </PaginationContent>
-        </Pagination>
-    </footer>
+        :page="payments.current_page"
+        :per-page="payments.per_page"
+        :total="payments.total"
+        @update:page="goToPage"
+    />
 
     <FilterPanel
         v-model:open="filtersOpen"

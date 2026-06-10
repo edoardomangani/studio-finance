@@ -26,17 +26,10 @@ import {
     InputGroupInput,
 } from '@/components/ui/input-group';
 import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationItem,
-    PaginationNext,
-    PaginationPrevious,
-} from '@/components/ui/pagination';
-import {
     DataTable,
     DataTableBody,
     DataTableHeader,
+    DataTablePagination,
     DataTableRow,
     TableCell,
     TableEmpty,
@@ -189,42 +182,14 @@ function goToPage(page: number): void {
         </DataTableBody>
     </DataTable>
 
-    <!-- Pagination footer: visibile solo se più di una pagina. Counter
-         risultati a sinistra, paginator numerico (shadcn) a destra.
-         Stack verticale sotto sm (iPhone SE ~320px): counter + paginator
-         insieme escono dal viewport, quindi gap-2 col su mobile. -->
-    <footer
+    <!-- Pagination: componente canonico del design system, fuori dal box. -->
+    <DataTablePagination
         v-if="clients.last_page > 1"
-        class="mt-3 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between"
-    >
-        <span class="tabular text-xs text-muted-foreground">
-            {{ clients.from }}–{{ clients.to }} di {{ clients.total }}
-        </span>
-        <Pagination
-            :total="clients.total"
-            :items-per-page="clients.per_page"
-            :page="clients.current_page"
-            :sibling-count="1"
-            show-edges
-            @update:page="goToPage"
-        >
-            <PaginationContent v-slot="{ items }">
-                <PaginationPrevious />
-                <template v-for="(item, idx) in items">
-                    <PaginationItem
-                        v-if="item.type === 'page'"
-                        :key="item.value"
-                        :value="item.value"
-                        :is-active="item.value === clients.current_page"
-                    >
-                        {{ item.value }}
-                    </PaginationItem>
-                    <PaginationEllipsis v-else :key="`e-${idx}`" :index="idx" />
-                </template>
-                <PaginationNext />
-            </PaginationContent>
-        </Pagination>
-    </footer>
+        :page="clients.current_page"
+        :per-page="clients.per_page"
+        :total="clients.total"
+        @update:page="goToPage"
+    />
 
     <ClientFormDialog v-model:open="newClientOpen" :client="null" />
     <ClientFormDialog v-model:open="editOpen" :client="editTarget" />

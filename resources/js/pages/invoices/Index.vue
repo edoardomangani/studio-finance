@@ -23,14 +23,7 @@ import {
     InputGroupAddon,
     InputGroupInput,
 } from '@/components/ui/input-group';
-import {
-    Pagination,
-    PaginationContent,
-    PaginationEllipsis,
-    PaginationItem,
-    PaginationNext,
-    PaginationPrevious,
-} from '@/components/ui/pagination';
+import { DataTablePagination } from '@/components/ui/table';
 import InvoiceFilters from '@/pages/invoices/InvoiceFilters.vue';
 import type { InvoiceFilterState } from '@/pages/invoices/InvoiceFilters.vue';
 import InvoicesTable from '@/pages/invoices/InvoicesTable.vue';
@@ -263,38 +256,13 @@ function goToPage(page: number): void {
         </template>
     </InvoicesTable>
 
-    <footer
+    <DataTablePagination
         v-if="invoices.last_page > 1"
-        class="mt-3 flex flex-col items-stretch gap-2 sm:flex-row sm:items-center sm:justify-between"
-    >
-        <span class="tabular text-xs text-muted-foreground">
-            {{ invoices.from }}–{{ invoices.to }} di {{ invoices.total }}
-        </span>
-        <Pagination
-            :total="invoices.total"
-            :items-per-page="invoices.per_page"
-            :page="invoices.current_page"
-            :sibling-count="1"
-            show-edges
-            @update:page="goToPage"
-        >
-            <PaginationContent v-slot="{ items }">
-                <PaginationPrevious />
-                <template v-for="(item, idx) in items">
-                    <PaginationItem
-                        v-if="item.type === 'page'"
-                        :key="item.value"
-                        :value="item.value"
-                        :is-active="item.value === invoices.current_page"
-                    >
-                        {{ item.value }}
-                    </PaginationItem>
-                    <PaginationEllipsis v-else :key="`e-${idx}`" :index="idx" />
-                </template>
-                <PaginationNext />
-            </PaginationContent>
-        </Pagination>
-    </footer>
+        :page="invoices.current_page"
+        :per-page="invoices.per_page"
+        :total="invoices.total"
+        @update:page="goToPage"
+    />
 
     <FilterPanel
         v-model:open="filtersOpen"

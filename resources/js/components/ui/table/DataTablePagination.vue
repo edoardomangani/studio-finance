@@ -40,9 +40,9 @@ const to = computed(() => Math.min(props.page * props.perPage, props.total))
 
 <template>
     <div class="mt-4 flex items-center justify-between px-1 text-13">
-        <span class="font-mono text-2xs tabular text-muted-foreground">
+        <span class="text-xs tabular text-muted-foreground">
             {{ from.toLocaleString('it-IT') }}–{{ to.toLocaleString('it-IT') }}
-            <span class="px-1 text-muted-foreground/60">di</span>
+            <span class="text-muted-foreground/60">di</span>
             {{ total.toLocaleString('it-IT') }}
         </span>
 
@@ -65,7 +65,7 @@ const to = computed(() => Math.min(props.page * props.perPage, props.total))
                         :value="item.value"
                         :is-active="cur === item.value"
                         size="icon-sm"
-                        class="h-8 w-8 font-mono text-2xs tabular"
+                        class="h-8 w-8 text-xs tabular"
                     >
                         {{ item.value }}
                     </PaginationItem>
