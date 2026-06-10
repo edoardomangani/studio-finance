@@ -529,6 +529,58 @@ it('harden: deep link ?client=X valido viene mantenuto', function (): void {
         ->assertInertia(fn ($p) => $p->where('preselectedClientId', $client->id));
 });
 
+it('duplica: deep link ?from=X valido precompila sourceInvoice senza scrivere a DB', function (): void {
+    $user = onboardedInvoiceUser();
+    $this->actingAs($user);
+    $client = Client::factory()->for($user)->create();
+
+    $source = Invoice::factory()->for($client)->create([
+        'number' => '2026/042',
+        'issued_at' => '2026-03-15',
+        'amount' => 1000.00,
+        'inarcassa_amount' => 40.00,
+        'stamp_amount' => 2.00,
+        'art_15_amount' => 0.00,
+        'bank_withholding' => true,
+    ]);
+
+    $this->get("/invoices/create?from={$source->id}")
+        ->assertInertia(fn ($p) => $p
+            ->component('invoices/Create')
+            ->where('sourceInvoice.id', $source->id)
+            ->where('sourceInvoice.client.id', $client->id)
+            ->where('sourceInvoice.amount', fn ($v) => (float) $v === 1000.0)
+            ->where('sourceInvoice.bank_withholding', true),
+        );
+
+    // Solo prefill: nessuna nuova fattura creata dal GET.
+    expect(Invoice::count())->toBe(1);
+});
+
+it('duplica: deep link ?from=X di altro utente non viene accettato (no IDOR)', function (): void {
+    $alice = onboardedInvoiceUser();
+    $bob = onboardedInvoiceUser();
+    $bobInvoice = Invoice::factory()->for(Client::factory()->for($bob))->create();
+
+    $this->actingAs($alice)
+        ->get("/invoices/create?from={$bobInvoice->id}")
+        ->assertInertia(fn ($p) => $p
+            ->component('invoices/Create')
+            ->where('sourceInvoice', null),
+        );
+});
+
+it('duplica: deep link ?from=X inesistente non rompe la pagina (sourceInvoice=null)', function (): void {
+    $user = onboardedInvoiceUser();
+    $this->actingAs($user);
+
+    $this->get('/invoices/create?from=999999')
+        ->assertInertia(fn ($p) => $p
+            ->component('invoices/Create')
+            ->where('sourceInvoice', null),
+        );
+});
+
 it('naturalSortKey: zero-padda i run di cifre per ordine umano', function (): void {
     expect(Invoice::naturalSortKey('9'))->toBe(str_pad('9', 20, '0', STR_PAD_LEFT))
         ->and(Invoice::naturalSortKey('10'))->toBe(str_pad('10', 20, '0', STR_PAD_LEFT))

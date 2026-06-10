@@ -126,6 +126,25 @@ class InvoiceService
     }
 
     /**
+     * Sorgente per la duplicazione: data una `?from=X`, ritorna la shape
+     * `forShow` della fattura se esiste ed è dell'utente (global scope
+     * [[App\Concerns\BelongsToUser]] → `find()` null per altri utenti),
+     * altrimenti null. Solo lettura: nessuna scrittura, è prefill del form.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function forDuplication(?int $fromId): ?array
+    {
+        if ($fromId === null) {
+            return null;
+        }
+
+        $source = Invoice::find($fromId);
+
+        return $source !== null ? $this->forShow($source) : null;
+    }
+
+    /**
      * @return array<string, mixed>
      */
     public function forShow(Invoice $invoice): array

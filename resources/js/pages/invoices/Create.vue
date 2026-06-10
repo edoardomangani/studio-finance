@@ -16,18 +16,21 @@ import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
 import InvoiceForm from '@/pages/invoices/InvoiceForm.vue';
 import { index as invoicesIndex } from '@/routes/invoices';
-import type { ClientForPicker } from '@/types';
+import type { ClientForPicker, Invoice } from '@/types';
 
-defineProps<{
+const props = defineProps<{
     clients: ClientForPicker[];
     preselectedClientId: number | null;
+    sourceInvoice: Invoice | null;
 }>();
 
+const isDuplicating = !!props.sourceInvoice;
+
 setLayoutProps({
-    pageTitle: 'Nuova fattura',
+    pageTitle: isDuplicating ? 'Duplica fattura' : 'Nuova fattura',
     pageCrumbs: [
         { label: 'Fatture', href: invoicesIndex().url },
-        { label: 'Nuova' },
+        { label: isDuplicating ? 'Duplica' : 'Nuova' },
     ],
     subbar: false,
 });
@@ -36,7 +39,7 @@ const invoiceForm = ref<InstanceType<typeof InvoiceForm> | null>(null);
 </script>
 
 <template>
-    <Head title="Nuova fattura" />
+    <Head :title="isDuplicating ? 'Duplica fattura' : 'Nuova fattura'" />
 
     <Teleport to="#page-topbar-actions" defer>
         <Button as-child variant="outline" size="sm">
@@ -59,6 +62,7 @@ const invoiceForm = ref<InstanceType<typeof InvoiceForm> | null>(null);
             ref="invoiceForm"
             :clients="clients"
             :preselected-client-id="preselectedClientId"
+            :source-invoice="sourceInvoice"
         />
     </div>
 </template>

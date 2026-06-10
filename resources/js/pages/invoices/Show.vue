@@ -13,20 +13,32 @@
  *
  * Niente sezione "Cliente" separata in fondo: tutto il meta vive nel hero.
  *
- * Topbar actions: Modifica (link) + Archivia (confirm).
+ * Topbar actions: Modifica (link) + kebab (Duplica · Archivia).
  */
 import { Head, Link, router, setLayoutProps, useForm } from '@inertiajs/vue3';
-import { PhArchive, PhPencil } from '@phosphor-icons/vue';
+import {
+    PhArchive,
+    PhCopy,
+    PhDotsThreeVertical,
+    PhPencil,
+} from '@phosphor-icons/vue';
 import { computed, ref } from 'vue';
 import InvoiceController from '@/actions/App/Http/Controllers/InvoiceController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { formatDateIT, formatEUR } from '@/lib/format';
 import { originTrail, withOrigin } from '@/lib/origin';
 import { show as clientShow } from '@/routes/clients';
 import {
     index as invoicesIndex,
+    create as invoiceCreate,
     edit as invoiceEdit,
     show as invoiceShow,
 } from '@/routes/invoices';
@@ -80,15 +92,37 @@ const netAmount = computed(
     <Head :title="`Fattura ${invoice.number}`" />
 
     <Teleport to="#page-topbar-actions" defer>
-        <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            @click="archiveOpen = true"
-        >
-            <PhArchive :size="14" />
-            Archivia
-        </Button>
+        <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="icon-lg"
+                    aria-label="Azioni"
+                >
+                    <PhDotsThreeVertical :size="14" weight="bold" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuItem as-child>
+                    <Link
+                        :href="
+                            invoiceCreate.url({ query: { from: invoice.id } })
+                        "
+                    >
+                        <PhCopy :size="14" />
+                        Duplica
+                    </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    variant="destructive"
+                    @select="archiveOpen = true"
+                >
+                    <PhArchive :size="14" />
+                    Archivia
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
         <Button as-child size="sm">
             <Link :href="editUrl">
                 <PhPencil :size="14" />

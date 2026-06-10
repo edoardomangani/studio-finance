@@ -37,11 +37,21 @@ const props = withDefaults(
         clients: ClientForPicker[];
         invoice?: Invoice | null;
         preselectedClientId?: number | null;
+        // Duplicazione: fattura sorgente da cui precompilare gli importi/flag
+        // in creazione. Numero e data NON vengono ereditati (vedi initialPayload).
+        sourceInvoice?: Invoice | null;
     }>(),
-    { invoice: null, preselectedClientId: null },
+    { invoice: null, preselectedClientId: null, sourceInvoice: null },
 );
 
 const isEditing = computed(() => !!props.invoice);
+const isDuplicating = computed(() => !props.invoice && !!props.sourceInvoice);
+// In edit e in duplicazione gli importi/flag arrivano già fissati da una
+// fattura esistente: niente auto-fill di cassa/bollo né eredità del flag
+// ritenuta dal cliente, che sovrascriverebbero valori voluti.
+const prefilledFromExisting = computed(
+    () => isEditing.value || isDuplicating.value,
+);
 
 type FormPayload = {
     number: string;
@@ -64,9 +74,27 @@ function initialPayload(): FormPayload {
             amount: props.invoice.amount.toFixed(2),
             inarcassa_amount: props.invoice.inarcassa_amount.toFixed(2),
             stamp_amount: props.invoice.stamp_amount.toFixed(2),
-            stamp_charged_to_client: props.invoice.stamp_charged_to_client ?? true,
+            stamp_charged_to_client:
+                props.invoice.stamp_charged_to_client ?? true,
             art_15_amount: props.invoice.art_15_amount.toFixed(2),
             bank_withholding: props.invoice.bank_withholding,
+        };
+    }
+
+    // Duplicazione: eredita importi/flag dalla sorgente, ma con numero vuoto
+    // (è unique per (user, anno): copiarlo collide sempre) e data = oggi.
+    if (props.sourceInvoice) {
+        return {
+            number: '',
+            issued_at: todayISO(),
+            client_id: props.sourceInvoice.client.id,
+            amount: props.sourceInvoice.amount.toFixed(2),
+            inarcassa_amount: props.sourceInvoice.inarcassa_amount.toFixed(2),
+            stamp_amount: props.sourceInvoice.stamp_amount.toFixed(2),
+            stamp_charged_to_client:
+                props.sourceInvoice.stamp_charged_to_client ?? true,
+            art_15_amount: props.sourceInvoice.art_15_amount.toFixed(2),
+            bank_withholding: props.sourceInvoice.bank_withholding,
         };
     }
 
@@ -93,9 +121,9 @@ const {
     markStampDirty,
 } = useInvoiceTotals(form);
 
-// In editing i valori storati sono "fissati": dirty=true ab origine per
-// evitare che un cambio di imponibile in modifica sovrascriva valori reali.
-if (isEditing.value) {
+// Valori storati "fissati": dirty=true ab origine per evitare che un cambio
+// di imponibile sovrascriva valori reali (edit) o copiati (duplicazione).
+if (prefilledFromExisting.value) {
     markInarcassaDirty();
     markStampDirty();
 }
@@ -109,9 +137,9 @@ const selectedClient = computed<ClientForPicker | null>(() => {
 });
 
 function onClientSelect(client: ClientForPicker): void {
-    // In creazione, eredita il flag ritenuta dal cliente. In edit non
-    // sovrascriviamo perché potrebbe essere stato cambiato manualmente.
-    if (!isEditing.value) {
+    // In creazione pulita, eredita il flag ritenuta dal cliente. In edit e
+    // duplicazione non sovrascriviamo: il flag è già voluto/copiato.
+    if (!prefilledFromExisting.value) {
         form.bank_withholding = client.bank_withholding;
     }
 }
@@ -126,7 +154,7 @@ watch(
             return;
         }
 
-        if (!isEditing.value) {
+        if (!prefilledFromExisting.value) {
             form.bank_withholding = selectedClient.value.bank_withholding;
         }
     },
@@ -274,10 +302,7 @@ defineExpose({ processing: computed(() => form.processing) });
                     id="invoice-stamp-charged"
                     v-model="form.stamp_charged_to_client"
                 />
-                <FieldLabel
-                    for="invoice-stamp-charged"
-                    class="font-normal"
-                >
+                <FieldLabel for="invoice-stamp-charged" class="font-normal">
                     Bollo a carico del cliente
                 </FieldLabel>
             </Field>

@@ -110,17 +110,12 @@ class InvoiceController extends Controller
             ? $candidate
             : null;
 
-        $sourceInvoice = null;
-        $fromId = $this->intOrNull($request->query('from'));
-        if ($fromId !== null) {
-            $source = Invoice::find($fromId);
-            $sourceInvoice = $source !== null ? $this->invoices->forShow($source) : null;
-        }
-
         return Inertia::render('invoices/Create', [
             'clients' => $clients,
             'preselectedClientId' => $preselectedClientId,
-            'sourceInvoice' => $sourceInvoice,
+            'sourceInvoice' => $this->invoices->forDuplication(
+                $this->intOrNull($request->query('from')),
+            ),
         ]);
     }
 

@@ -6,7 +6,7 @@
  * paginazione) resta al chiamante; lo stato vuoto è personalizzabile via slot.
  */
 import { Link, router } from '@inertiajs/vue3';
-import { PhArchive, PhPencil } from '@phosphor-icons/vue';
+import { PhArchive, PhCopy, PhPencil } from '@phosphor-icons/vue';
 import { computed } from 'vue';
 import InvoiceController from '@/actions/App/Http/Controllers/InvoiceController';
 import { Badge } from '@/components/ui/badge';
@@ -27,7 +27,11 @@ import { useArchiveAction } from '@/composables/useArchiveAction';
 import { formatDateIT, formatEUR } from '@/lib/format';
 import { withOrigin } from '@/lib/origin';
 import type { OriginCrumb } from '@/lib/origin';
-import { edit as invoiceEdit, show as invoiceShow } from '@/routes/invoices';
+import {
+    create as invoiceCreate,
+    edit as invoiceEdit,
+    show as invoiceShow,
+} from '@/routes/invoices';
 import type { InvoiceListItem } from '@/types';
 
 // `origin`: trail di breadcrumb della superficie ospitante (lista o vista
@@ -147,7 +151,9 @@ const totals = computed(() => {
                 <TableCell
                     class="tabular text-right font-medium"
                     :class="
-                        invoice.total < 0 ? 'text-destructive' : 'text-foreground'
+                        invoice.total < 0
+                            ? 'text-destructive'
+                            : 'text-foreground'
                     "
                     >{{ formatEUR(invoice.total) }}</TableCell
                 >
@@ -171,6 +177,18 @@ const totals = computed(() => {
                             Modifica
                         </Link>
                     </DropdownMenuItem>
+                    <DropdownMenuItem as-child>
+                        <Link
+                            :href="
+                                invoiceCreate.url({
+                                    query: { from: invoice.id },
+                                })
+                            "
+                        >
+                            <PhCopy :size="14" />
+                            Duplica
+                        </Link>
+                    </DropdownMenuItem>
                     <DropdownMenuItem
                         variant="destructive"
                         @select="askArchive(invoice)"
@@ -186,11 +204,51 @@ const totals = computed(() => {
                 <TableCell class="text-foreground">Totale</TableCell>
                 <TableCell />
                 <TableCell />
-                <TableCell class="tabular text-right" :class="totals.amount < 0 ? 'text-destructive' : 'text-foreground'">{{ formatEUR(totals.amount) }}</TableCell>
-                <TableCell class="tabular text-right" :class="totals.stamp < 0 ? 'text-destructive' : 'text-foreground'">{{ formatEUR(totals.stamp) }}</TableCell>
-                <TableCell class="tabular text-right" :class="totals.inarcassa < 0 ? 'text-destructive' : 'text-foreground'">{{ formatEUR(totals.inarcassa) }}</TableCell>
-                <TableCell class="tabular text-right" :class="totals.art15 < 0 ? 'text-destructive' : 'text-foreground'">{{ formatEUR(totals.art15) }}</TableCell>
-                <TableCell class="tabular text-right" :class="totals.total < 0 ? 'text-destructive' : 'text-foreground'">{{ formatEUR(totals.total) }}</TableCell>
+                <TableCell
+                    class="tabular text-right"
+                    :class="
+                        totals.amount < 0
+                            ? 'text-destructive'
+                            : 'text-foreground'
+                    "
+                    >{{ formatEUR(totals.amount) }}</TableCell
+                >
+                <TableCell
+                    class="tabular text-right"
+                    :class="
+                        totals.stamp < 0
+                            ? 'text-destructive'
+                            : 'text-foreground'
+                    "
+                    >{{ formatEUR(totals.stamp) }}</TableCell
+                >
+                <TableCell
+                    class="tabular text-right"
+                    :class="
+                        totals.inarcassa < 0
+                            ? 'text-destructive'
+                            : 'text-foreground'
+                    "
+                    >{{ formatEUR(totals.inarcassa) }}</TableCell
+                >
+                <TableCell
+                    class="tabular text-right"
+                    :class="
+                        totals.art15 < 0
+                            ? 'text-destructive'
+                            : 'text-foreground'
+                    "
+                    >{{ formatEUR(totals.art15) }}</TableCell
+                >
+                <TableCell
+                    class="tabular text-right"
+                    :class="
+                        totals.total < 0
+                            ? 'text-destructive'
+                            : 'text-foreground'
+                    "
+                    >{{ formatEUR(totals.total) }}</TableCell
+                >
                 <TableCell />
                 <TableCell />
             </TableRow>
