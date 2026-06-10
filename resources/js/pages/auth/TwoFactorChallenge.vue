@@ -115,7 +115,7 @@ function submit(): void {
             </Button>
         </FieldGroup>
 
-        <p class="mt-5 text-center text-xs text-muted-foreground">
+        <p class="mt-5 text-xs text-muted-foreground">
             <button
                 type="button"
                 class="text-foreground underline decoration-border underline-offset-4 transition-colors hover:decoration-foreground"

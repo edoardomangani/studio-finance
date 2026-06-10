@@ -116,7 +116,7 @@ function submit(): void {
             </Button>
         </FieldGroup>
 
-        <p class="mt-5 text-center text-xs text-muted-foreground">
+        <p class="mt-5 text-xs text-muted-foreground">
             Hai già un account?
             <TextLink :href="login()" :tabindex="6">Accedi</TextLink>
         </p>

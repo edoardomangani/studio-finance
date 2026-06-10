@@ -5,7 +5,7 @@
  * Submit crea ProfessionalProfile + seeda expense items e recurring deadlines
  * via Action atomica, poi reindirizza al dashboard.
  *
- * Layout `null` (registrato in app.ts): niente sidebar né topbar.
+ * Layout: guscio split delle auth (registrato in app.ts), senza sidebar né topbar.
  */
 import { Head, useForm } from '@inertiajs/vue3';
 import FormField from '@/components/forms/FormField.vue';
@@ -30,6 +30,14 @@ defineProps<{
     };
 }>();
 
+defineOptions({
+    layout: {
+        title: 'Configura il tuo profilo',
+        description:
+            'Bastano tre dati per iniziare. Servono al sistema per calcolare imposte e contributi nel modo corretto.',
+    },
+});
+
 // Coefficiente come `number | string` (input grezzo, vuoto = ''); anno come
 // number (stepper NumberField: intero bounded, non un importo).
 const form = useForm<{
@@ -50,102 +58,76 @@ function submit() {
 <template>
     <Head title="Onboarding" />
 
-    <div
-        class="flex min-h-full items-center justify-center bg-background px-4 py-12"
-    >
-        <div class="w-full max-w-md">
-            <header class="mb-8">
-                <span class="kicker">Studiofinance</span>
-                <h1
-                    class="mt-2 text-2xl font-medium tracking-tight text-foreground"
+    <form @submit.prevent="submit">
+        <FieldGroup>
+            <FormField
+                label="Nome professionista"
+                for="onb-name"
+                :invalid="!!form.errors.name"
+                hint="Come compari nei documenti e nei breadcrumb."
+            >
+                <Input
+                    id="onb-name"
+                    v-model="form.name"
+                    :placeholder="defaults.name"
+                    autocomplete="name"
+                    autofocus
+                />
+                <template v-if="form.errors.name" #error>
+                    {{ form.errors.name }}
+                </template>
+            </FormField>
+
+            <FormField
+                label="Coefficiente di redditività (%)"
+                for="onb-coef"
+                :invalid="!!form.errors.profitability_coefficient"
+                hint="Per gli architetti iscritti a Inarcassa è 78%."
+            >
+                <DecimalInput
+                    id="onb-coef"
+                    v-model="form.profitability_coefficient"
+                    :min="0"
+                    :max="100"
+                    class="tabular"
+                />
+                <template v-if="form.errors.profitability_coefficient" #error>
+                    {{ form.errors.profitability_coefficient }}
+                </template>
+            </FormField>
+
+            <FormField
+                label="Anno inizio attività"
+                for="onb-year"
+                :invalid="!!form.errors.business_start_year"
+                hint="Determina l'aliquota imposta sostitutiva: 5% per i primi cinque anni, 15% poi."
+            >
+                <NumberField
+                    id="onb-year"
+                    v-model="form.business_start_year"
+                    :min="1990"
+                    :max="new Date().getFullYear()"
+                    :step="1"
+                    :format-options="{
+                        useGrouping: false,
+                        maximumFractionDigits: 0,
+                    }"
                 >
-                    Configura il tuo profilo
-                </h1>
-                <p class="mt-3 text-13 leading-relaxed text-muted-foreground">
-                    Bastano tre dati per iniziare. Servono al sistema per
-                    calcolare imposte e contributi nel modo corretto.
-                </p>
-            </header>
+                    <NumberFieldContent>
+                        <NumberFieldDecrement />
+                        <NumberFieldInput class="tabular" />
+                        <NumberFieldIncrement />
+                    </NumberFieldContent>
+                </NumberField>
+                <template v-if="form.errors.business_start_year" #error>
+                    {{ form.errors.business_start_year }}
+                </template>
+            </FormField>
+        </FieldGroup>
 
-            <form @submit.prevent="submit">
-                <FieldGroup>
-                    <FormField
-                        label="Nome professionista"
-                        for="onb-name"
-                        :invalid="!!form.errors.name"
-                        hint="Come compari nei documenti e nei breadcrumb."
-                    >
-                        <Input
-                            id="onb-name"
-                            v-model="form.name"
-                            :placeholder="defaults.name"
-                            autocomplete="name"
-                            autofocus
-                        />
-                        <template v-if="form.errors.name" #error>
-                            {{ form.errors.name }}
-                        </template>
-                    </FormField>
-
-                    <FormField
-                        label="Coefficiente di redditività (%)"
-                        for="onb-coef"
-                        :invalid="!!form.errors.profitability_coefficient"
-                        hint="Per gli architetti iscritti a Inarcassa è 78%."
-                    >
-                        <DecimalInput
-                            id="onb-coef"
-                            v-model="form.profitability_coefficient"
-                            :min="0"
-                            :max="100"
-                            class="tabular"
-                        />
-                        <template
-                            v-if="form.errors.profitability_coefficient"
-                            #error
-                        >
-                            {{ form.errors.profitability_coefficient }}
-                        </template>
-                    </FormField>
-
-                    <FormField
-                        label="Anno inizio attività"
-                        for="onb-year"
-                        :invalid="!!form.errors.business_start_year"
-                        hint="Determina l'aliquota imposta sostitutiva: 5% per i primi cinque anni, 15% poi."
-                    >
-                        <NumberField
-                            id="onb-year"
-                            v-model="form.business_start_year"
-                            :min="1990"
-                            :max="new Date().getFullYear()"
-                            :step="1"
-                            :format-options="{
-                                useGrouping: false,
-                                maximumFractionDigits: 0,
-                            }"
-                        >
-                            <NumberFieldContent>
-                                <NumberFieldDecrement />
-                                <NumberFieldInput class="tabular" />
-                                <NumberFieldIncrement />
-                            </NumberFieldContent>
-                        </NumberField>
-                        <template v-if="form.errors.business_start_year" #error>
-                            {{ form.errors.business_start_year }}
-                        </template>
-                    </FormField>
-                </FieldGroup>
-
-                <Button
-                    type="submit"
-                    class="mt-8 w-full"
-                    :disabled="form.processing"
-                >
-                    <Spinner v-if="form.processing" />
-                    Continua
-                </Button>
-            </form>
-        </div>
-    </div>
+        <Button type="submit" class="mt-8 w-full" :disabled="form.processing">
+            <Spinner v-if="form.processing" />
+            Continua
+        </Button>
+    </form>
 </template>

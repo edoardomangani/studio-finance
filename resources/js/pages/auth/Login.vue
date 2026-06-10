@@ -42,10 +42,7 @@ function submit(): void {
 <template>
     <Head title="Accedi" />
 
-    <div
-        v-if="status"
-        class="text-center text-xs font-medium text-accent-strong"
-    >
+    <div v-if="status" class="text-xs font-medium text-accent-strong">
         {{ status }}
     </div>
 
@@ -113,7 +110,7 @@ function submit(): void {
             </Button>
         </FieldGroup>
 
-        <p class="mt-5 text-center text-xs text-muted-foreground">
+        <p class="mt-5 text-xs text-muted-foreground">
             Non hai ancora un account?
             <TextLink :href="register()" :tabindex="5">Registrati</TextLink>
         </p>

@@ -31,10 +31,7 @@ function submit(): void {
 <template>
     <Head title="Password dimenticata" />
 
-    <div
-        v-if="status"
-        class="text-center text-xs font-medium text-accent-strong"
-    >
+    <div v-if="status" class="text-xs font-medium text-accent-strong">
         {{ status }}
     </div>
 
@@ -65,7 +62,7 @@ function submit(): void {
             </Button>
         </FieldGroup>
 
-        <p class="mt-5 text-center text-xs text-muted-foreground">
+        <p class="mt-5 text-xs text-muted-foreground">
             <TextLink :href="login()">Torna al login</TextLink>
         </p>
     </form>

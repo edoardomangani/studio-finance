@@ -13,8 +13,9 @@ createInertiaApp({
             case name === 'Welcome':
                 return null;
             case name === 'Onboarding':
-                // Pagina bloccante pre-shell: nessun sidebar/topbar.
-                return null;
+                // Pagina bloccante pre-shell: stesso guscio split delle auth,
+                // niente sidebar/topbar.
+                return AuthLayout;
             case name.startsWith('auth/'):
                 return AuthLayout;
             default:

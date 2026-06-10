@@ -27,13 +27,13 @@ const form = useForm({});
 
     <div
         v-if="status === 'verification-link-sent'"
-        class="text-center text-xs font-medium text-accent-strong"
+        class="text-xs font-medium text-accent-strong"
     >
         Abbiamo inviato un nuovo link di verifica all'indirizzo email utilizzato
         per la registrazione.
     </div>
 
-    <div class="flex flex-col items-center gap-4">
+    <div class="flex flex-col items-start gap-4">
         <Button
             type="button"
             variant="outline"
