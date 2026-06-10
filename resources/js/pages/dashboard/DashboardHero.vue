@@ -33,7 +33,7 @@ const progressPct = computed<number>(() => Math.min(100, (props.year.months_elap
         <section class="flex flex-col bg-accent-strong/4 px-5 py-3">
             <div class="flex flex-col gap-2.5">
                 <header class="flex h-7 items-center">
-                    <h3 class="kicker text-muted-foreground">Questo mese · {{ monthName }} {{ displayYear }}</h3>
+                    <h3 class="kicker text-muted-foreground">Importi · {{ monthName }} {{ displayYear }}</h3>
                 </header>
                 <div v-if="thisMonth" class="flex flex-col gap-1">
                     <p class="text-13 text-muted-foreground">Stipendio del mese</p>
