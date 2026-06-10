@@ -79,6 +79,16 @@ class DeadlineService
     }
 
     /**
+     * Conteggio delle scadenze aperte dell'utente (payment + fulfillment), per
+     * il badge in sidebar. Coerente con la lista che apre il link "Scadenze"
+     * (`state=open`). Scoping tenant automatico via global scope.
+     */
+    public function openCount(): int
+    {
+        return Deadline::query()->where('status', DeadlineStatus::Open)->count();
+    }
+
+    /**
      * Anni dell'utente, per il filtro (DESC).
      *
      * @return array<int, int>

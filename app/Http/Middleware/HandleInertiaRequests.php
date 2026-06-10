@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Services\DeadlineService;
+use App\Services\YearService;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -42,6 +44,12 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            // Segnali per la sidebar (solo da autenticato): conteggio scadenze
+            // aperte per il badge e anno corrente per l'etichetta "Anni".
+            'nav' => $request->user() ? [
+                'openDeadlines' => app(DeadlineService::class)->openCount(),
+                'currentYear' => app(YearService::class)->currentYear(),
+            ] : null,
         ];
     }
 }

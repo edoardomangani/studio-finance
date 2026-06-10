@@ -11,7 +11,7 @@
  * Le impostazioni personali (profilo, sicurezza, aspetto) vivono al di
  * fuori di questa sidebar — si accede dal dropdown utente.
  */
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import {
     PhArrowLeft,
     PhArchive,
@@ -32,6 +32,7 @@ import { computed } from 'vue';
 import type { Component } from 'vue';
 import AppLogo from '@/components/AppLogo.vue';
 import NavUser from '@/components/NavUser.vue';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
     Sidebar,
@@ -64,10 +65,13 @@ type NavLink = {
     /** Pathname per il match "attivo" quando l'href porta una query (es.
      *  Scadenze apre `?state=open` ma resta attivo su tutto /deadlines). */
     activeMatch?: string | ReturnType<typeof dashboard>;
+    /** Badge numerico (es. scadenze aperte). Nascosto se assente o 0. */
+    badge?: number;
 };
 
 type NavSection = { label: string; items: NavLink[] };
 
+const page = usePage();
 const { isCurrentOrParentUrl, currentUrl } = useCurrentUrl();
 const { state, toggleSidebar } = useSidebar();
 
@@ -84,17 +88,25 @@ const isSettingsMode = computed(() =>
     SETTINGS_PREFIXES.some((prefix) => currentUrl.value.startsWith(prefix)),
 );
 
-const mainSections: NavSection[] = [
+/* Reattivo: l'etichetta "Anni" mostra l'anno corrente (fallback "Anni" se
+ * nessun anno è aperto) e "Scadenze" porta il badge delle aperte. Entrambi
+ * arrivano dal prop condiviso `nav` (vedi HandleInertiaRequests). */
+const mainSections = computed<NavSection[]>(() => [
     {
         label: 'Lavoro',
         items: [
             { label: 'Dashboard', icon: PhHouse, href: dashboard() },
-            { label: 'Anni', icon: PhCalendarBlank, href: yearsIndex() },
+            {
+                label: page.props.nav?.currentYear?.toString() ?? 'Anni',
+                icon: PhCalendarBlank,
+                href: yearsIndex(),
+            },
             {
                 label: 'Scadenze',
                 icon: PhListChecks,
                 href: deadlinesIndex({ query: { state: 'open' } }),
                 activeMatch: deadlinesIndex(),
+                badge: page.props.nav?.openDeadlines,
             },
             { label: 'Fatture', icon: PhReceipt, href: invoicesIndex() },
             { label: 'Pagamenti', icon: PhCoins, href: paymentsIndex() },
@@ -116,7 +128,7 @@ const mainSections: NavSection[] = [
                 : []),
         ],
     },
-];
+]);
 
 const settingsSections: NavSection[] = [
     {
@@ -134,7 +146,7 @@ const settingsSections: NavSection[] = [
 ];
 
 const sections = computed(() =>
-    isSettingsMode.value ? settingsSections : mainSections,
+    isSettingsMode.value ? settingsSections : mainSections.value,
 );
 </script>
 
@@ -251,6 +263,15 @@ const sections = computed(() =>
                                 >
                                     {{ item.label }}
                                 </span>
+                                <!-- Badge (es. scadenze aperte): a destra, solo
+                                     se > 0, nascosto a sidebar collassata. -->
+                                <Badge
+                                    v-if="item.badge"
+                                    variant="warning"
+                                    class="ml-auto group-data-[collapsible=icon]:hidden text-2xs py-0"
+                                >
+                                    {{ item.badge }}
+                                </Badge>
                             </Link>
                         </SidebarMenuItem>
                     </SidebarMenu>
