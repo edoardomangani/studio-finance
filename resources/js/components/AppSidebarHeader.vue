@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3';
-import { PhCaretRight, PhList } from '@phosphor-icons/vue';
+import { PhList } from '@phosphor-icons/vue';
 import { computed } from 'vue';
 import { Button } from '@/components/ui/button';
 import { useSidebar } from '@/components/ui/sidebar';
@@ -95,12 +95,11 @@ const { toggleSidebar } = useSidebar();
                     >
                         {{ c.label }}
                     </span>
-                    <PhCaretRight
+                    <span
                         v-if="i < fullCrumbs.length - 1"
-                        :size="11"
-                        weight="bold"
-                        class="shrink-0 text-muted-foreground/40"
-                    />
+                        aria-hidden="true"
+                        class="shrink-0 text-xs text-muted-foreground/40 select-none"
+                    >/</span>
                 </template>
 
                 <span

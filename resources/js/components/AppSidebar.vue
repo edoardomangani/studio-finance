@@ -16,7 +16,6 @@ import {
     PhArrowLeft,
     PhArchive,
     PhBookOpen,
-    PhCalendarBlank,
     PhCaretLeft,
     PhCaretRight,
     PhCoins,
@@ -27,6 +26,7 @@ import {
     PhReceipt,
     PhTag,
     PhUsers,
+    PhCalendarDots,
 } from '@phosphor-icons/vue';
 import { computed } from 'vue';
 import type { Component } from 'vue';
@@ -97,8 +97,8 @@ const mainSections = computed<NavSection[]>(() => [
         items: [
             { label: 'Dashboard', icon: PhHouse, href: dashboard() },
             {
-                label: page.props.nav?.currentYear?.toString() ?? 'Anni',
-                icon: PhCalendarBlank,
+                label: 'Anno ' + (page.props.nav?.currentYear?.toString() ?? 'Anni'),
+                icon: PhCalendarDots,
                 href: yearsIndex(),
             },
             {
