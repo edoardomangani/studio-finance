@@ -28,6 +28,7 @@ import { useArchiveAction } from '@/composables/useArchiveAction';
 import { formatDateIT, formatEUR } from '@/lib/format';
 import DeadlineFormDialog from '@/pages/deadlines/DeadlineFormDialog.vue';
 import DeadlineSheet from '@/pages/deadlines/DeadlineSheet.vue';
+import { DEADLINE_KIND_META } from '@/pages/deadlines/kindMeta';
 import { DEADLINE_STATUS_META } from '@/pages/deadlines/statusMeta';
 import type {
     AnnualExpenseForPicker,
@@ -167,9 +168,18 @@ defineExpose({ openCreate });
                     </span>
                     <span v-else>—</span>
                 </TableCell>
-                <TableCell class="text-muted-foreground">{{
-                    deadline.kind_label
-                }}</TableCell>
+                <TableCell>
+                    <Badge
+                        :variant="DEADLINE_KIND_META[deadline.kind].variant"
+                        class="gap-1"
+                    >
+                        <component
+                            :is="DEADLINE_KIND_META[deadline.kind].icon"
+                            :size="12"
+                        />
+                        {{ deadline.kind_label }}
+                    </Badge>
+                </TableCell>
                 <TableCell class="tabular text-right text-muted-foreground">{{
                     deadline.year
                 }}</TableCell>

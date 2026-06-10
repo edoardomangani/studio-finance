@@ -6,6 +6,7 @@
  * cima a ogni riga si aggiorna mentre scrivi.
  */
 import { Head, router, setLayoutProps } from '@inertiajs/vue3';
+import { PhFloppyDisk } from '@phosphor-icons/vue';
 import { ref } from 'vue';
 import { toast } from 'vue-sonner';
 import ExpenseFamilyController from '@/actions/App/Http/Controllers/Settings/ExpenseFamilyController';
@@ -14,7 +15,12 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import type { ExpenseKind } from '@/types';
 
-type Family = { id: number; kind: ExpenseKind; name: string; description: string };
+type Family = {
+    id: number;
+    kind: ExpenseKind;
+    name: string;
+    description: string;
+};
 
 const props = defineProps<{ families: Family[] }>();
 
@@ -47,7 +53,8 @@ function save(family: Family): void {
         { name: names.value[family.id].trim() },
         {
             preserveScroll: true,
-            onError: (errors) => toast.error(errors.name ?? 'Rinomina non riuscita. Riprova.'),
+            onError: (errors) =>
+                toast.error(errors.name ?? 'Rinomina non riuscita. Riprova.'),
             onFinish: () => (saving.value = null),
         },
     );
@@ -58,24 +65,40 @@ function save(family: Family): void {
     <Head title="Famiglie di spesa" />
 
     <div class="flex flex-col gap-3">
-        <div class="divide-y divide-border-soft overflow-hidden rounded-lg border border-border bg-card">
+        <div
+            class="divide-y divide-border-soft overflow-hidden rounded-lg border border-border bg-card"
+        >
             <div
                 v-for="family in families"
                 :key="family.id"
                 class="flex flex-col gap-3 p-4 sm:flex-row sm:items-center sm:justify-between"
             >
                 <div class="min-w-0">
-                    <FamilyBadge :kind="family.kind" :name="names[family.id] || family.name" />
-                    <p class="mt-1.5 text-xs text-muted-foreground">{{ family.description }}</p>
+                    <FamilyBadge
+                        :kind="family.kind"
+                        :name="names[family.id] || family.name"
+                    />
+                    <p class="mt-1.5 text-xs text-muted-foreground">
+                        {{ family.description }}
+                    </p>
                 </div>
 
-                <form class="flex shrink-0 items-center gap-2" @submit.prevent="save(family)">
+                <form
+                    class="flex shrink-0 items-center gap-2"
+                    @submit.prevent="save(family)"
+                >
                     <Input
                         v-model="names[family.id]"
                         class="w-52"
                         :aria-label="`Nome della famiglia ${family.name}`"
                     />
-                    <Button type="submit" size="sm" variant="secondary" :disabled="!isDirty(family) || saving === family.id">
+                    <Button
+                        type="submit"
+                        size="sm"
+                        variant="secondary"
+                        :disabled="!isDirty(family) || saving === family.id"
+                    >
+                        <PhFloppyDisk :size="14" weight="bold" />
                         Salva
                     </Button>
                 </form>

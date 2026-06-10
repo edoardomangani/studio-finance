@@ -46,6 +46,7 @@ import {
     TableHead,
 } from '@/components/ui/table';
 import { useArchiveAction } from '@/composables/useArchiveAction';
+import { DEADLINE_KIND_META } from '@/pages/deadlines/kindMeta';
 import type {
     DeadlineKind,
     DueYearOffset,
@@ -239,8 +240,17 @@ function formatDate(deadline: RecurringDeadline): string {
                 <TableCell class="font-medium text-foreground">
                     {{ deadline.name }}
                 </TableCell>
-                <TableCell class="text-muted-foreground">
-                    {{ deadline.kind_label }}
+                <TableCell>
+                    <Badge
+                        :variant="DEADLINE_KIND_META[deadline.kind].variant"
+                        class="gap-1"
+                    >
+                        <component
+                            :is="DEADLINE_KIND_META[deadline.kind].icon"
+                            :size="12"
+                        />
+                        {{ deadline.kind_label }}
+                    </Badge>
                 </TableCell>
                 <TableCell class="text-muted-foreground">
                     {{ deadline.expense_item_name ?? '—' }}

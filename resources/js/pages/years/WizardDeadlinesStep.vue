@@ -21,6 +21,7 @@ import {
     TableEmpty,
     TableHead,
 } from '@/components/ui/table';
+import { DEADLINE_KIND_META } from '@/pages/deadlines/kindMeta';
 import type { YearPlanDeadline } from '@/types';
 
 defineProps<{
@@ -92,12 +93,13 @@ const crossYearConfirmed = defineModel<boolean>('crossYearConfirmed', {
                     </TableCell>
                     <TableCell>
                         <Badge
-                            :variant="
-                                deadline.kind === 'payment'
-                                    ? 'secondary'
-                                    : 'outline'
-                            "
+                            :variant="DEADLINE_KIND_META[deadline.kind].variant"
+                            class="gap-1"
                         >
+                            <component
+                                :is="DEADLINE_KIND_META[deadline.kind].icon"
+                                :size="12"
+                            />
                             {{
                                 deadline.kind === 'payment'
                                     ? 'Pagamento'

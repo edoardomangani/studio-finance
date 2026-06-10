@@ -33,21 +33,37 @@ const props = defineProps<{ dashboard: DashboardData }>();
 setLayoutProps({ pageTitle: 'Dashboard' });
 
 const MONTHS = [
-    'Gennaio', 'Febbraio', 'Marzo', 'Aprile', 'Maggio', 'Giugno',
-    'Luglio', 'Agosto', 'Settembre', 'Ottobre', 'Novembre', 'Dicembre',
+    'Gennaio',
+    'Febbraio',
+    'Marzo',
+    'Aprile',
+    'Maggio',
+    'Giugno',
+    'Luglio',
+    'Agosto',
+    'Settembre',
+    'Ottobre',
+    'Novembre',
+    'Dicembre',
 ];
 
 // Variante "piena" (null su empty state): narrowing per il template e i figli.
-const data = computed(() => (props.dashboard.has_data ? props.dashboard : null));
+const data = computed(() =>
+    props.dashboard.has_data ? props.dashboard : null,
+);
 
 // Mese mostrato (in corso se ha fatturato, altrimenti il precedente): nome e anno
 // vengono dal backend, non dalla data di oggi.
-const monthName = computed(() => (data.value ? MONTHS[data.value.display_month - 1] : ''));
+const monthName = computed(() =>
+    data.value ? MONTHS[data.value.display_month - 1] : '',
+);
 
 // Totale spese del mese per l'header; la composizione (barra + legenda
 // interattiva) vive in [[StackedBar]].
 const accrualTotal = computed(() =>
-    data.value ? data.value.month_expenses.reduce((sum, e) => sum + e.amount, 0) : 0,
+    data.value
+        ? data.value.month_expenses.reduce((sum, e) => sum + e.amount, 0)
+        : 0,
 );
 
 // Spese del mese → segmenti barra: colore fisso per famiglia, nome dell'utente.
@@ -70,16 +86,23 @@ const monthExpenseItems = computed(() =>
             v-if="!data"
             class="rounded-lg border border-dashed border-border px-4 py-12 text-center"
         >
-            <p class="text-13 font-medium text-foreground">Nessun anno aperto</p>
+            <p class="text-13 font-medium text-foreground">
+                Nessun anno aperto
+            </p>
             <p class="mx-auto mt-1 max-w-md text-13 text-muted-foreground">
-                Apri il tuo primo anno per vedere mese in corso, spese da coprire e andamento.
+                Apri il tuo primo anno per vedere mese in corso, spese da
+                coprire e andamento.
             </p>
         </div>
 
         <template v-else>
             <!-- Azione di pagina nel topbar, come le altre viste. -->
             <Teleport to="#page-topbar-actions" defer>
-                <Button variant="secondary" size="sm" @click="router.visit(yearShow(data.current_year).url)">
+                <Button
+                    variant="secondary"
+                    size="sm"
+                    @click="router.visit(yearShow(data.current_year).url)"
+                >
                     <PhCalendarBlank :size="14" />
                     Vai all'anno {{ data.current_year }}
                     <PhArrowRight :size="14" />
@@ -102,8 +125,14 @@ const monthExpenseItems = computed(() =>
                 <!-- Sempre presente (anche a 0) per non far collassare la griglia. -->
                 <section class="flex flex-col gap-2">
                     <header class="flex items-baseline justify-between gap-3">
-                        <h2 class="kicker text-muted-foreground">Spese del mese · {{ monthName }} {{ data.display_year }}</h2>
-                        <span class="tabular text-13 font-medium text-foreground">{{ formatEUR(accrualTotal) }}</span>
+                        <h2 class="kicker text-muted-foreground">
+                            Spese del mese · {{ monthName }}
+                            {{ data.display_year }}
+                        </h2>
+                        <span
+                            class="tabular text-13 font-medium text-foreground"
+                            >{{ formatEUR(accrualTotal) }}</span
+                        >
                     </header>
                     <StackedBar :items="monthExpenseItems" class="flex-1" />
                 </section>
@@ -113,27 +142,57 @@ const monthExpenseItems = computed(() =>
                         <h2 class="kicker text-muted-foreground">
                             Scadenze aperte
                         </h2>
-                        <Button variant="link" size="sm" class="h-auto p-0" @click="router.visit(deadlinesIndex().url)">
+                        <Button
+                            variant="link"
+                            size="sm"
+                            class="h-auto gap-1 p-0"
+                            @click="router.visit(deadlinesIndex().url)"
+                        >
                             Tutte
+                            <PhArrowRight :size="13" />
                         </Button>
                     </header>
                     <DataTable>
                         <DataTableHeader :has-actions="false">
                             <TableHead>Scadenza</TableHead>
-                            <TableHead class="w-[120px] text-right">Previsto</TableHead>
+                            <TableHead class="w-[120px] text-right"
+                                >Previsto</TableHead
+                            >
                         </DataTableHeader>
                         <DataTableBody>
-                            <TableEmpty v-if="data.open_deadlines.length === 0" :colspan="2">
+                            <TableEmpty
+                                v-if="data.open_deadlines.length === 0"
+                                :colspan="2"
+                            >
                                 Nessuna scadenza aperta.
                             </TableEmpty>
-                            <DataTableRow v-for="d in data.open_deadlines" v-else :key="d.id">
+                            <DataTableRow
+                                v-for="d in data.open_deadlines"
+                                v-else
+                                :key="d.id"
+                            >
                                 <TableCell>
-                                    <span class="block truncate text-foreground">{{ d.name }}</span>
-                                    <span class="block text-xs text-muted-foreground">{{ formatDateIT(d.due_at) }}<template v-if="d.year"> · {{ d.year }}</template></span>
+                                    <span
+                                        class="block truncate text-foreground"
+                                        >{{ d.name }}</span
+                                    >
+                                    <span
+                                        class="block text-xs text-muted-foreground"
+                                        >{{ formatDateIT(d.due_at)
+                                        }}<template v-if="d.year">
+                                            · {{ d.year }}</template
+                                        ></span
+                                    >
                                 </TableCell>
-                                <TableCell class="tabular text-right text-foreground">
-                                    <span v-if="d.expected_amount !== null">{{ formatEUR(d.expected_amount) }}</span>
-                                    <span v-else class="text-muted-foreground">—</span>
+                                <TableCell
+                                    class="tabular text-right text-foreground"
+                                >
+                                    <span v-if="d.expected_amount !== null">{{
+                                        formatEUR(d.expected_amount)
+                                    }}</span>
+                                    <span v-else class="text-muted-foreground"
+                                        >—</span
+                                    >
                                 </TableCell>
                             </DataTableRow>
                         </DataTableBody>
@@ -145,27 +204,56 @@ const monthExpenseItems = computed(() =>
             <div class="grid gap-4 md:grid-cols-2">
                 <section class="flex flex-col gap-2">
                     <header class="flex items-baseline justify-between gap-3">
-                        <h2 class="kicker text-muted-foreground">Ultime fatture</h2>
-                        <Button variant="link" size="sm" class="h-auto p-0" @click="router.visit(invoicesIndex().url)">
+                        <h2 class="kicker text-muted-foreground">
+                            Ultime fatture
+                        </h2>
+                        <Button
+                            variant="link"
+                            size="sm"
+                            class="h-auto gap-1 p-0"
+                            @click="router.visit(invoicesIndex().url)"
+                        >
                             Tutte
+                            <PhArrowRight :size="13" />
                         </Button>
                     </header>
                     <DataTable>
                         <DataTableHeader :has-actions="false">
                             <TableHead>Fattura</TableHead>
-                            <TableHead class="w-[110px] text-right">Totale</TableHead>
+                            <TableHead class="w-[110px] text-right"
+                                >Totale</TableHead
+                            >
                         </DataTableHeader>
                         <DataTableBody>
-                            <TableEmpty v-if="data.recent_invoices.length === 0" :colspan="2">
+                            <TableEmpty
+                                v-if="data.recent_invoices.length === 0"
+                                :colspan="2"
+                            >
                                 Nessuna fattura.
                             </TableEmpty>
-                            <DataTableRow v-for="inv in data.recent_invoices" v-else :key="inv.id">
+                            <DataTableRow
+                                v-for="inv in data.recent_invoices"
+                                v-else
+                                :key="inv.id"
+                            >
                                 <TableCell>
-                                    <span class="font-medium text-foreground">{{ inv.number }}</span>
-                                    <span class="text-muted-foreground"> · {{ formatDateIT(inv.issued_at) }}</span>
-                                    <span v-if="inv.client_name" class="block truncate text-xs text-muted-foreground">{{ inv.client_name }}</span>
+                                    <span class="font-medium text-foreground">{{
+                                        inv.number
+                                    }}</span>
+                                    <span class="text-muted-foreground">
+                                        ·
+                                        {{ formatDateIT(inv.issued_at) }}</span
+                                    >
+                                    <span
+                                        v-if="inv.client_name"
+                                        class="block truncate text-xs text-muted-foreground"
+                                        >{{ inv.client_name }}</span
+                                    >
                                 </TableCell>
-                                <TableCell class="tabular text-right text-foreground">{{ formatEUR(inv.total) }}</TableCell>
+                                <TableCell
+                                    class="tabular text-right text-foreground"
+                                    >{{ formatEUR(inv.total) }}</TableCell
+                                >
                             </DataTableRow>
                         </DataTableBody>
                     </DataTable>
@@ -173,26 +261,56 @@ const monthExpenseItems = computed(() =>
 
                 <section class="flex flex-col gap-2">
                     <header class="flex items-baseline justify-between gap-3">
-                        <h2 class="kicker text-muted-foreground">Ultimi pagamenti</h2>
-                        <Button variant="link" size="sm" class="h-auto p-0" @click="router.visit(paymentsIndex().url)">
+                        <h2 class="kicker text-muted-foreground">
+                            Ultimi pagamenti
+                        </h2>
+                        <Button
+                            variant="link"
+                            size="sm"
+                            class="h-auto gap-1 p-0"
+                            @click="router.visit(paymentsIndex().url)"
+                        >
                             Tutti
+                            <PhArrowRight :size="13" />
                         </Button>
                     </header>
                     <DataTable>
                         <DataTableHeader :has-actions="false">
                             <TableHead>Pagamento</TableHead>
-                            <TableHead class="w-[110px] text-right">Importo</TableHead>
+                            <TableHead class="w-[110px] text-right"
+                                >Importo</TableHead
+                            >
                         </DataTableHeader>
                         <DataTableBody>
-                            <TableEmpty v-if="data.recent_payments.length === 0" :colspan="2">
+                            <TableEmpty
+                                v-if="data.recent_payments.length === 0"
+                                :colspan="2"
+                            >
                                 Nessun pagamento.
                             </TableEmpty>
-                            <DataTableRow v-for="p in data.recent_payments" v-else :key="p.id">
+                            <DataTableRow
+                                v-for="p in data.recent_payments"
+                                v-else
+                                :key="p.id"
+                            >
                                 <TableCell>
-                                    <span class="block truncate text-foreground">{{ p.description ?? p.annual_expense_name ?? 'Pagamento' }}</span>
-                                    <span class="block text-xs text-muted-foreground">{{ formatDateIT(p.paid_at) }}</span>
+                                    <span
+                                        class="block truncate text-foreground"
+                                        >{{
+                                            p.description ??
+                                            p.annual_expense_name ??
+                                            'Pagamento'
+                                        }}</span
+                                    >
+                                    <span
+                                        class="block text-xs text-muted-foreground"
+                                        >{{ formatDateIT(p.paid_at) }}</span
+                                    >
                                 </TableCell>
-                                <TableCell class="tabular text-right text-foreground">{{ formatEUR(p.amount) }}</TableCell>
+                                <TableCell
+                                    class="tabular text-right text-foreground"
+                                    >{{ formatEUR(p.amount) }}</TableCell
+                                >
                             </DataTableRow>
                         </DataTableBody>
                     </DataTable>
