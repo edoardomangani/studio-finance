@@ -76,7 +76,7 @@ it('assembla il payload della dashboard per l anno in corso', function () {
             ->has('dashboard.month_expenses', 3)                 // una riga per voce di spesa
             ->has('dashboard.month_expenses.0.label')
             ->has('dashboard.month_expenses.0.amount')
-            ->where('dashboard.to_cover.open_deadlines_count', 0)
+            ->where('dashboard.to_cover.upcoming_deadlines_count', 0)
             ->has('dashboard.to_cover.expenses_due_to_date')
             ->has('dashboard.to_cover.expenses_due')              // spese da pagare in tutto (definitivo − pagato)
             ->has('dashboard.recent_invoices', 2)

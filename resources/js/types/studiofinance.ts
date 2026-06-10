@@ -428,7 +428,7 @@ export type DashboardToCover = {
     expenses_due_to_date: number;
     expenses_due: number;
     deadlines_due: number;
-    open_deadlines_count: number;
+    upcoming_deadlines_count: number;
 };
 
 /** Pannello anno: cumulato, mesi trascorsi (progress), proiezione, netto bancario. */
@@ -589,5 +589,8 @@ export type DeadlineFilterState = {
     expenseItemId: number[];
 };
 
-/** Toggle stato: open = da fare, closed = completate + non dovute. */
-export type DeadlineStateFilter = 'open' | 'closed';
+/**
+ * Toggle stato: upcoming = prossime (aperte entro 3 mesi, scadute incluse),
+ * open = tutte le aperte, closed = completate + non dovute, all = tutte.
+ */
+export type DeadlineStateFilter = 'upcoming' | 'open' | 'closed' | 'all';

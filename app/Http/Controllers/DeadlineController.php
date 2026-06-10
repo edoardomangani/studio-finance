@@ -37,10 +37,12 @@ class DeadlineController extends Controller
     public function index(Request $request): Response
     {
         $search = trim((string) $request->query('search', ''));
-        // Toggle stato: open (da fare) | closed (completate + non dovute).
-        $state = in_array($request->query('state'), ['open', 'closed'], true)
+        // Toggle stato: upcoming (prossime, default) | open (tutte le aperte) |
+        // closed (completate + non dovute) | all (tutte). Default = prossime: è
+        // ciò che richiede azione, coerente col badge che ci linka.
+        $state = in_array($request->query('state'), ['upcoming', 'open', 'closed', 'all'], true)
             ? (string) $request->query('state')
-            : null;
+            : 'upcoming';
         // Faccette multi-select (array). Accetta anche lo scalare per comodità.
         $kind = $this->stringArray($request->query('kind'));
         $year = $this->intArray($request->query('year'));

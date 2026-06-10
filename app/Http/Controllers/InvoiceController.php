@@ -94,6 +94,13 @@ class InvoiceController extends Controller
      * la lista clienti dell'utente — se è inesistente, archiviato (soft
      * delete) o di altro utente, non viene passato al form (evita
      * "Cerca cliente…" muto senza spiegazione).
+     *
+     * Accetta anche `?from=Y` per duplicare una fattura: il form parte
+     * precompilato con gli importi/flag della sorgente (numero e data
+     * esclusi, vengono reimpostati lato form). Nessuna scrittura a DB: è
+     * solo prefill, la fattura nasce al submit. Tenancy: il global scope
+     * [[App\Concerns\BelongsToUser]] fa sì che `find()` ritorni null per
+     * fatture di altri utenti → sourceInvoice resta null (no IDOR).
      */
     public function create(Request $request): Response
     {
@@ -103,9 +110,17 @@ class InvoiceController extends Controller
             ? $candidate
             : null;
 
+        $sourceInvoice = null;
+        $fromId = $this->intOrNull($request->query('from'));
+        if ($fromId !== null) {
+            $source = Invoice::find($fromId);
+            $sourceInvoice = $source !== null ? $this->invoices->forShow($source) : null;
+        }
+
         return Inertia::render('invoices/Create', [
             'clients' => $clients,
             'preselectedClientId' => $preselectedClientId,
+            'sourceInvoice' => $sourceInvoice,
         ]);
     }
 

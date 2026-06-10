@@ -8,7 +8,7 @@
  * Layout come la banda KPI dell'anno: kicker + titolo/importo in alto, elemento
  * di fondo ancorato in basso (mt-auto) → footer allineati tra i pannelli.
  */
-import { PhArrowDownRight, PhArrowUpRight } from '@phosphor-icons/vue';
+import { PhTrendDown, PhTrendUp } from '@phosphor-icons/vue';
 import { computed } from 'vue';
 import SplitBar from '@/components/charts/SplitBar.vue';
 import { Badge } from '@/components/ui/badge';
@@ -49,7 +49,7 @@ const progressPct = computed<number>(() => Math.min(100, (props.year.months_elap
                 </div>
                 <p v-if="thisMonth.yoy_percent !== null" class="flex items-center gap-1 text-xs text-muted-foreground">
                     <span class="inline-flex items-center gap-0.5" :class="thisMonth.yoy_percent >= 0 ? 'text-success' : 'text-destructive'">
-                        <component :is="thisMonth.yoy_percent >= 0 ? PhArrowUpRight : PhArrowDownRight" :size="12" />
+                        <component :is="thisMonth.yoy_percent >= 0 ? PhTrendUp : PhTrendDown" :size="12" />
                         {{ formatPercent(Math.abs(thisMonth.yoy_percent), 0) }}
                     </span>
                     vs {{ monthName.toLowerCase() }} {{ previousYear }}
@@ -75,7 +75,7 @@ const progressPct = computed<number>(() => Math.min(100, (props.year.months_elap
                     <p class="tabular mt-1.5 text-xl font-medium leading-none tracking-tight text-foreground">{{ formatEUR(toCover.deadlines_due) }}</p>
                     <p class="mt-1 text-2xs text-muted-foreground">Importi delle scadenze aperte</p>
                     <div class="mt-auto pt-3">
-                        <Badge variant="warning" class="tabular">{{ toCover.open_deadlines_count }} scadenze aperte</Badge>
+                        <Badge variant="warning" class="tabular">{{ toCover.upcoming_deadlines_count }} in scadenza</Badge>
                     </div>
                 </div>
             </div>

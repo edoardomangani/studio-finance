@@ -5,6 +5,7 @@ use App\Actions\Studiofinance\RegisterPayment;
 use App\Enums\DeadlineKind;
 use App\Models\Deadline;
 use App\Models\User;
+use App\Models\Year;
 use App\Services\YearOpeningPlanner;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -26,7 +27,7 @@ it('mostra la lista scadenze con il previsto calcolato', function () {
     userWithOpenYear();
 
     // Assicurazione: voce fissa €350, scadenza unica → previsto pieno.
-    $this->get(route('deadlines.index', ['search' => 'Assicurazione']))
+    $this->get(route('deadlines.index', ['search' => 'Assicurazione', 'state' => 'all']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('deadlines/Index')
@@ -43,7 +44,7 @@ it('lascia il previsto nullo quando mancano i dati (acconto senza anno precedent
     userWithOpenYear();
 
     // Acconti imposta del primo anno: serve l'IS netta di N-1, che non esiste.
-    $this->get(route('deadlines.index', ['search' => 'acconto imposta']))
+    $this->get(route('deadlines.index', ['search' => 'acconto imposta', 'state' => 'all']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->has('deadlines.data', 2)
@@ -56,7 +57,7 @@ it('filtra per tipo adempimento', function () {
     userWithOpenYear();
 
     // Adempimenti seedati: Dichiarazione redditi + Comunicazione Inarcassa.
-    $this->get(route('deadlines.index', ['kind' => 'fulfillment']))
+    $this->get(route('deadlines.index', ['kind' => 'fulfillment', 'state' => 'all']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->has('deadlines.data', 2)
@@ -69,7 +70,7 @@ it('filtra per voce di spesa', function () {
     $user = userWithOpenYear();
     $bolli = $user->expenseItems()->where('name', 'Bolli')->firstOrFail();
 
-    $this->get(route('deadlines.index', ['expense_item_id' => $bolli->id]))
+    $this->get(route('deadlines.index', ['expense_item_id' => $bolli->id, 'state' => 'all']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->has('deadlines.data', 4) // 4 rate trimestrali bolli
@@ -80,7 +81,7 @@ it('filtra per voce di spesa', function () {
 it('filtra per anno scadenza (due_at), distinto dall anno di riferimento', function () {
     userWithOpenYear(); // anno 2026; i saldi/bolli Q4/commercialista cadono nel 2027
 
-    $this->get(route('deadlines.index', ['due_year' => 2027]))
+    $this->get(route('deadlines.index', ['due_year' => 2027, 'state' => 'all']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('deadlines.data', fn ($rows) => collect($rows)->isNotEmpty()
@@ -136,8 +137,8 @@ it('ordina le aperte per data crescente (to-do) e le altre decrescente (registro
             })
             ->etc());
 
-    // Vista "tutte" (nessun filtro stato): l'ultima per data prima (DESC).
-    $this->get(route('deadlines.index'))
+    // Vista "tutte": l'ultima per data prima (DESC).
+    $this->get(route('deadlines.index', ['state' => 'all']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('deadlines.data', function ($rows) {
@@ -145,6 +146,26 @@ it('ordina le aperte per data crescente (to-do) e le altre decrescente (registro
 
                 return $dates === collect($dates)->sortDesc()->values()->all();
             })
+            ->etc());
+});
+
+it('il default "prossime" mostra solo le aperte entro 3 mesi, scadute incluse', function () {
+    $user = onboardedUserWithTemplates();
+    $this->actingAs($user);
+    $year = Year::factory()->forYear((int) now()->year)->create(['user_id' => $user->id]);
+
+    Deadline::factory()->create(['user_id' => $user->id, 'year_id' => $year->id, 'name' => 'Scaduta', 'due_at' => now()->subMonth()]);
+    Deadline::factory()->create(['user_id' => $user->id, 'year_id' => $year->id, 'name' => 'Tra un mese', 'due_at' => now()->addMonth()]);
+    Deadline::factory()->create(['user_id' => $user->id, 'year_id' => $year->id, 'name' => 'Tra sei mesi', 'due_at' => now()->addMonths(6)]);
+    Deadline::factory()->completed()->create(['user_id' => $user->id, 'year_id' => $year->id, 'name' => 'Completata vicina', 'due_at' => now()]);
+
+    // Nessun filtro stato → default "prossime": scaduta + entro finestra; escluse
+    // l'aperta oltre 3 mesi e la completata.
+    $this->get(route('deadlines.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('deadlines.data', 2)
+            ->where('deadlines.data', fn ($rows) => collect($rows)->pluck('name')->sort()->values()->all() === ['Scaduta', 'Tra un mese'])
             ->etc());
 });
 

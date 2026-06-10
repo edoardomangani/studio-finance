@@ -9,6 +9,7 @@ use App\Models\Deadline;
 use App\Models\ExpenseItem;
 use App\Models\Year;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -40,8 +41,9 @@ class DeadlineService
     public function paginate(array $filters = []): LengthAwarePaginator
     {
         $search = isset($filters['search']) ? trim((string) $filters['search']) : '';
-        // Stato come gruppo: open = da fare; closed = già gestite (completate +
-        // non dovute, "cose fatte"). Toggle primario in UI (resta singolo).
+        // Stato come gruppo: upcoming = prossime (aperte entro 3 mesi, scadute
+        // incluse); open = tutte le aperte; closed = già gestite (completate +
+        // non dovute). Toggle primario in UI (resta singolo).
         $state = $filters['state'] ?? null;
         $kinds = $filters['kind'] ?? [];
         // year = anno di riferimento (spesa), due_year = anno della scadenza (due_at).
@@ -55,6 +57,9 @@ class DeadlineService
                 $like = '%'.strtolower(str_replace(['%', '_'], ['\%', '\_'], $search)).'%';
                 $query->whereRaw("LOWER(name) LIKE ? ESCAPE '\\'", [$like]);
             })
+            ->when($state === 'upcoming', fn ($q) => $q
+                ->where('status', DeadlineStatus::Open)
+                ->where('due_at', '<=', $this->upcomingCutoff()))
             ->when($state === 'open', fn ($q) => $q->where('status', DeadlineStatus::Open))
             ->when($state === 'closed', fn ($q) => $q->whereIn('status', [DeadlineStatus::Completed, DeadlineStatus::NotDue]))
             ->when($kinds !== [], fn ($q) => $q->whereIn('kind', $kinds))
@@ -65,11 +70,11 @@ class DeadlineService
                 }
             }))
             ->when($expenseItemIds !== [], fn ($q) => $q->whereHas('annualExpense', fn ($eq) => $eq->whereIn('expense_item_id', $expenseItemIds)))
-            // Aperte = to-do: la più imminente prima (ASC). Completate/tutte =
-            // registro: l'ultima gestita prima (DESC). id come tiebreaker nello
-            // stesso verso.
-            ->orderBy('due_at', $state === 'open' ? 'asc' : 'desc')
-            ->orderBy('id', $state === 'open' ? 'asc' : 'desc')
+            // Prossime/aperte = to-do: la più imminente prima (ASC). Completate/
+            // tutte = registro: l'ultima gestita prima (DESC). id come tiebreaker
+            // nello stesso verso.
+            ->orderBy('due_at', in_array($state, ['upcoming', 'open'], true) ? 'asc' : 'desc')
+            ->orderBy('id', in_array($state, ['upcoming', 'open'], true) ? 'asc' : 'desc')
             ->paginate(self::PER_PAGE)
             ->withQueryString();
 
@@ -79,13 +84,26 @@ class DeadlineService
     }
 
     /**
-     * Conteggio delle scadenze aperte dell'utente (payment + fulfillment), per
-     * il badge in sidebar. Coerente con la lista che apre il link "Scadenze"
-     * (`state=open`). Scoping tenant automatico via global scope.
+     * Conteggio delle scadenze "prossime" dell'utente (payment + fulfillment):
+     * aperte con scadenza entro 3 mesi, scadute incluse. Base unica per il badge
+     * in sidebar e dashboard, coerente col tab "Prossime" che apre il link
+     * "Scadenze" (`state=upcoming`). Scoping tenant automatico via global scope.
      */
-    public function openCount(): int
+    public function upcomingCount(): int
     {
-        return Deadline::query()->where('status', DeadlineStatus::Open)->count();
+        return Deadline::query()
+            ->where('status', DeadlineStatus::Open)
+            ->where('due_at', '<=', $this->upcomingCutoff())
+            ->count();
+    }
+
+    /**
+     * Limite superiore della finestra "prossime": oggi + 3 mesi (fine giornata).
+     * Nessun limite inferiore, così le scadenze già scadute restano incluse.
+     */
+    private function upcomingCutoff(): Carbon
+    {
+        return Carbon::today()->addMonths(3)->endOfDay();
     }
 
     /**

@@ -68,11 +68,15 @@ export function useDeadlineFilters(getFilters: () => DeadlineFilters): {
         );
     }
 
-    // Toggle stato (segmentatore primario): 'all' quando nessun filtro stato.
-    const statusTab = computed(() => filters.value.state ?? 'all');
+    // Toggle stato (segmentatore primario): default 'upcoming' (prossime).
+    const statusTab = computed(() => filters.value.state ?? 'upcoming');
+
+    const STATES: DeadlineStateFilter[] = ['upcoming', 'open', 'closed', 'all'];
 
     function setStatus(value: unknown): void {
-        const next = value === 'open' || value === 'closed' ? value : null;
+        const next = STATES.includes(value as DeadlineStateFilter)
+            ? (value as DeadlineStateFilter)
+            : 'upcoming';
         applyFilters({ state: next });
     }
 

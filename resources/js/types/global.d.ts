@@ -20,7 +20,7 @@ declare module '@inertiajs/core' {
             auth: Auth;
             sidebarOpen: boolean;
             nav: {
-                openDeadlines: number;
+                upcomingDeadlines: number;
                 currentYear: number | null;
             } | null;
             [key: string]: unknown;

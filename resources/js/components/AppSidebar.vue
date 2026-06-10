@@ -104,9 +104,9 @@ const mainSections = computed<NavSection[]>(() => [
             {
                 label: 'Scadenze',
                 icon: PhListChecks,
-                href: deadlinesIndex({ query: { state: 'open' } }),
+                href: deadlinesIndex({ query: { state: 'upcoming' } }),
                 activeMatch: deadlinesIndex(),
-                badge: page.props.nav?.openDeadlines,
+                badge: page.props.nav?.upcomingDeadlines,
             },
             { label: 'Fatture', icon: PhReceipt, href: invoicesIndex() },
             { label: 'Pagamenti', icon: PhCoins, href: paymentsIndex() },

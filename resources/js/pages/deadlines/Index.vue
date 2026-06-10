@@ -13,6 +13,7 @@ import { Head, setLayoutProps } from '@inertiajs/vue3';
 import {
     PhCheckCircle,
     PhCircleDashed,
+    PhClock,
     PhFunnel,
     PhListBullets,
     PhMagnifyingGlass,
@@ -67,9 +68,11 @@ const props = defineProps<{
     yearOptions: YearOption[];
 }>();
 
-// Toggle stato: segmentatore primario. 'closed' raccoglie completate + non
+// Toggle stato: segmentatore primario. 'upcoming' (default) = prossime, aperte
+// entro 3 mesi con le scadute incluse. 'closed' raccoglie completate + non
 // dovute ("cose fatte"). Stesse icone degli stati riga.
 const STATE_TABS: { value: string; label: string; icon: Component }[] = [
+    { value: 'upcoming', label: 'Prossime', icon: PhClock },
     { value: 'open', label: 'Aperte', icon: PhCircleDashed },
     { value: 'closed', label: 'Completate', icon: PhCheckCircle },
     { value: 'all', label: 'Tutte', icon: PhListBullets },

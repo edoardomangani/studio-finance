@@ -276,7 +276,7 @@ it('crea una ad-hoc col previsto manuale e lo espone come previsto in lista', fu
     expect((float) $deadline->manual_expected_amount)->toBe(320.50);
 
     // Il previsto manuale è esposto come expected_amount (vista derivata).
-    $this->get(route('deadlines.index', ['search' => 'Con previsto']))
+    $this->get(route('deadlines.index', ['search' => 'Con previsto', 'state' => 'all']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('deadlines.data.0.expected_amount', 320.5)

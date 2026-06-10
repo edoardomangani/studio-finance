@@ -34,6 +34,7 @@ class DashboardService
         private readonly YearStatement $yearStatement,
         private readonly DeadlineContextBuilder $deadlineContextBuilder,
         private readonly DeadlineExpectation $deadlineExpectation,
+        private readonly DeadlineService $deadlineService,
     ) {}
 
     /**
@@ -169,8 +170,10 @@ class DashboardService
      * I numeri cross-anno di "Da coprire": spese da pagare a oggi (competenza,
      * maturato − pagato), spese da pagare in tutto (definitivo − pagato sull'anno
      * intero, distinto dalle scadenze perché senza minimi/acconti) e scadenze da
-     * pagare (cassa, somma dei previsti delle scadenze aperte) + conteggio. Gli
-     * anni chiusi contribuiscono 0 ai due "spese": niente accumulo storico.
+     * pagare (cassa, somma dei previsti delle scadenze aperte). Gli anni chiusi
+     * contribuiscono 0 ai due "spese": niente accumulo storico. Il conteggio
+     * `upcoming_deadlines_count` è la base unica del badge (stessa di sidebar):
+     * scadenze prossime di ogni tipo, non solo i pagamenti sommati qui.
      *
      * @param  Collection<int, YearAmounts>  $amountsByYear
      * @param  array<int, array<string, mixed>>  $deadlineRows  scadenze aperte già mappate (con previsto)
@@ -191,7 +194,7 @@ class DashboardService
             'expenses_due_to_date' => round($dueToDate, 2),
             'expenses_due' => round($due, 2),
             'deadlines_due' => round((float) array_sum(array_column($deadlineRows, 'expected_amount')), 2),
-            'open_deadlines_count' => count($deadlineRows),
+            'upcoming_deadlines_count' => $this->deadlineService->upcomingCount(),
         ];
     }
 

@@ -45,9 +45,9 @@ class HandleInertiaRequests extends Middleware
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             // Segnali per la sidebar (solo da autenticato): conteggio scadenze
-            // aperte per il badge e anno corrente per l'etichetta "Anni".
+            // prossime per il badge e anno corrente per l'etichetta "Anni".
             'nav' => $request->user() ? [
-                'openDeadlines' => app(DeadlineService::class)->openCount(),
+                'upcomingDeadlines' => app(DeadlineService::class)->upcomingCount(),
                 'currentYear' => app(YearService::class)->currentYear(),
             ] : null,
         ];

@@ -9,21 +9,25 @@ use Inertia\Testing\AssertableInertia as Assert;
 uses(RefreshDatabase::class);
 
 /**
- * Il prop condiviso `nav` alimenta la sidebar: conteggio scadenze aperte
- * (badge) e anno corrente (etichetta "Anni"). Vedi HandleInertiaRequests.
+ * Il prop condiviso `nav` alimenta la sidebar: conteggio scadenze "prossime"
+ * (badge: aperte entro 3 mesi, scadute incluse) e anno corrente (etichetta
+ * "Anni"). Vedi HandleInertiaRequests.
  */
-it('condivide conteggio scadenze aperte e anno corrente da autenticato', function () {
+it('condivide conteggio scadenze prossime e anno corrente da autenticato', function () {
     $user = onboardedUserWithTemplates();
     $year = Year::factory()->forYear((int) now()->year)->create();
 
-    // 2 aperte (contate) + 1 completata (esclusa).
-    Deadline::factory()->count(2)->create(['year_id' => $year->id]);
-    Deadline::factory()->completed()->create(['year_id' => $year->id]);
+    // Prossime (contate): 1 scaduta + 1 entro la finestra. Escluse: 1 aperta
+    // oltre 3 mesi e 1 completata.
+    Deadline::factory()->create(['year_id' => $year->id, 'due_at' => now()->subMonth()]);
+    Deadline::factory()->create(['year_id' => $year->id, 'due_at' => now()->addMonth()]);
+    Deadline::factory()->create(['year_id' => $year->id, 'due_at' => now()->addMonths(6)]);
+    Deadline::factory()->completed()->create(['year_id' => $year->id, 'due_at' => now()]);
 
     $this->get(route('dashboard'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('nav.openDeadlines', 2)
+            ->where('nav.upcomingDeadlines', 2)
             ->where('nav.currentYear', (int) now()->year)
         );
 });
@@ -40,7 +44,7 @@ it('currentYear è null quando nessun anno è aperto', function () {
     $this->get(route('dashboard'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('nav.openDeadlines', 0)
+            ->where('nav.upcomingDeadlines', 0)
             ->where('nav.currentYear', null)
         );
 });
@@ -54,5 +58,5 @@ it('il conteggio è isolato per utente', function () {
 
     $this->get(route('dashboard'))
         ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->where('nav.openDeadlines', 0));
+        ->assertInertia(fn (Assert $page) => $page->where('nav.upcomingDeadlines', 0));
 });
