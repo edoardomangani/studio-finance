@@ -80,7 +80,7 @@ const monthExpenseItems = computed(() =>
 <template>
     <Head title="Dashboard" />
 
-    <div class="flex flex-col gap-6">
+    <div class="flex flex-col gap-8">
         <!-- Empty state: nessun anno aperto. -->
         <div
             v-if="!data"
@@ -121,7 +121,7 @@ const monthExpenseItems = computed(() =>
             <!-- Spese del mese (barra impilata + legenda) + Scadenze aperte: la
                  lista scadenze è il box "lungo", il box Spese si allunga (flex-1 +
                  justify-between) per allineare il fondo. -->
-            <div class="grid items-stretch gap-4 md:grid-cols-[0.85fr_1.15fr]">
+            <div class="grid items-stretch gap-4 md:grid-cols-2">
                 <!-- Sempre presente (anche a 0) per non far collassare la griglia. -->
                 <section class="flex flex-col gap-2">
                     <header class="flex items-baseline justify-between gap-3">
