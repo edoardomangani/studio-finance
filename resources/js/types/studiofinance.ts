@@ -423,10 +423,10 @@ export type DashboardThisMonth = {
     yoy_percent: number | null;
 };
 
-/** I due numeri cross-anno di "Da coprire": competenza vs cassa. */
+/** I numeri cross-anno di "Da coprire": competenza (a oggi, in tutto) vs cassa. */
 export type DashboardToCover = {
     expenses_due_to_date: number;
-    paid_to_date: number;
+    expenses_due: number;
     deadlines_due: number;
     open_deadlines_count: number;
 };
@@ -476,6 +476,9 @@ export type DashboardData =
           has_data: true;
           calendar_year: number;
           calendar_month: number;
+          /** Mese mostrato nei pannelli "Questo mese"/"Spese del mese" (vedi DashboardService). */
+          display_year: number;
+          display_month: number;
           current_year: number;
           this_month: DashboardThisMonth | null;
           to_cover: DashboardToCover;

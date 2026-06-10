@@ -20,8 +20,9 @@ use Illuminate\Support\Collection;
  * aperte in una query; tutto il resto è calcolo in memoria sui calcolatori puri.
  * Niente query sparse: il punto-query è il loader condiviso.
  *
- * Tre risposte: "questo mese" (mese in corso), "da coprire" (due numeri
- * cross-anno: spese da pagare a oggi = competenza, scadenze da pagare = cassa)
+ * Tre risposte: "questo mese" (mese mostrato = in corso se ha fatturato,
+ * altrimenti il precedente), "da coprire" (numeri
+ * cross-anno: spese a oggi e in tutto = competenza, scadenze = cassa)
  * e "anno" (cumulato + serie netto + proiezione semplice + reddito IRPEF).
  */
 class DashboardService
@@ -66,9 +67,21 @@ class DashboardService
         // prossime: già ordinate per data crescente).
         $deadlineRows = $this->openDeadlineRows();
 
-        $monthExpenses = $current->year === $calendarYear
-            ? $this->monthExpenses($amountsByYear->get($current->year), (float) $current->profitability_coefficient, $calendarMonth)
-            : [];
+        // Mese mostrato nei pannelli "Questo mese" / "Spese del mese": quello in
+        // corso se ha già fatturato, altrimenti il precedente (vedi displayMonth).
+        // Chi fattura a fine mese vedrebbe altrimenti un mese vuoto (e netto
+        // negativo) per quasi tutto il mese.
+        [$displayYear, $displayMonth] = $this->displayMonth($amountsByYear, $calendarYear, $calendarMonth)
+            ?? [$calendarYear, $calendarMonth];
+        $displayAmounts = $amountsByYear->get($displayYear);
+
+        $thisMonth = null;
+        $monthExpenses = [];
+        if ($displayAmounts !== null) {
+            $coefficient = (float) $years->firstWhere('year', $displayYear)->profitability_coefficient;
+            $thisMonth = $this->thisMonth($amountsByYear, $displayYear, $displayMonth, $coefficient);
+            $monthExpenses = $this->monthExpenses($displayAmounts, $coefficient, $displayMonth);
+        }
 
         // Prossime 3 scadenze aperte (le altre nella pagina Scadenze); il box
         // Spese si allunga via flex per allineare il fondo.
@@ -78,8 +91,10 @@ class DashboardService
             'has_data' => true,
             'calendar_year' => $calendarYear,
             'calendar_month' => $calendarMonth,
+            'display_year' => $displayYear,
+            'display_month' => $displayMonth,
             'current_year' => $current->year,
-            'this_month' => $this->thisMonth($current, $amountsByYear, $calendarYear, $calendarMonth),
+            'this_month' => $thisMonth,
             'to_cover' => $this->toCover($amountsByYear, $deadlineRows),
             'year' => $this->yearPanel($current, $amountsByYear->get($current->year)),
             'month_expenses' => $monthExpenses,
@@ -90,45 +105,72 @@ class DashboardService
     }
 
     /**
-     * Mese in corso (solo se l'anno solare è aperto): stipendio = netto del mese,
-     * fatturato e spese del mese, delta vs stesso mese dell'anno precedente.
+     * Mese da mostrare: quello in corso se ha già almeno una fattura, altrimenti
+     * il mese di calendario precedente (mai più indietro, così non si rischiano
+     * mesi vecchi). Null se l'anno solare non è aperto. Il fallback può scavalcare
+     * l'anno (gennaio → dicembre dell'anno prima) ed è valido solo se quell'anno
+     * è caricato; altrimenti si resta sul mese in corso (cold start senza storico).
      *
      * @param  Collection<int, YearAmounts>  $amountsByYear
-     * @return array<string, mixed>|null
+     * @return array{0: int, 1: int}|null [anno, mese]
      */
-    private function thisMonth(Year $current, Collection $amountsByYear, int $calendarYear, int $calendarMonth): ?array
+    private function displayMonth(Collection $amountsByYear, int $calendarYear, int $calendarMonth): ?array
     {
-        if ($current->year !== $calendarYear) {
+        $current = $amountsByYear->get($calendarYear);
+        if ($current === null) {
             return null;
         }
 
-        $amounts = $amountsByYear->get($calendarYear);
-        $month = $this->monthFigures($amounts, (float) $current->profitability_coefficient, $calendarMonth);
+        if ($this->monthInvoices($current, $calendarMonth)->isNotEmpty()) {
+            return [$calendarYear, $calendarMonth];
+        }
+
+        [$year, $month] = $calendarMonth > 1
+            ? [$calendarYear, $calendarMonth - 1]
+            : [$calendarYear - 1, 12];
+
+        return $amountsByYear->has($year) ? [$year, $month] : [$calendarYear, $calendarMonth];
+    }
+
+    /**
+     * Pannello "Questo mese": stipendio = netto del mese, fatturato e spese del
+     * mese, delta vs lo stesso mese dell'anno precedente. Il mese è quello scelto
+     * da [[displayMonth]].
+     *
+     * @param  Collection<int, YearAmounts>  $amountsByYear
+     * @return array<string, mixed>
+     */
+    private function thisMonth(Collection $amountsByYear, int $year, int $month, float $coefficient): array
+    {
+        $amounts = $amountsByYear->get($year);
+        $figures = $this->monthFigures($amounts, $coefficient, $month);
 
         // YoY: % fatturato vs stesso mese N-1, solo se l'anno precedente è aperto
         // e aveva fatturato in quel mese.
         $yoy = null;
-        $previous = $amountsByYear->get($calendarYear - 1);
+        $previous = $amountsByYear->get($year - 1);
         if ($previous !== null) {
-            $prevTotal = $this->monthInvoiceTotal($previous, $calendarMonth);
+            $prevTotal = $this->monthInvoiceTotal($previous, $month);
             if ($prevTotal > 0) {
-                $yoy = round(($month['invoice_total'] - $prevTotal) / $prevTotal * 100, 1);
+                $yoy = round(($figures['invoice_total'] - $prevTotal) / $prevTotal * 100, 1);
             }
         }
 
         return [
-            'month' => $calendarMonth,
-            'net' => $month['net'],
-            'invoice_total' => $month['invoice_total'],
-            'expenses' => $month['expenses'],
+            'month' => $month,
+            'net' => $figures['net'],
+            'invoice_total' => $figures['invoice_total'],
+            'expenses' => $figures['expenses'],
             'yoy_percent' => $yoy,
         ];
     }
 
     /**
-     * I due numeri cross-anno di "Da coprire": spese da pagare a oggi (competenza,
-     * maturato − pagato su tutti gli anni) e scadenze da pagare (cassa, somma dei
-     * previsti di tutte le scadenze di pagamento aperte) + conteggio.
+     * I numeri cross-anno di "Da coprire": spese da pagare a oggi (competenza,
+     * maturato − pagato), spese da pagare in tutto (definitivo − pagato sull'anno
+     * intero, distinto dalle scadenze perché senza minimi/acconti) e scadenze da
+     * pagare (cassa, somma dei previsti delle scadenze aperte) + conteggio. Gli
+     * anni chiusi contribuiscono 0 ai due "spese": niente accumulo storico.
      *
      * @param  Collection<int, YearAmounts>  $amountsByYear
      * @param  array<int, array<string, mixed>>  $deadlineRows  scadenze aperte già mappate (con previsto)
@@ -137,17 +179,17 @@ class DashboardService
     private function toCover(Collection $amountsByYear, array $deadlineRows): array
     {
         $dueToDate = 0.0;
-        $paidToDate = 0.0;
+        $due = 0.0;
         foreach ($amountsByYear as $amounts) {
             foreach ($amounts->expenseAmounts as $row) {
                 $dueToDate += $row['due_to_date'];
-                $paidToDate += $row['paid'];
+                $due += $row['due'];
             }
         }
 
         return [
             'expenses_due_to_date' => round($dueToDate, 2),
-            'paid_to_date' => round($paidToDate, 2),
+            'expenses_due' => round($due, 2),
             'deadlines_due' => round((float) array_sum(array_column($deadlineRows, 'expected_amount')), 2),
             'open_deadlines_count' => count($deadlineRows),
         ];

@@ -6,6 +6,7 @@ use App\Models\AnnualExpense;
 use App\Models\Invoice;
 use App\Models\User;
 use App\Models\Year;
+use Illuminate\Support\Carbon;
 use Inertia\Testing\AssertableInertia as Assert;
 
 /** Anno aperto dell'utente con un coefficiente dato. */
@@ -63,6 +64,8 @@ it('assembla il payload della dashboard per l anno in corso', function () {
             ->where('dashboard.has_data', true)
             ->where('dashboard.current_year', 2026)
             ->where('dashboard.calendar_month', 6)
+            ->where('dashboard.display_year', 2026)
+            ->where('dashboard.display_month', 6)                 // giugno ha fatturato → mese in corso
             ->where('dashboard.this_month.month', 6)
             ->has('dashboard.this_month.invoice_total')           // solo la fattura di giugno
             ->has('dashboard.this_month.yoy_percent')             // null senza anno N-1
@@ -75,8 +78,33 @@ it('assembla il payload della dashboard per l anno in corso', function () {
             ->has('dashboard.month_expenses.0.amount')
             ->where('dashboard.to_cover.open_deadlines_count', 0)
             ->has('dashboard.to_cover.expenses_due_to_date')
+            ->has('dashboard.to_cover.expenses_due')              // spese da pagare in tutto (definitivo − pagato)
             ->has('dashboard.recent_invoices', 2)
             ->has('dashboard.recent_payments'));
+});
+
+it('mostra il mese precedente quando il mese in corso non ha ancora fatture', function () {
+    // Oggi è giugno 2026: senza fattura a giugno, il pannello "Questo mese"
+    // ripiega su maggio (chi fattura a fine mese non vede un mese vuoto).
+    $this->travelTo(Carbon::create(2026, 6, 10));
+
+    $user = onboardedUserWithTemplates();
+    dashboardYear($user, 2026);
+
+    // Solo maggio ha fatturato; giugno è vuoto.
+    Invoice::factory()->create([
+        'user_id' => $user->id, 'issued_at' => '2026-05-15',
+        'amount' => 1000.00, 'stamp_amount' => 0.00, 'art_15_amount' => 0.00,
+    ]);
+
+    $this->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('dashboard.calendar_month', 6)
+            ->where('dashboard.display_month', 5)                 // ripiego su maggio
+            ->where('dashboard.display_year', 2026)
+            ->where('dashboard.this_month.month', 5)
+            ->where('dashboard.this_month.invoice_total', fn ($total) => $total > 0)); // maggio, non giugno (vuoto)
 });
 
 it('richiede onboarding e autenticazione', function () {

@@ -40,7 +40,9 @@ const MONTHS = [
 // Variante "piena" (null su empty state): narrowing per il template e i figli.
 const data = computed(() => (props.dashboard.has_data ? props.dashboard : null));
 
-const monthName = computed(() => (data.value ? MONTHS[data.value.calendar_month - 1] : ''));
+// Mese mostrato (in corso se ha fatturato, altrimenti il precedente): nome e anno
+// vengono dal backend, non dalla data di oggi.
+const monthName = computed(() => (data.value ? MONTHS[data.value.display_month - 1] : ''));
 
 // Totale spese del mese per l'header; la composizione (barra + legenda
 // interattiva) vive in [[StackedBar]].
@@ -86,8 +88,8 @@ const monthExpenseItems = computed(() =>
 
             <DashboardHero
                 :month-name="monthName"
-                :calendar-year="data.calendar_year"
-                :previous-year="data.calendar_year - 1"
+                :display-year="data.display_year"
+                :previous-year="data.display_year - 1"
                 :this-month="data.this_month"
                 :to-cover="data.to_cover"
                 :year="data.year"
@@ -100,7 +102,7 @@ const monthExpenseItems = computed(() =>
                 <!-- Sempre presente (anche a 0) per non far collassare la griglia. -->
                 <section class="flex flex-col gap-2">
                     <header class="flex items-baseline justify-between gap-3">
-                        <h2 class="kicker text-muted-foreground">Spese del mese · {{ monthName }} {{ data.calendar_year }}</h2>
+                        <h2 class="kicker text-muted-foreground">Spese del mese · {{ monthName }} {{ data.display_year }}</h2>
                         <span class="tabular text-13 font-medium text-foreground">{{ formatEUR(accrualTotal) }}</span>
                     </header>
                     <StackedBar :items="monthExpenseItems" class="flex-1" />

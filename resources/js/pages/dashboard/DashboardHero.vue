@@ -17,7 +17,7 @@ import type { DashboardThisMonth, DashboardToCover, DashboardYear } from '@/type
 
 const props = defineProps<{
     monthName: string;
-    calendarYear: number;
+    displayYear: number;
     previousYear: number;
     thisMonth: DashboardThisMonth | null;
     toCover: DashboardToCover;
@@ -33,7 +33,7 @@ const progressPct = computed<number>(() => Math.min(100, (props.year.months_elap
         <section class="flex flex-col bg-accent-strong/4 px-5 py-3">
             <div class="flex flex-col gap-2.5">
                 <header class="flex h-7 items-center">
-                    <h3 class="kicker text-muted-foreground">Questo mese · {{ monthName }} {{ calendarYear }}</h3>
+                    <h3 class="kicker text-muted-foreground">Questo mese · {{ monthName }} {{ displayYear }}</h3>
                 </header>
                 <div v-if="thisMonth" class="flex flex-col gap-1">
                     <p class="text-13 text-muted-foreground">Stipendio del mese</p>
@@ -67,7 +67,7 @@ const progressPct = computed<number>(() => Math.min(100, (props.year.months_elap
                     <p class="text-13 text-muted-foreground">Spese da pagare a oggi</p>
                     <p class="tabular mt-1.5 text-xl font-medium leading-none tracking-tight text-foreground">{{ formatEUR(toCover.expenses_due_to_date) }}</p>
                     <p class="mt-1 text-2xs text-muted-foreground">Maturate, non ancora pagate</p>
-                    <p class="mt-auto pt-3 text-xs text-muted-foreground">Pagato a oggi <span class="tabular text-foreground font-medium">{{ formatEUR(toCover.paid_to_date) }}</span></p>
+                    <p class="mt-auto pt-3 text-xs text-muted-foreground">Da pagare in tutto <span class="tabular text-foreground font-medium">{{ formatEUR(toCover.expenses_due) }}</span></p>
                 </div>
                 <div class="w-px self-stretch bg-border-soft" />
                 <div class="flex flex-1 flex-col">
