@@ -36,8 +36,8 @@ import type {
     YearOption,
 } from '@/types';
 
-// `withTotals`: footer col totale previsto (somma dei previsti calcolabili).
-// Solo quando le `deadlines` sono il set completo (vista anno).
+// `withTotals`: footer col totale (somma degli importi effettivi). Solo quando
+// le `deadlines` sono il set completo (vista anno).
 const props = withDefaults(
     defineProps<{
         deadlines: DeadlineListItem[];
@@ -49,8 +49,44 @@ const props = withDefaults(
     { withTotals: false },
 );
 
-const totalExpected = computed(() =>
-    props.deadlines.reduce((acc, d) => acc + (d.expected_amount ?? 0), 0),
+// Pagamento registrato (importo confermato dall'F24), non solo pianificato.
+function isPaid(deadline: DeadlineListItem): boolean {
+    return (
+        deadline.payment?.status === 'paid' && deadline.payment.amount !== null
+    );
+}
+
+// Importo effettivo di riga: il versato se registrato, altrimenti il previsto
+// (suggerimento). Le non dovute non hanno importo. Base di cella e totale.
+function effectiveAmount(deadline: DeadlineListItem): number | null {
+    if (deadline.status === 'not_due') {
+        return null;
+    }
+
+    if (isPaid(deadline)) {
+        return deadline.payment!.amount;
+    }
+
+    return deadline.expected_amount;
+}
+
+// Scostamento versato − previsto, mostrato solo se registrato e diverge.
+function paymentDelta(deadline: DeadlineListItem): number | null {
+    if (!isPaid(deadline) || deadline.expected_amount === null) {
+        return null;
+    }
+
+    const delta = deadline.payment!.amount! - deadline.expected_amount;
+
+    return Math.abs(delta) < 0.005 ? null : delta;
+}
+
+function formatDelta(delta: number): string {
+    return `${delta > 0 ? '+' : '−'}${formatEUR(Math.abs(delta))}`;
+}
+
+const totalAmount = computed(() =>
+    props.deadlines.reduce((acc, d) => acc + (effectiveAmount(d) ?? 0), 0),
 );
 
 // Side-sheet: aperto al click su una riga, alimentato dai dati di riga.
@@ -98,7 +134,7 @@ defineExpose({ openCreate });
             <TableHead>Voce di spesa</TableHead>
             <TableHead class="w-[110px]">Tipo</TableHead>
             <TableHead class="w-[70px] text-right">Anno</TableHead>
-            <TableHead class="w-[120px] text-right">Previsto</TableHead>
+            <TableHead class="w-[130px] text-right">Importo</TableHead>
             <TableHead class="w-[120px]">Stato</TableHead>
         </DataTableHeader>
         <DataTableBody>
@@ -137,10 +173,29 @@ defineExpose({ openCreate });
                 <TableCell class="tabular text-right text-muted-foreground">{{
                     deadline.year
                 }}</TableCell>
-                <TableCell class="tabular text-right text-foreground">
-                    <span v-if="deadline.expected_amount !== null">{{
-                        formatEUR(deadline.expected_amount)
-                    }}</span>
+                <TableCell
+                    class="tabular text-right"
+                    :title="
+                        isPaid(deadline) && deadline.expected_amount !== null
+                            ? `Previsto ${formatEUR(deadline.expected_amount)}, versato ${formatEUR(deadline.payment!.amount!)}`
+                            : undefined
+                    "
+                >
+                    <template v-if="effectiveAmount(deadline) !== null">
+                        <span
+                            :class="
+                                isPaid(deadline)
+                                    ? 'text-foreground'
+                                    : 'text-muted-foreground'
+                            "
+                            >{{ formatEUR(effectiveAmount(deadline)!) }}</span
+                        >
+                        <span
+                            v-if="paymentDelta(deadline) !== null"
+                            class="block text-2xs text-muted-foreground"
+                            >{{ formatDelta(paymentDelta(deadline)!) }}</span
+                        >
+                    </template>
                     <span v-else class="text-muted-foreground">—</span>
                 </TableCell>
                 <TableCell>
@@ -177,12 +232,14 @@ defineExpose({ openCreate });
         </DataTableBody>
         <TableFooter v-if="withTotals && deadlines.length > 0">
             <TableRow class="font-medium">
-                <TableCell class="text-foreground">Totale previsto</TableCell>
+                <TableCell class="text-foreground">Totale</TableCell>
                 <TableCell />
                 <TableCell />
                 <TableCell />
                 <TableCell />
-                <TableCell class="tabular text-right text-foreground">{{ formatEUR(totalExpected) }}</TableCell>
+                <TableCell class="tabular text-right text-foreground">{{
+                    formatEUR(totalAmount)
+                }}</TableCell>
                 <TableCell />
                 <TableCell />
             </TableRow>
