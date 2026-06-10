@@ -28,8 +28,9 @@ class DeadlineService
     ) {}
 
     /**
-     * Pagina di scadenze (cronologica, più recenti per data prima) con i filtri
-     * applicati e l'importo previsto per riga.
+     * Pagina di scadenze con i filtri applicati e l'importo previsto per riga.
+     * Ordine per stato: aperte crescente (la più imminente prima), completate e
+     * vista "tutte" decrescente (l'ultima gestita prima).
      *
      * Faccette multi-select (array): nessuna selezione = nessun filtro.
      *
@@ -64,8 +65,11 @@ class DeadlineService
                 }
             }))
             ->when($expenseItemIds !== [], fn ($q) => $q->whereHas('annualExpense', fn ($eq) => $eq->whereIn('expense_item_id', $expenseItemIds)))
-            ->orderByDesc('due_at')
-            ->orderByDesc('id')
+            // Aperte = to-do: la più imminente prima (ASC). Completate/tutte =
+            // registro: l'ultima gestita prima (DESC). id come tiebreaker nello
+            // stesso verso.
+            ->orderBy('due_at', $state === 'open' ? 'asc' : 'desc')
+            ->orderBy('id', $state === 'open' ? 'asc' : 'desc')
             ->paginate(self::PER_PAGE)
             ->withQueryString();
 

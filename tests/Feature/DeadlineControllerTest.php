@@ -122,6 +122,32 @@ it('il toggle stato "closed" mostra completate e non dovute, non le aperte', fun
             ->etc());
 });
 
+it('ordina le aperte per data crescente (to-do) e le altre decrescente (registro)', function () {
+    userWithOpenYear();
+
+    // Aperte: la più imminente prima (ASC).
+    $this->get(route('deadlines.index', ['state' => 'open']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('deadlines.data', function ($rows) {
+                $dates = collect($rows)->pluck('due_at')->all();
+
+                return $dates === collect($dates)->sort()->values()->all();
+            })
+            ->etc());
+
+    // Vista "tutte" (nessun filtro stato): l'ultima per data prima (DESC).
+    $this->get(route('deadlines.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('deadlines.data', function ($rows) {
+                $dates = collect($rows)->pluck('due_at')->all();
+
+                return $dates === collect($dates)->sortDesc()->values()->all();
+            })
+            ->etc());
+});
+
 it('richiede onboarding e autenticazione', function () {
     $this->get(route('deadlines.index'))->assertRedirect(route('login'));
 
