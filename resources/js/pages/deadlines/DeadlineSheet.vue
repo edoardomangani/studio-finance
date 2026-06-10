@@ -378,7 +378,7 @@ function submit(): void {
                 </dd>
             </dl>
 
-            <p v-else class="pt-4 text-13 text-muted-foreground">
+            <p v-else class="pt-4 text-xs text-muted-foreground">
                 <span v-if="isFulfillableOpen"
                     >Adempimento senza pagamento: usa il check in alto per
                     segnarlo come svolto.</span
