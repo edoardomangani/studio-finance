@@ -61,13 +61,13 @@ const lastNet = computed<number | null>(
 
 <template>
     <div
-        class="grid divide-y divide-border overflow-hidden rounded-lg border border-border bg-card md:grid-cols-[1.1fr_0.95fr_0.8fr] md:divide-y-0"
+        class="grid divide-y divide-border overflow-hidden rounded-lg border border-border bg-card md:grid-cols-[1fr_1.25fr_1fr] md:divide-y-0"
     >
         <!-- Stipendio del mese -->
         <section class="flex flex-col px-6 py-5">
             <header class="flex h-7 items-center">
                 <h3 class="kicker text-muted-foreground">
-                    Stipendio del mese · {{ monthName }} {{ displayYear }}
+                    Stipendio · {{ monthName }} {{ displayYear }}
                 </h3>
             </header>
             <template v-if="thisMonth">
@@ -77,20 +77,12 @@ const lastNet = computed<number | null>(
                     {{ formatEUR(thisMonth.net) }}
                 </p>
                 <div
-                    class="mt-auto flex flex-wrap gap-x-4 gap-y-1 pt-4 text-13 text-muted-foreground"
+                    class="mt-auto flex justify-between pt-4 text-13 text-muted-foreground"
                 >
-                    <span
-                        >Fatturato
-                        <span class="tabular font-medium text-foreground">{{
-                            formatEUR(thisMonth.invoice_total)
-                        }}</span></span
-                    >
-                    <span
-                        >Spese
-                        <span class="tabular font-medium text-foreground">{{
-                            formatEUR(thisMonth.expenses)
-                        }}</span></span
-                    >
+                    <span>Fatturato</span>
+                    <span class="tabular font-medium text-foreground">{{
+                        formatEUR(thisMonth.invoice_total)
+                    }}</span>
                 </div>
             </template>
             <p v-else class="mt-2 text-13 text-muted-foreground">

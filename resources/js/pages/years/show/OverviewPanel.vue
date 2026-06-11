@@ -6,6 +6,8 @@
  * arrivo) non vive qui: è una timeline trasversale agli anni (Scadenze).
  */
 import { computed, ref, watch } from 'vue';
+import StackedBar from '@/components/charts/StackedBar.vue';
+import { EXPENSE_KIND_META } from '@/lib/expenseKind';
 import { formatEUR } from '@/lib/format';
 import MonthlyBars from '@/pages/years/show/MonthlyBars.vue';
 import MonthlyTable from '@/pages/years/show/MonthlyTable.vue';
@@ -13,25 +15,10 @@ import MonthSheet from '@/pages/years/show/MonthSheet.vue';
 import OverviewLists from '@/pages/years/show/OverviewLists.vue';
 import YearKpiBand from '@/pages/years/show/YearKpiBand.vue';
 import { index as yearsIndex, show as yearShow } from '@/routes/years';
-import type { YearMonth, YearShow } from '@/types';
+import type { ExpenseKind, YearMonth, YearShow } from '@/types';
 
 const props = defineProps<{ year: YearShow }>();
 const emit = defineEmits<{ (e: 'go', tab: string): void }>();
-
-const MONTHS = [
-    'Gennaio',
-    'Febbraio',
-    'Marzo',
-    'Aprile',
-    'Maggio',
-    'Giugno',
-    'Luglio',
-    'Agosto',
-    'Settembre',
-    'Ottobre',
-    'Novembre',
-    'Dicembre',
-];
 
 // Origine per i deep-link a fattura: Anni / {anno}.
 const origin = [
@@ -52,14 +39,50 @@ const defaultMonth = computed<number>(() => {
         return currentMonth.value;
     }
 
-    return [...props.year.months].reverse().find((m) => m.invoice_total > 0)?.month ?? 12;
+    return (
+        [...props.year.months].reverse().find((m) => m.invoice_total > 0)
+            ?.month ?? 12
+    );
 });
 
 const selectedMonth = ref<number>(defaultMonth.value);
-watch(() => props.year.year, () => (selectedMonth.value = defaultMonth.value));
+watch(
+    () => props.year.year,
+    () => (selectedMonth.value = defaultMonth.value),
+);
 
 const selectedData = computed<YearMonth | null>(
-    () => props.year.months.find((m) => m.month === selectedMonth.value) ?? null,
+    () =>
+        props.year.months.find((m) => m.month === selectedMonth.value) ?? null,
+);
+
+// Spese dell'anno per famiglia (kind): definitivo dell'anno sommato per tipo,
+// etichetta = nome famiglia dell'utente, colore fisso. Alimenta lo StackedBar
+// accanto all'andamento mensile (totale derivato dalla somma).
+const yearExpenseItems = computed(() => {
+    const byKind = new Map<ExpenseKind, { amount: number; label: string }>();
+
+    for (const e of props.year.expenses) {
+        const prev = byKind.get(e.kind);
+        byKind.set(e.kind, {
+            amount: (prev?.amount ?? 0) + e.definitive,
+            label: e.family_name,
+        });
+    }
+
+    return [...byKind.entries()]
+        .map(([kind, v]) => ({
+            id: kind,
+            label: v.label,
+            amount: v.amount,
+            color: EXPENSE_KIND_META[kind].color,
+        }))
+        .filter((i) => i.amount > 0)
+        .sort((a, b) => b.amount - a.amount);
+});
+
+const yearExpenseTotal = computed(() =>
+    yearExpenseItems.value.reduce((sum, i) => sum + i.amount, 0),
 );
 
 // Side-sheet dettaglio mese (drill-in dalla riga; la barra solo seleziona).
@@ -82,8 +105,9 @@ function openMonth(month: YearMonth): void {
         >
             <p class="text-13 font-medium text-foreground">Anno pre-aperto</p>
             <p class="mx-auto mt-1 max-w-md text-13 text-muted-foreground">
-                Creato in automatico da una scadenza dell'anno precedente. Mesi, fatture,
-                scadenze e calcoli compaiono quando lo apri formalmente.
+                Creato in automatico da una scadenza dell'anno precedente. Mesi,
+                fatture, scadenze e calcoli compaiono quando lo apri
+                formalmente.
             </p>
         </div>
 
@@ -91,18 +115,29 @@ function openMonth(month: YearMonth): void {
             <!-- Sintesi: focale "da mettere da parte" + reddito (competenza). -->
             <YearKpiBand :year="year" />
 
-            <section class="flex flex-col gap-3">
-                <header class="flex items-baseline justify-between gap-3">
-                    <h2 class="kicker text-muted-foreground">Andamento mensile</h2>
-                    <p v-if="selectedData" class="flex items-center gap-2 text-13 text-muted-foreground">
-                        <span class="rounded bg-accent px-1.5 py-0.5 text-xs font-medium text-accent-strong">{{ MONTHS[selectedData.month - 1] }}</span>
-                        <span>
-                            Fatturato <span class="tabular font-medium text-foreground">{{ formatEUR(selectedData.invoice_total) }}</span>
-                            · Netto <span class="tabular font-medium text-foreground">{{ formatEUR(selectedData.net) }}</span>
-                        </span>
-                    </p>
-                </header>
-                <div class="rounded-lg border border-border bg-card p-4">
+            <div class="grid items-stretch gap-4 md:grid-cols-[2fr_1fr]">
+                <!-- Andamento mensile: titolo + dettaglio del mese selezionato
+                     in testa alla card, barre sotto. -->
+                <div
+                    class="flex flex-col gap-3 rounded-lg border border-border bg-card p-4"
+                >
+                    <div class="flex items-baseline justify-between gap-3">
+                        <h2 class="kicker text-muted-foreground">
+                            Andamento mensile
+                        </h2>
+                        <p
+                            v-if="selectedData"
+                            class="flex items-center gap-2 text-13 text-muted-foreground"
+                        >
+                            <span>
+                                Netto
+                                <span
+                                    class="tabular font-medium text-foreground"
+                                    >{{ formatEUR(selectedData.net) }}</span
+                                >
+                            </span>
+                        </p>
+                    </div>
                     <MonthlyBars
                         :months="year.months"
                         :selected="selectedMonth"
@@ -111,20 +146,52 @@ function openMonth(month: YearMonth): void {
                         @select="(month) => (selectedMonth = month)"
                     />
                 </div>
-                <MonthlyTable
-                    :months="year.months"
-                    :totals="year.totals"
-                    :current-month="currentMonth"
-                    :selected-month="selectedMonth"
-                    @select="openMonth"
-                />
-            </section>
 
-            <OverviewLists :year="year" :origin="origin" @go="(tab) => emit('go', tab)" />
+                <!-- Spese dell'anno: titolo + totale dentro la card. -->
+                <StackedBar
+                    :items="yearExpenseItems"
+                    empty-label="Nessuna spesa nell'anno."
+                    class="h-full"
+                >
+                    <template #header>
+                        <header
+                            class="flex items-baseline justify-between gap-3"
+                        >
+                            <h2 class="kicker text-muted-foreground">
+                                Spese dell'anno
+                            </h2>
+                            <span
+                                class="tabular text-13 font-medium text-foreground"
+                                >{{ formatEUR(yearExpenseTotal) }}</span
+                            >
+                        </header>
+                    </template>
+                </StackedBar>
+            </div>
+
+            <MonthlyTable
+                :months="year.months"
+                :totals="year.totals"
+                :current-month="currentMonth"
+                :selected-month="selectedMonth"
+                @select="openMonth"
+            />
+
+            <OverviewLists
+                :year="year"
+                :origin="origin"
+                @go="(tab) => emit('go', tab)"
+            />
         </template>
 
-        <p v-if="year.note" class="text-13 text-muted-foreground">{{ year.note }}</p>
+        <p v-if="year.note" class="text-13 text-muted-foreground">
+            {{ year.note }}
+        </p>
 
-        <MonthSheet v-model:open="monthSheetOpen" :month="sheetMonth" :origin="origin" />
+        <MonthSheet
+            v-model:open="monthSheetOpen"
+            :month="sheetMonth"
+            :origin="origin"
+        />
     </div>
 </template>

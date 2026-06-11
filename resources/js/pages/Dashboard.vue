@@ -123,7 +123,7 @@ const monthExpenseItems = computed(() =>
 
             <!-- Da coprire (le due cifre cross-anno) + Spese del mese (barra
                  impilata + legenda): due blocchi affiancati, 50/50. -->
-            <div class="grid items-stretch gap-4 md:grid-cols-2">
+            <div class="grid items-stretch gap-4 md:grid-cols-[1fr_1.5fr]">
                 <DashboardCover :to-cover="data.to_cover" />
 
                 <StackedBar :items="monthExpenseItems" class="h-full">

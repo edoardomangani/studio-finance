@@ -95,9 +95,10 @@ function ratio(value: number): string {
                 <TableCell class="tabular text-right text-muted-foreground">{{
                     formatEUR(m.total_expenses)
                 }}</TableCell>
-                <TableCell class="tabular text-right text-foreground">{{
-                    formatEUR(m.net)
-                }}</TableCell>
+                <TableCell
+                    class="tabular text-right font-medium text-foreground"
+                    >{{ formatEUR(m.net) }}</TableCell
+                >
                 <TableCell class="tabular text-right text-muted-foreground">
                     <span v-if="m.invoice_total > 0">{{
                         ratio(m.net_to_gross_ratio)

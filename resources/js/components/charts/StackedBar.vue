@@ -17,7 +17,10 @@ type StackItem = {
     color: string;
 };
 
-const props = defineProps<{ items: StackItem[] }>();
+const props = withDefaults(
+    defineProps<{ items: StackItem[]; emptyLabel?: string }>(),
+    { emptyLabel: 'Nessuna spesa nel mese.' },
+);
 
 const total = computed(() =>
     props.items.reduce((sum, item) => sum + item.amount, 0),
@@ -73,7 +76,7 @@ function toggle(id: ItemId): void {
                 v-if="!segments.length"
                 class="px-1.5 py-1 text-13 text-muted-foreground"
             >
-                Nessuna spesa nel mese.
+                {{ emptyLabel }}
             </p>
             <button
                 v-for="segment in segments"
