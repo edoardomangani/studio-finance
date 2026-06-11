@@ -1,9 +1,10 @@
 <script setup lang="ts">
 /**
- * Dashboard generale (Fase 9.b): mese in corso, "da coprire" cross-anno e
- * pannello anno (fascia hero), spese del mese scomposte e tre liste compatte
- * (prossime scadenze, ultime fatture e pagamenti). Le liste riusano il pattern
- * `DataTable` della Panoramica anno. Empty state quando non c'è alcun anno.
+ * Dashboard generale (Fase 9.b): fascia hero (stipendio del mese · sparkline
+ * netto 12 mesi · anno), "da coprire" cross-anno + spese del mese scomposte,
+ * andamento anno col confronto anno precedente + tre liste compatte (scadenze
+ * aperte, ultime fatture e pagamenti). Le liste riusano il pattern `DataTable`
+ * della Panoramica anno. Empty state quando non c'è alcun anno.
  */
 import { Head, router, setLayoutProps } from '@inertiajs/vue3';
 import { PhArrowRight, PhCalendarBlank } from '@phosphor-icons/vue';
@@ -21,6 +22,8 @@ import {
 } from '@/components/ui/table';
 import { EXPENSE_KIND_META } from '@/lib/expenseKind';
 import { formatDateIT, formatEUR } from '@/lib/format';
+import AnnualTrendBars from '@/pages/dashboard/AnnualTrendBars.vue';
+import DashboardCover from '@/pages/dashboard/DashboardCover.vue';
 import DashboardHero from '@/pages/dashboard/DashboardHero.vue';
 import { index as deadlinesIndex } from '@/routes/deadlines';
 import { index as invoicesIndex } from '@/routes/invoices';
@@ -112,29 +115,63 @@ const monthExpenseItems = computed(() =>
             <DashboardHero
                 :month-name="monthName"
                 :display-year="data.display_year"
-                :previous-year="data.display_year - 1"
+                :display-month="data.display_month"
                 :this-month="data.this_month"
-                :to-cover="data.to_cover"
+                :net-trend="data.net_trend"
                 :year="data.year"
             />
 
-            <!-- Spese del mese (barra impilata + legenda) + Scadenze aperte: la
-                 lista scadenze è il box "lungo", il box Spese si allunga (flex-1 +
-                 justify-between) per allineare il fondo. -->
+            <!-- Da coprire (le due cifre cross-anno) + Spese del mese (barra
+                 impilata + legenda): due blocchi affiancati, 50/50. -->
             <div class="grid items-stretch gap-4 md:grid-cols-2">
-                <!-- Sempre presente (anche a 0) per non far collassare la griglia. -->
+                <DashboardCover :to-cover="data.to_cover" />
+
+                <StackedBar :items="monthExpenseItems" class="h-full">
+                    <template #header>
+                        <header
+                            class="flex items-baseline justify-between gap-3"
+                        >
+                            <h2 class="kicker text-muted-foreground">
+                                Spese del mese · {{ monthName }}
+                                {{ data.display_year }}
+                            </h2>
+                            <span
+                                class="tabular text-13 font-medium text-foreground"
+                                >{{ formatEUR(accrualTotal) }}</span
+                            >
+                        </header>
+                    </template>
+                </StackedBar>
+            </div>
+
+            <!-- Andamento anno a 2/3 (titolo + link fuori, grafico nella card —
+                 come la pagina anno) + Scadenze aperte a 1/3. -->
+            <div class="grid items-stretch gap-4 md:grid-cols-[2fr_1fr]">
                 <section class="flex flex-col gap-2">
                     <header class="flex items-baseline justify-between gap-3">
                         <h2 class="kicker text-muted-foreground">
-                            Spese del mese · {{ monthName }}
-                            {{ data.display_year }}
+                            Andamento mensile · {{ data.year.year }}
                         </h2>
-                        <span
-                            class="tabular text-13 font-medium text-foreground"
-                            >{{ formatEUR(accrualTotal) }}</span
+                        <Button
+                            variant="link"
+                            size="sm"
+                            class="h-auto gap-1 p-0"
+                            @click="
+                                router.visit(yearShow(data.current_year).url)
+                            "
                         >
+                            Vedi anno
+                            <PhArrowRight :size="13" />
+                        </Button>
                     </header>
-                    <StackedBar :items="monthExpenseItems" class="flex-1" />
+                    <div class="rounded-lg border border-border bg-card p-4">
+                        <AnnualTrendBars
+                            :months="data.year_trend.months"
+                            :current-month="data.year_trend.current_month"
+                            :current-year="data.year.year"
+                            :previous-year="data.year.year - 1"
+                        />
+                    </div>
                 </section>
 
                 <section class="flex flex-col gap-2">

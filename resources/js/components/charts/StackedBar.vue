@@ -4,17 +4,24 @@
  * per famiglia): un segmento per voce, larghezza = quota sul totale, colore dato
  * dal chiamante. Interattiva come il grafico mensile: hover → valore (tooltip),
  * click → fissa la voce evidenziata (le altre sbiadiscono), cross-highlight barra
- * ↔ legenda. Root con `justify-between`: barra in alto, legenda in basso quando
- * il box viene allungato (flex-1 dal chiamante).
+ * ↔ legenda. Root con `justify-between`: testata opzionale (slot `header`) + barra
+ * in alto, legenda in basso quando il box viene allungato (flex-1 dal chiamante).
  */
 import { computed, ref } from 'vue';
 import { formatEUR } from '@/lib/format';
 
-type StackItem = { id: string | number; label: string; amount: number; color: string };
+type StackItem = {
+    id: string | number;
+    label: string;
+    amount: number;
+    color: string;
+};
 
 const props = defineProps<{ items: StackItem[] }>();
 
-const total = computed(() => props.items.reduce((sum, item) => sum + item.amount, 0));
+const total = computed(() =>
+    props.items.reduce((sum, item) => sum + item.amount, 0),
+);
 
 const segments = computed(() =>
     props.items.map((item) => ({
@@ -35,22 +42,37 @@ function toggle(id: ItemId): void {
 </script>
 
 <template>
-    <div class="flex flex-col justify-between gap-4 rounded-lg border border-border bg-card p-4">
-        <div class="flex h-3.5 overflow-hidden rounded-sm bg-muted">
-            <div
-                v-for="segment in segments"
-                :key="segment.id"
-                class="cursor-pointer border-r border-card transition-opacity last:border-r-0"
-                :class="active !== null && active !== segment.id ? 'opacity-25' : ''"
-                :style="{ width: `${segment.pct}%`, background: segment.color }"
-                :title="`${segment.label}: ${formatEUR(segment.amount)} · ${segment.pct.toFixed(0)}%`"
-                @click="toggle(segment.id)"
-                @mouseenter="hovered = segment.id"
-                @mouseleave="hovered = null"
-            />
+    <div
+        class="flex flex-col justify-between gap-4 rounded-lg border border-border bg-card p-4"
+    >
+        <div class="flex flex-col gap-3">
+            <slot name="header" />
+            <div class="flex h-3.5 overflow-hidden rounded-sm bg-muted">
+                <div
+                    v-for="segment in segments"
+                    :key="segment.id"
+                    class="cursor-pointer border-r border-card transition-opacity last:border-r-0"
+                    :class="
+                        active !== null && active !== segment.id
+                            ? 'opacity-25'
+                            : ''
+                    "
+                    :style="{
+                        width: `${segment.pct}%`,
+                        background: segment.color,
+                    }"
+                    :title="`${segment.label}: ${formatEUR(segment.amount)} · ${segment.pct.toFixed(0)}%`"
+                    @click="toggle(segment.id)"
+                    @mouseenter="hovered = segment.id"
+                    @mouseleave="hovered = null"
+                />
+            </div>
         </div>
         <div class="flex flex-col gap-0.5">
-            <p v-if="!segments.length" class="px-1.5 py-1 text-13 text-muted-foreground">
+            <p
+                v-if="!segments.length"
+                class="px-1.5 py-1 text-13 text-muted-foreground"
+            >
                 Nessuna spesa nel mese.
             </p>
             <button
@@ -64,10 +86,18 @@ function toggle(id: ItemId): void {
                 @mouseleave="hovered = null"
             >
                 <span class="flex min-w-0 items-center gap-2">
-                    <i class="size-2 shrink-0 rounded-[2px]" :style="{ background: segment.color }" />
-                    <span class="truncate text-13 text-muted-foreground">{{ segment.label }}</span>
+                    <i
+                        class="size-2 shrink-0 rounded-[2px]"
+                        :style="{ background: segment.color }"
+                    />
+                    <span class="truncate text-13 text-muted-foreground">{{
+                        segment.label
+                    }}</span>
                 </span>
-                <span class="tabular shrink-0 text-13 font-medium text-foreground">{{ formatEUR(segment.amount) }}</span>
+                <span
+                    class="tabular shrink-0 text-13 font-medium text-foreground"
+                    >{{ formatEUR(segment.amount) }}</span
+                >
             </button>
         </div>
     </div>

@@ -1,110 +1,184 @@
 <script setup lang="ts">
 /**
- * Fascia hero della dashboard: tre pannelli, una domanda ciascuno.
- *  - Questo mese: stipendio (netto) + copertura fatturato/spese + delta YoY.
- *  - Da coprire (tutti gli anni, pannello centrale più largo): Spese da pagare a
- *    oggi (competenza) e Scadenze da pagare (cassa), affiancate.
- *  - Anno: cumulato + progress mesi + proiezione + netto bancario (+ /mese).
- * Layout come la banda KPI dell'anno: kicker + titolo/importo in alto, elemento
- * di fondo ancorato in basso (mt-auto) → footer allineati tra i pannelli.
+ * Fascia hero della dashboard (V4): tre zone affiancate, divise da hairline.
+ *  - Stipendio del mese: numero-eroe (netto), + fatturato e spese del mese.
+ *  - Netto · ultimi 12 mesi: sparkline della serie + variazione primo→ultimo.
+ *  - Anno: cumulato + progress mesi + proiezione fine anno.
+ * Su desktop largo le tre zone respirano affiancate (lettura "cruscotto"); sotto
+ * il breakpoint collassano a fasce orizzontali (hairline). Il numero-eroe scala
+ * fluido (clamp) e resta nero: nel sistema sobrio il petrol non tocca lo stipendio.
  */
 import { PhTrendDown, PhTrendUp } from '@phosphor-icons/vue';
 import { computed } from 'vue';
-import SplitBar from '@/components/charts/SplitBar.vue';
-import { Badge } from '@/components/ui/badge';
+import Sparkline from '@/components/charts/Sparkline.vue';
 import { formatEUR, formatPercent } from '@/lib/format';
-import type { DashboardThisMonth, DashboardToCover, DashboardYear } from '@/types';
+import type {
+    DashboardNetTrend,
+    DashboardThisMonth,
+    DashboardYear,
+} from '@/types';
 
 const props = defineProps<{
     monthName: string;
     displayYear: number;
-    previousYear: number;
+    displayMonth: number;
     thisMonth: DashboardThisMonth | null;
-    toCover: DashboardToCover;
+    netTrend: DashboardNetTrend;
     year: DashboardYear;
 }>();
 
-const progressPct = computed<number>(() => Math.min(100, (props.year.months_elapsed / 12) * 100));
+const MONTHS = [
+    'Gen',
+    'Feb',
+    'Mar',
+    'Apr',
+    'Mag',
+    'Giu',
+    'Lug',
+    'Ago',
+    'Set',
+    'Ott',
+    'Nov',
+    'Dic',
+];
+
+const progressPct = computed<number>(() =>
+    Math.min(100, (props.year.months_elapsed / 12) * 100),
+);
+
+// Estremi della finestra a 12 mesi (mese + valore sotto la sparkline, così la
+// linea ha un riferimento): il primo è il mese successivo al mostrato (un anno
+// fa), l'ultimo è il mese mostrato.
+const startMonthLabel = computed<string>(() => MONTHS[props.displayMonth % 12]);
+const endMonthLabel = computed<string>(() => MONTHS[props.displayMonth - 1]);
+const firstNet = computed<number | null>(
+    () => props.netTrend.points[0] ?? null,
+);
+const lastNet = computed<number | null>(
+    () => props.netTrend.points.at(-1) ?? null,
+);
 </script>
 
 <template>
-    <div class="grid divide-y divide-border overflow-hidden rounded-lg border border-border bg-card md:grid-cols-[1fr_1.3fr_1fr] md:divide-x md:divide-y-0">
-        <!-- Questo mese -->
-        <section class="flex flex-col bg-accent-strong/4 px-5 py-3">
-            <div class="flex flex-col gap-2.5">
-                <header class="flex h-7 items-center">
-                    <h3 class="kicker text-muted-foreground">Importi · {{ monthName }} {{ displayYear }}</h3>
-                </header>
-                <div v-if="thisMonth" class="flex flex-col gap-1">
-                    <p class="text-13 text-muted-foreground">Stipendio del mese</p>
-                    <p class="tabular text-xl font-medium leading-none tracking-tight text-foreground">{{ formatEUR(thisMonth.net) }}</p>
-                </div>
-                <p v-else class="text-13 text-muted-foreground">Nessun dato per il mese in corso.</p>
-            </div>
-            <div v-if="thisMonth" class="mt-auto flex flex-col gap-2.5 pt-4">
-                <SplitBar :paid="thisMonth.net" :rest="thisMonth.expenses" :total="thisMonth.invoice_total" />
-                <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                    <span>Fatturato <span class="tabular font-medium text-foreground">{{ formatEUR(thisMonth.invoice_total) }}</span></span>
-                    <span>Spese <span class="tabular font-medium text-foreground">{{ formatEUR(thisMonth.expenses) }}</span></span>
-                </div>
-                <p v-if="thisMonth.yoy_percent !== null" class="flex items-center gap-1 text-xs text-muted-foreground">
-                    <span class="inline-flex items-center gap-0.5" :class="thisMonth.yoy_percent >= 0 ? 'text-success' : 'text-destructive'">
-                        <component :is="thisMonth.yoy_percent >= 0 ? PhTrendUp : PhTrendDown" :size="12" />
-                        {{ formatPercent(Math.abs(thisMonth.yoy_percent), 0) }}
-                    </span>
-                    vs {{ monthName.toLowerCase() }} {{ previousYear }}
+    <div
+        class="grid divide-y divide-border overflow-hidden rounded-lg border border-border bg-card md:grid-cols-[1.1fr_0.95fr_0.8fr] md:divide-y-0"
+    >
+        <!-- Stipendio del mese -->
+        <section class="flex flex-col px-6 py-5">
+            <header class="flex h-7 items-center">
+                <h3 class="kicker text-muted-foreground">
+                    Stipendio del mese · {{ monthName }} {{ displayYear }}
+                </h3>
+            </header>
+            <template v-if="thisMonth">
+                <p
+                    class="tabular mt-2 text-[clamp(2.125rem,1.5rem+2vw,3.25rem)] leading-[0.95] font-medium tracking-[-0.03em] whitespace-nowrap text-foreground"
+                >
+                    {{ formatEUR(thisMonth.net) }}
                 </p>
-            </div>
+                <div
+                    class="mt-auto flex flex-wrap gap-x-4 gap-y-1 pt-4 text-13 text-muted-foreground"
+                >
+                    <span
+                        >Fatturato
+                        <span class="tabular font-medium text-foreground">{{
+                            formatEUR(thisMonth.invoice_total)
+                        }}</span></span
+                    >
+                    <span
+                        >Spese
+                        <span class="tabular font-medium text-foreground">{{
+                            formatEUR(thisMonth.expenses)
+                        }}</span></span
+                    >
+                </div>
+            </template>
+            <p v-else class="mt-2 text-13 text-muted-foreground">
+                Nessun dato per il mese in corso.
+            </p>
         </section>
 
-        <!-- Da coprire (pannello centrale, più largo) -->
-        <section class="flex flex-col px-5 py-3">
-            <header class="flex h-7 items-center">
-                <h3 class="kicker text-muted-foreground">Da coprire</h3>
-            </header>
-            <div class="mt-3 flex flex-1 items-stretch gap-4">
-                <div class="flex flex-1 flex-col">
-                    <p class="text-13 text-muted-foreground">Spese da pagare a oggi</p>
-                    <p class="tabular mt-1.5 text-xl font-medium leading-none tracking-tight text-foreground">{{ formatEUR(toCover.expenses_due_to_date) }}</p>
-                    <p class="mt-1 text-2xs text-muted-foreground">Maturate, non ancora pagate</p>
-                    <p class="mt-auto pt-3 text-xs text-muted-foreground">Da pagare in tutto <span class="tabular text-foreground font-medium">{{ formatEUR(toCover.expenses_due) }}</span></p>
-                </div>
-                <div class="w-px self-stretch bg-border-soft" />
-                <div class="flex flex-1 flex-col">
-                    <p class="text-13 text-muted-foreground">Scadenze da pagare</p>
-                    <p class="tabular mt-1.5 text-xl font-medium leading-none tracking-tight text-foreground">{{ formatEUR(toCover.deadlines_due) }}</p>
-                    <p class="mt-1 text-2xs text-muted-foreground">Importi delle scadenze aperte</p>
-                    <div class="mt-auto pt-3">
-                        <Badge variant="warning" class="tabular">{{ toCover.upcoming_deadlines_count }} in scadenza</Badge>
-                    </div>
-                </div>
+        <!-- Netto · ultimi 12 mesi (sparkline) -->
+        <section class="relative flex flex-col justify-center gap-2 px-6 py-5">
+            <span
+                class="absolute inset-y-5 left-0 hidden w-px bg-border md:block"
+                aria-hidden="true"
+            />
+            <div class="flex items-baseline justify-between gap-3">
+                <span class="text-2xs text-muted-foreground"
+                    >Netto · ultimi 12 mesi</span
+                >
+                <span
+                    v-if="netTrend.percent !== null"
+                    class="inline-flex items-center gap-0.5 text-13 font-medium"
+                    :class="
+                        netTrend.percent >= 0
+                            ? 'text-success'
+                            : 'text-destructive'
+                    "
+                >
+                    <component
+                        :is="netTrend.percent >= 0 ? PhTrendUp : PhTrendDown"
+                        :size="13"
+                    />
+                    {{ formatPercent(Math.abs(netTrend.percent), 0) }}
+                </span>
+            </div>
+            <Sparkline :points="netTrend.points" :height="50" />
+            <div
+                class="flex items-baseline justify-between gap-3 text-2xs text-muted-foreground"
+            >
+                <span v-if="firstNet !== null" class="whitespace-nowrap"
+                    >{{ startMonthLabel }}
+                    <span class="tabular text-foreground">{{
+                        formatEUR(firstNet)
+                    }}</span></span
+                >
+                <span v-if="lastNet !== null" class="whitespace-nowrap"
+                    >{{ endMonthLabel }}
+                    <span class="tabular text-foreground">{{
+                        formatEUR(lastNet)
+                    }}</span></span
+                >
             </div>
         </section>
 
         <!-- Anno -->
-        <section class="flex flex-col px-5 py-3">
-            <div class="flex flex-col gap-2.5">
-                <header class="flex h-7 items-center">
-                    <h3 class="kicker text-muted-foreground">Anno {{ year.year }}</h3>
-                </header>
-                <div class="flex flex-col gap-1">
-                    <p class="text-13 text-muted-foreground">Fatturato cumulato</p>
-                    <p class="tabular text-xl font-medium leading-none tracking-tight text-foreground">{{ formatEUR(year.invoice_total) }}</p>
-                </div>
+        <section class="relative flex flex-col px-6 py-5">
+            <span
+                class="absolute inset-y-5 left-0 hidden w-px bg-border md:block"
+                aria-hidden="true"
+            />
+            <header class="flex h-7 items-center">
+                <h3 class="kicker text-muted-foreground">
+                    Anno {{ year.year }}
+                </h3>
+            </header>
+            <div class="mt-2 flex flex-col gap-1">
+                <p class="text-13 text-muted-foreground">Fatturato cumulato</p>
+                <p
+                    class="tabular text-[1.625rem] leading-none font-medium tracking-tight whitespace-nowrap text-foreground"
+                >
+                    {{ formatEUR(year.invoice_total) }}
+                </p>
             </div>
             <div class="mt-auto flex flex-col gap-2 pt-4">
                 <div class="h-1 overflow-hidden rounded-full bg-muted">
-                    <div class="h-full rounded-full bg-accent-strong" :style="{ width: `${progressPct}%` }" />
+                    <div
+                        class="h-full rounded-full bg-accent-strong"
+                        :style="{ width: `${progressPct}%` }"
+                    />
                 </div>
-                <div class="flex items-baseline justify-between gap-3 text-xs text-muted-foreground">
+                <div
+                    class="flex items-baseline justify-between gap-3 text-2xs text-muted-foreground"
+                >
                     <span>{{ year.months_elapsed }}/12 mesi</span>
-                    <span>Proiez. <span class="tabular text-foreground font-medium">{{ formatEUR(year.projection) }}</span></span>
-                </div>
-                <div class="flex items-baseline justify-between gap-3 text-xs">
-                    <span class="text-muted-foreground">Netto bancario</span>
-                    <span class="tabular text-foreground">
-                        <span class="font-medium">{{ formatEUR(year.bank_income) }}</span><span class="text-muted-foreground"> · {{ formatEUR(year.bank_income / (year.months_elapsed || 12)) }}/mese</span>
-                    </span>
+                    <span
+                        >Proiez.
+                        <span class="tabular font-medium text-foreground">{{
+                            formatEUR(year.projection)
+                        }}</span></span
+                    >
                 </div>
             </div>
         </section>

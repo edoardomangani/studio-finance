@@ -431,17 +431,39 @@ export type DashboardToCover = {
     upcoming_deadlines_count: number;
 };
 
-/** Pannello anno: cumulato, mesi trascorsi (progress), proiezione, netto bancario. */
+/** Pannello anno: cumulato, mesi trascorsi (progress), proiezione fine anno. */
 export type DashboardYear = {
     year: number;
     invoice_total: number;
     months_elapsed: number;
     projection: number;
-    bank_income: number;
+};
+
+/** Netto degli ultimi 12 mesi (sparkline hero) + variazione primo→ultimo punto. */
+export type DashboardNetTrend = {
+    points: number[];
+    percent: number | null;
+};
+
+/** Un mese dell'andamento anno: fatturato corrente + fantasma anno precedente. */
+export type DashboardYearTrendMonth = {
+    month: number;
+    current: number | null;
+    previous: number | null;
+};
+
+/** Andamento anno (grafico dashboard): 12 mesi + mese evidenziato. */
+export type DashboardYearTrend = {
+    months: DashboardYearTrendMonth[];
+    current_month: number | null;
 };
 
 /** Una voce di spesa del mese (accantonamento del mese, per singola spesa). */
-export type DashboardMonthExpense = { kind: ExpenseKind; label: string; amount: number };
+export type DashboardMonthExpense = {
+    kind: ExpenseKind;
+    label: string;
+    amount: number;
+};
 
 /** Scadenza aperta nella lista dashboard (prossime per data). */
 export type DashboardDeadline = {
@@ -483,6 +505,8 @@ export type DashboardData =
           this_month: DashboardThisMonth | null;
           to_cover: DashboardToCover;
           year: DashboardYear;
+          net_trend: DashboardNetTrend;
+          year_trend: DashboardYearTrend;
           month_expenses: DashboardMonthExpense[];
           open_deadlines: DashboardDeadline[];
           recent_invoices: DashboardRecentInvoice[];

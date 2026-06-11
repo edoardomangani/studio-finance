@@ -71,7 +71,7 @@ it('assembla il payload della dashboard per l anno in corso', function () {
             ->has('dashboard.this_month.yoy_percent')             // null senza anno N-1
             ->has('dashboard.year.invoice_total')                 // cumulato anno
             ->where('dashboard.year.months_elapsed', 6)
-            ->has('dashboard.year.bank_income')                   // netto bancario (no più IRPEF)
+            ->missing('dashboard.year.bank_income')               // netto bancario uscito dalla dashboard (resta su pagina anno)
             ->missing('dashboard.year.irpef_income_net')
             ->has('dashboard.month_expenses', 3)                 // una riga per voce di spesa
             ->has('dashboard.month_expenses.0.label')
@@ -80,7 +80,44 @@ it('assembla il payload della dashboard per l anno in corso', function () {
             ->has('dashboard.to_cover.expenses_due_to_date')
             ->has('dashboard.to_cover.expenses_due')              // spese da pagare in tutto (definitivo − pagato)
             ->has('dashboard.recent_invoices', 2)
-            ->has('dashboard.recent_payments'));
+            ->has('dashboard.recent_payments')
+            ->has('dashboard.net_trend.points')                  // sparkline netto 12 mesi
+            ->has('dashboard.net_trend.percent')                 // null senza storico (anno N-1 assente)
+            ->has('dashboard.year_trend.months', 12)             // andamento anno: sempre 12 mesi
+            ->where('dashboard.year_trend.current_month', 6)
+            ->where('dashboard.year_trend.months.5.month', 6)
+            ->where('dashboard.year_trend.months.5.current', fn ($total) => $total > 0)  // giugno ha fatturato
+            ->where('dashboard.year_trend.months.5.previous', null)                       // anno N-1 non aperto
+            ->where('dashboard.year_trend.months.11.current', null));                     // dicembre futuro → niente barra
+});
+
+it('costruisce la sparkline netto sui 12 mesi a cavallo dell anno precedente', function () {
+    // Mese mostrato = giugno 2026 → finestra netto = lug 2025 … giu 2026.
+    $this->travelTo(Carbon::create(2026, 6, 10));
+
+    $user = onboardedUserWithTemplates();
+    dashboardYear($user, 2026);
+    dashboardYear($user, 2025);
+
+    // Fattura in un mese dentro la finestra dell'anno precedente (set 2025) e una
+    // nell'anno corrente (giu 2026): la serie deve attraversare i due anni.
+    Invoice::factory()->create([
+        'user_id' => $user->id, 'issued_at' => '2025-09-12',
+        'amount' => 1000.00, 'stamp_amount' => 0.00, 'art_15_amount' => 0.00,
+    ]);
+    Invoice::factory()->create([
+        'user_id' => $user->id, 'issued_at' => '2026-06-02',
+        'amount' => 1000.00, 'stamp_amount' => 0.00, 'art_15_amount' => 0.00,
+    ]);
+
+    $this->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('dashboard.display_month', 6)
+            ->has('dashboard.net_trend.points', 12)                              // 12 mesi pieni: i due anni sono aperti
+            ->has('dashboard.net_trend.percent')                                 // chiave presente (null se primo punto a zero)
+            ->where('dashboard.year_trend.months.8.previous', fn ($t) => $t > 0) // settembre fantasma 2025
+            ->where('dashboard.year_trend.months.5.current', fn ($t) => $t > 0)); // giugno 2026
 });
 
 it('mostra il mese precedente quando il mese in corso non ha ancora fatture', function () {

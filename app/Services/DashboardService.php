@@ -31,7 +31,6 @@ class DashboardService
         private readonly YearAmountsLoader $amountsLoader,
         private readonly RevenueCalculator $revenueCalculator,
         private readonly MonthlyStatement $monthlyStatement,
-        private readonly YearStatement $yearStatement,
         private readonly DeadlineContextBuilder $deadlineContextBuilder,
         private readonly DeadlineExpectation $deadlineExpectation,
         private readonly DeadlineService $deadlineService,
@@ -84,9 +83,9 @@ class DashboardService
             $monthExpenses = $this->monthExpenses($displayAmounts, $coefficient, $displayMonth);
         }
 
-        // Prossime 3 scadenze aperte (le altre nella pagina Scadenze); il box
+        // Prossime 4 scadenze aperte (le altre nella pagina Scadenze); il box
         // Spese si allunga via flex per allineare il fondo.
-        $deadlineLimit = 3;
+        $deadlineLimit = 4;
 
         return [
             'has_data' => true,
@@ -98,6 +97,8 @@ class DashboardService
             'this_month' => $thisMonth,
             'to_cover' => $this->toCover($amountsByYear, $deadlineRows),
             'year' => $this->yearPanel($current, $amountsByYear->get($current->year)),
+            'net_trend' => $this->netTrend($amountsByYear, $years, $displayYear, $displayMonth),
+            'year_trend' => $this->yearTrend($amountsByYear, $current, $displayYear, $displayMonth),
             'month_expenses' => $monthExpenses,
             'open_deadlines' => array_slice($deadlineRows, 0, $deadlineLimit),
             'recent_invoices' => $this->recentInvoices($amountsByYear->get($current->year)),
@@ -200,7 +201,7 @@ class DashboardService
 
     /**
      * Pannello Anno: cumulato, mesi trascorsi (progress), proiezione semplice
-     * (YTD / mesi × 12), netto bancario (lo "stipendio" che le banche leggono).
+     * (YTD / mesi × 12). Il netto bancario vive sulla pagina anno, non qui.
      *
      * @return array<string, mixed>
      */
@@ -214,12 +215,87 @@ class DashboardService
             'invoice_total' => $invoiceTotal,
             'months_elapsed' => $monthsElapsed,
             'projection' => $monthsElapsed > 0 ? round($invoiceTotal / $monthsElapsed * 12, 0) : 0.0,
-            // Netto bancario d'anno (stima mid-anno): formula unica in YearStatement.
-            'bank_income' => $this->yearStatement->bankIncome(
-                $amounts->figures->irpefIncomeNet,
-                $this->yearStatement->impostaSostitutivaFromAmounts($amounts),
-            ),
         ];
+    }
+
+    /**
+     * Serie del netto degli ultimi 12 mesi (sparkline hero), chiusa sul mese
+     * mostrato. La finestra scavalca sempre l'anno precedente: ogni mese usa
+     * l'anno e il coefficiente giusti. I mesi il cui anno non è aperto vengono
+     * saltati (serie più corta a cold start). `percent` = variazione del netto
+     * dal primo all'ultimo punto (≈ un anno), null se il primo punto è zero.
+     *
+     * @param  Collection<int, YearAmounts>  $amountsByYear
+     * @param  Collection<int, Year>  $years  anni aperti (per il coefficiente del mese)
+     * @return array{points: array<int, float>, percent: float|null}
+     */
+    private function netTrend(Collection $amountsByYear, Collection $years, int $endYear, int $endMonth): array
+    {
+        $endIndex = $endYear * 12 + ($endMonth - 1);
+
+        $points = [];
+        for ($index = $endIndex - 11; $index <= $endIndex; $index++) {
+            $year = intdiv($index, 12);
+            $amounts = $amountsByYear->get($year);
+            if ($amounts === null) {
+                continue;
+            }
+
+            $coefficient = (float) $years->firstWhere('year', $year)->profitability_coefficient;
+            $points[] = $this->monthFigures($amounts, $coefficient, $index % 12 + 1)['net'];
+        }
+
+        $first = $points[0] ?? null;
+        $last = $points === [] ? null : $points[count($points) - 1];
+        $percent = ($first !== null && abs($first) > 0.0)
+            ? round(($last - $first) / abs($first) * 100, 1)
+            : null;
+
+        return ['points' => $points, 'percent' => $percent];
+    }
+
+    /**
+     * Andamento anno (grafico dashboard): fatturato per mese 1–12 dell'anno
+     * corrente con il fantasma dell'anno precedente dietro. Un mese senza dato
+     * (futuro, oppure anno non aperto) è `null`: niente barra. `current_month`
+     * evidenzia il mese mostrato, solo se appartiene all'anno del grafico.
+     *
+     * @param  Collection<int, YearAmounts>  $amountsByYear
+     * @return array{months: array<int, array{month: int, current: float|null, previous: float|null}>, current_month: int|null}
+     */
+    private function yearTrend(Collection $amountsByYear, Year $current, int $displayYear, int $displayMonth): array
+    {
+        $currentAmounts = $amountsByYear->get($current->year);
+        $previousAmounts = $amountsByYear->get($current->year - 1);
+
+        $months = [];
+        for ($month = 1; $month <= 12; $month++) {
+            $months[] = [
+                'month' => $month,
+                'current' => $this->monthTotalOrNull($currentAmounts, $month),
+                'previous' => $this->monthTotalOrNull($previousAmounts, $month),
+            ];
+        }
+
+        return [
+            'months' => $months,
+            'current_month' => $displayYear === $current->year ? $displayMonth : null,
+        ];
+    }
+
+    /**
+     * Fatturato del mese, o null se l'anno non è caricato o il mese è senza
+     * fatture (così il grafico non disegna una barra a zero).
+     */
+    private function monthTotalOrNull(?YearAmounts $amounts, int $month): ?float
+    {
+        if ($amounts === null) {
+            return null;
+        }
+
+        $invoices = $this->monthInvoices($amounts, $month);
+
+        return $invoices->isEmpty() ? null : $this->revenueCalculator->invoiceTotal($invoices);
     }
 
     /**
