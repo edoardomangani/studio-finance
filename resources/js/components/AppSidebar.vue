@@ -21,9 +21,9 @@ import {
     PhCoins,
     PhFolders,
     PhGearSix,
-    PhHouse,
     PhListChecks,
     PhReceipt,
+    PhSquaresFour,
     PhTag,
     PhUsers,
     PhCalendarDots,
@@ -95,7 +95,7 @@ const mainSections = computed<NavSection[]>(() => [
     {
         label: 'Lavoro',
         items: [
-            { label: 'Dashboard', icon: PhHouse, href: dashboard() },
+            { label: 'Dashboard', icon: PhSquaresFour, href: dashboard() },
             {
                 label: 'Anno ' + (page.props.nav?.currentYear?.toString() ?? 'Anni'),
                 icon: PhCalendarDots,
