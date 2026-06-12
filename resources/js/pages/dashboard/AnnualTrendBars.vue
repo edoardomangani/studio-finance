@@ -91,6 +91,22 @@ const hover = computed(() => {
 function compact(v: number): string {
     return `${(v / 1000).toFixed(1).replace('.', ',')}k`;
 }
+
+// Etichetta accessibile della colonna (le barre non sono focusabili): mese +
+// fatturato corrente e dell'anno precedente, per lettori di schermo.
+function barLabel(m: DashboardYearTrendMonth): string {
+    const parts = [MONTHS[m.month - 1]];
+
+    if (m.current != null) {
+        parts.push(`${props.currentYear} ${formatEUR(m.current)}`);
+    }
+
+    if (m.previous != null) {
+        parts.push(`${props.previousYear} ${formatEUR(m.previous)}`);
+    }
+
+    return parts.join(' · ');
+}
 </script>
 
 <template>
@@ -102,6 +118,8 @@ function compact(v: number): string {
             <div
                 v-for="(m, i) in months"
                 :key="m.month"
+                role="img"
+                :aria-label="barLabel(m)"
                 class="relative h-full flex-1 rounded"
                 :class="hoveredIdx === i ? 'bg-muted/50' : ''"
                 @mouseenter="hoveredIdx = i"

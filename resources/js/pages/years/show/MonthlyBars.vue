@@ -87,9 +87,12 @@ function barFraction(m: YearMonth): number {
     return isFuture(m) ? 0 : Math.max(m.invoice_total / maxInvoice.value, 0.02);
 }
 
-// Hover: card con fatturato + netto del mese, ancorata in cima alla barra.
-// Lo zona-barre è ~82% dell'altezza (il resto è l'etichetta sotto), quindi il
-// top della barra ≈ (1 − frazione) × 82%.
+// Quota dell'altezza occupata dalle barre (il resto in basso è l'etichetta del
+// mese): serve a stimare il top della barra per ancorarci il tooltip.
+const BARS_ZONE_PCT = 82;
+
+// Hover: card con fatturato + netto del mese, ancorata in cima alla barra
+// (top ≈ (1 − frazione) × zona-barre).
 const hoveredIdx = ref<number | null>(null);
 
 const hover = computed(() => {
@@ -105,7 +108,7 @@ const hover = computed(() => {
         return null;
     }
 
-    const top = (1 - barFraction(m)) * 82;
+    const top = (1 - barFraction(m)) * BARS_ZONE_PCT;
 
     return {
         leftPct: ((i + 0.5) / props.months.length) * 100,

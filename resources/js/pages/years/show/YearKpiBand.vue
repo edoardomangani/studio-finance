@@ -12,30 +12,14 @@
  * Residuo zero → "Saldato"/"In pari"; sovra-pagato → negativo (verde, credito).
  * La cassa cross-anno (F24) vive nelle Scadenze, non qui.
  */
-import { PhTrendDown, PhTrendUp } from '@phosphor-icons/vue';
 import { computed, ref } from 'vue';
-import Sparkline from '@/components/charts/Sparkline.vue';
 import SplitBar from '@/components/charts/SplitBar.vue';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
-import { formatEUR, formatPercent } from '@/lib/format';
+import { formatEUR } from '@/lib/format';
+import YearNetSparkline from '@/pages/years/show/YearNetSparkline.vue';
 import type { YearShow } from '@/types';
 
 const props = defineProps<{ year: YearShow }>();
-
-const MONTHS = [
-    'Gen',
-    'Feb',
-    'Mar',
-    'Apr',
-    'Mag',
-    'Giu',
-    'Lug',
-    'Ago',
-    'Set',
-    'Ott',
-    'Nov',
-    'Dic',
-];
 
 const isPast = computed<boolean>(() => props.year.meta.time_state === 'past');
 
@@ -72,53 +56,6 @@ const income = computed(() => {
             monthsElapsed.value > 0 ? t.bank_income / monthsElapsed.value : 0,
     };
 });
-
-// Ultimo mese della sparkline: i mesi trascorsi, ma se il mese in corso non ha
-// ancora fatturato si ferma al precedente — stessa logica del "mese mostrato"
-// in dashboard generale (non si chiude la serie su un mese vuoto).
-const sparklineUpto = computed<number>(() => {
-    const upto = monthsElapsed.value;
-
-    if (props.year.meta.time_state !== 'current' || upto <= 1) {
-        return upto;
-    }
-
-    const current = props.year.months.find((m) => m.month === upto);
-
-    return current && current.invoice_total > 0 ? upto : upto - 1;
-});
-
-// Sparkline: netto mese per mese fino all'ultimo mese utile (12 se l'anno è
-// chiuso). La variazione % è primo→ultimo (coerente con l'hero della dashboard).
-const elapsedMonths = computed(() =>
-    props.year.months.filter((m) => m.month <= sparklineUpto.value),
-);
-const netSeries = computed<number[]>(() =>
-    elapsedMonths.value.map((m) => m.net),
-);
-const netTrendPercent = computed<number | null>(() => {
-    const s = netSeries.value;
-
-    if (s.length < 2 || Math.abs(s[0]) === 0) {
-        return null;
-    }
-
-    return Math.round(((s[s.length - 1] - s[0]) / Math.abs(s[0])) * 1000) / 10;
-});
-const firstMonth = computed(() => elapsedMonths.value[0] ?? null);
-const lastMonth = computed(() => elapsedMonths.value.at(-1) ?? null);
-
-// Punti sparkline: tutti e 12 i mesi, netto fino al mese utile e null dopo (la
-// linea petrol si ferma al mese in corso; l'asse resta sull'anno intero).
-const sparklinePoints = computed<(number | null)[]>(() =>
-    props.year.months.map((m) =>
-        m.month <= sparklineUpto.value ? m.net : null,
-    ),
-);
-
-// Confronto: netto dell'anno precedente su tutti i 12 mesi (fantasma
-// tratteggiato), se l'anno prima è aperto.
-const previousNet = computed<number[] | null>(() => props.year.previous_net);
 
 const tax = computed(() => {
     const t = props.year.totals;
@@ -177,62 +114,8 @@ const tax = computed(() => {
             </div>
         </section>
 
-        <!-- Netto · anno (sparkline dei mesi). Visibile dove c'è spazio: impilata
-             sotto md e col layout a 3 colonne da xl in su; nascosta nel range
-             md–xl, dove la banda sta a 2 colonne e la sidebar la stringe. -->
-        <section
-            class="relative flex flex-col justify-center gap-2 px-6 py-5 md:hidden xl:flex"
-        >
-            <span
-                class="absolute inset-y-5 left-0 hidden w-px bg-border md:block"
-                aria-hidden="true"
-            />
-            <div class="flex items-baseline justify-between gap-3">
-                <span
-                    class="flex items-baseline gap-2 text-2xs text-muted-foreground"
-                >
-                    Netto · {{ year.year }}
-                </span>
-                <span
-                    v-if="netTrendPercent !== null"
-                    class="inline-flex items-center gap-0.5 text-13 font-medium"
-                    :class="
-                        netTrendPercent >= 0
-                            ? 'text-success'
-                            : 'text-destructive'
-                    "
-                >
-                    <component
-                        :is="netTrendPercent >= 0 ? PhTrendUp : PhTrendDown"
-                        :size="13"
-                    />
-                    {{ formatPercent(Math.abs(netTrendPercent), 0) }}
-                </span>
-            </div>
-            <Sparkline
-                :points="sparklinePoints"
-                :comparison="previousNet ?? undefined"
-                :labels="MONTHS"
-                :format-value="formatEUR"
-                :height="50"
-            />
-            <div
-                class="flex items-baseline justify-between gap-3 text-2xs text-muted-foreground"
-            >
-                <span v-if="firstMonth" class="whitespace-nowrap"
-                    >{{ MONTHS[firstMonth.month - 1] }}
-                    <span class="tabular text-foreground">{{
-                        formatEUR(firstMonth.net)
-                    }}</span></span
-                >
-                <span v-if="lastMonth" class="whitespace-nowrap"
-                    >{{ MONTHS[lastMonth.month - 1] }}
-                    <span class="tabular text-foreground">{{
-                        formatEUR(lastMonth.net)
-                    }}</span></span
-                >
-            </div>
-        </section>
+        <!-- Netto · anno: sparkline dei mesi col confronto anno precedente. -->
+        <YearNetSparkline :year="year" />
 
         <!-- Imposte e contributi -->
         <section class="relative flex flex-col px-6 py-5">

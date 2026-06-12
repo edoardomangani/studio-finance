@@ -217,6 +217,36 @@ it('espone le figure mensili calcolate nella vista anno', function () {
             ->where('year.deadlines.0.expected_amount', 350));      // fissa €350, scadenza unica → previsto pieno
 });
 
+it('espone il netto mensile dell anno precedente per il confronto sparkline', function () {
+    $user = onboardedUserWithTemplates();
+    $this->post(route('years.store'), openYearPayload(planFor($user, 2026)))->assertRedirect();
+    // Anno precedente aperto (riga diretta, niente template): il netto = fatturato.
+    $user->years()->create(['year' => 2025, 'profitability_coefficient' => 78, 'pre_opened' => false]);
+
+    Invoice::factory()->create([
+        'user_id' => $user->id, 'issued_at' => '2025-03-10',
+        'amount' => 1000.00, 'inarcassa_amount' => 0.00, 'stamp_amount' => 0.00, 'art_15_amount' => 0.00,
+    ]);
+
+    $this->get(route('years.show', 2026))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('years/Show')
+            ->has('year.previous_net', 12)                         // 12 mesi del 2025
+            ->where('year.previous_net.2', fn ($net) => $net > 0)   // marzo 2025 ha netto
+            ->where('year.previous_net.0', fn ($net) => $net <= 0)); // gennaio 2025 senza fatturato
+});
+
+it('previous_net è null senza anno precedente aperto', function () {
+    $user = onboardedUserWithTemplates();
+    $this->post(route('years.store'), openYearPayload(planFor($user, 2026)))->assertRedirect();
+
+    $this->get(route('years.show', 2026))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('year.previous_net', null));
+});
+
 it('scala ritenute e credito dal definitivo della imposta sostitutiva', function () {
     $user = onboardedUserWithTemplates();
     $this->post(route('years.store'), openYearPayload(planFor($user, 2026)))->assertRedirect();
