@@ -6,7 +6,9 @@
  * valore sul mese in corso. Statico: la selezione mese vive sulla pagina anno
  * ([[MonthlyBars]]), qui non serve. Scala comune dal massimo delle due serie.
  */
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+import ChartTooltip from '@/components/charts/ChartTooltip.vue';
+import { formatEUR } from '@/lib/format';
 import type { DashboardYearTrendMonth } from '@/types';
 
 const props = defineProps<{
@@ -57,6 +59,34 @@ function pct(v: number | null): number {
     return v == null ? 0 : Math.max((v / max.value) * 100, 0);
 }
 
+// Hover: card col fatturato corrente + fantasma, ancorata in cima alla barra.
+const hoveredIdx = ref<number | null>(null);
+
+const hover = computed(() => {
+    const i = hoveredIdx.value;
+
+    if (i === null) {
+        return null;
+    }
+
+    const m = props.months[i];
+
+    if (m.current == null && m.previous == null) {
+        return null;
+    }
+
+    const top = 100 - Math.max(pct(m.current), pct(m.previous));
+
+    return {
+        leftPct: ((i + 0.5) / props.months.length) * 100,
+        topPct: top,
+        below: top < 38,
+        label: MONTHS[m.month - 1],
+        current: m.current,
+        previous: m.previous,
+    };
+});
+
 // "5,6k" compatto per l'etichetta del mese in corso.
 function compact(v: number): string {
     return `${(v / 1000).toFixed(1).replace('.', ',')}k`;
@@ -65,11 +95,16 @@ function compact(v: number): string {
 
 <template>
     <div class="flex flex-col gap-3">
-        <div class="flex h-[150px] items-end gap-2.5">
+        <div
+            class="relative flex h-[150px] items-end gap-2.5"
+            @mouseleave="hoveredIdx = null"
+        >
             <div
-                v-for="m in months"
+                v-for="(m, i) in months"
                 :key="m.month"
-                class="relative h-full flex-1"
+                class="relative h-full flex-1 rounded"
+                :class="hoveredIdx === i ? 'bg-muted/50' : ''"
+                @mouseenter="hoveredIdx = i"
             >
                 <!-- Fantasma anno precedente: dietro, più largo e tenue. Larghezza
                      centrata con cap (clamp): non cresce oltre il massimo su schermi
@@ -92,6 +127,25 @@ function compact(v: number): string {
                     >
                 </span>
             </div>
+
+            <ChartTooltip
+                v-if="hover"
+                :left-pct="hover.leftPct"
+                :top-pct="hover.topPct"
+                :below="hover.below"
+            >
+                <span class="text-muted-foreground">{{ hover.label }}</span>
+                <span
+                    v-if="hover.current != null"
+                    class="tabular font-medium text-foreground"
+                    >{{ formatEUR(hover.current) }}</span
+                >
+                <span
+                    v-if="hover.previous != null"
+                    class="tabular text-muted-foreground"
+                    >· {{ formatEUR(hover.previous) }}</span
+                >
+            </ChartTooltip>
         </div>
         <div class="flex gap-2.5">
             <span

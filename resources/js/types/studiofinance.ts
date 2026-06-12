@@ -402,6 +402,8 @@ export type YearShow = {
     deadlines_count: number;
     invoices: InvoiceListItem[];
     months: YearMonth[];
+    /** Netto mese per mese dell'anno precedente (confronto sparkline), o null. */
+    previous_net: number[] | null;
     totals: YearTotals;
     expenses: YearShowExpense[];
     deadlines: DeadlineListItem[];

@@ -57,6 +57,17 @@ const firstNet = computed<number | null>(
 const lastNet = computed<number | null>(
     () => props.netTrend.points.at(-1) ?? null,
 );
+
+// Etichette mese per il tooltip in hover: finestra a 12 mesi che chiude sul mese
+// mostrato (primo = mese successivo, un anno fa). Solo se i punti sono 12.
+const sparkLabels = computed<string[] | undefined>(() =>
+    props.netTrend.points.length === 12
+        ? Array.from(
+              { length: 12 },
+              (_, i) => MONTHS[(props.displayMonth + i) % 12],
+          )
+        : undefined,
+);
 </script>
 
 <template>
@@ -116,7 +127,12 @@ const lastNet = computed<number | null>(
                     {{ formatPercent(Math.abs(netTrend.percent), 0) }}
                 </span>
             </div>
-            <Sparkline :points="netTrend.points" :height="50" />
+            <Sparkline
+                :points="netTrend.points"
+                :labels="sparkLabels"
+                :format-value="formatEUR"
+                :height="50"
+            />
             <div
                 class="flex items-baseline justify-between gap-3 text-2xs text-muted-foreground"
             >

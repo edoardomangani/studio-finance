@@ -73,10 +73,25 @@ const income = computed(() => {
     };
 });
 
-// Sparkline: netto mese per mese dei mesi trascorsi (12 se l'anno è chiuso). La
-// variazione % è primo→ultimo (coerente con l'hero della dashboard).
+// Ultimo mese della sparkline: i mesi trascorsi, ma se il mese in corso non ha
+// ancora fatturato si ferma al precedente — stessa logica del "mese mostrato"
+// in dashboard generale (non si chiude la serie su un mese vuoto).
+const sparklineUpto = computed<number>(() => {
+    const upto = monthsElapsed.value;
+
+    if (props.year.meta.time_state !== 'current' || upto <= 1) {
+        return upto;
+    }
+
+    const current = props.year.months.find((m) => m.month === upto);
+
+    return current && current.invoice_total > 0 ? upto : upto - 1;
+});
+
+// Sparkline: netto mese per mese fino all'ultimo mese utile (12 se l'anno è
+// chiuso). La variazione % è primo→ultimo (coerente con l'hero della dashboard).
 const elapsedMonths = computed(() =>
-    props.year.months.filter((m) => m.month <= monthsElapsed.value),
+    props.year.months.filter((m) => m.month <= sparklineUpto.value),
 );
 const netSeries = computed<number[]>(() =>
     elapsedMonths.value.map((m) => m.net),
@@ -92,6 +107,18 @@ const netTrendPercent = computed<number | null>(() => {
 });
 const firstMonth = computed(() => elapsedMonths.value[0] ?? null);
 const lastMonth = computed(() => elapsedMonths.value.at(-1) ?? null);
+
+// Punti sparkline: tutti e 12 i mesi, netto fino al mese utile e null dopo (la
+// linea petrol si ferma al mese in corso; l'asse resta sull'anno intero).
+const sparklinePoints = computed<(number | null)[]>(() =>
+    props.year.months.map((m) =>
+        m.month <= sparklineUpto.value ? m.net : null,
+    ),
+);
+
+// Confronto: netto dell'anno precedente su tutti i 12 mesi (fantasma
+// tratteggiato), se l'anno prima è aperto.
+const previousNet = computed<number[] | null>(() => props.year.previous_net);
 
 const tax = computed(() => {
     const t = props.year.totals;
@@ -161,9 +188,11 @@ const tax = computed(() => {
                 aria-hidden="true"
             />
             <div class="flex items-baseline justify-between gap-3">
-                <span class="text-2xs text-muted-foreground"
-                    >Netto · {{ year.year }}</span
+                <span
+                    class="flex items-baseline gap-2 text-2xs text-muted-foreground"
                 >
+                    Netto · {{ year.year }}
+                </span>
                 <span
                     v-if="netTrendPercent !== null"
                     class="inline-flex items-center gap-0.5 text-13 font-medium"
@@ -180,7 +209,13 @@ const tax = computed(() => {
                     {{ formatPercent(Math.abs(netTrendPercent), 0) }}
                 </span>
             </div>
-            <Sparkline :points="netSeries" :height="50" />
+            <Sparkline
+                :points="sparklinePoints"
+                :comparison="previousNet ?? undefined"
+                :labels="MONTHS"
+                :format-value="formatEUR"
+                :height="50"
+            />
             <div
                 class="flex items-baseline justify-between gap-3 text-2xs text-muted-foreground"
             >

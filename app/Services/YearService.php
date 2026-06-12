@@ -235,6 +235,9 @@ class YearService
             'deadlines_count' => $deadlines->count(),
             'invoices' => $invoices->map(fn (Invoice $invoice): array => $this->invoiceRow($invoice))->all(),
             'months' => $months,
+            // Netto mese per mese dell'anno precedente (fantasma di confronto
+            // nella sparkline), o null se l'anno prima non è aperto.
+            'previous_net' => $this->previousNet($year),
             'totals' => $this->yearStatement->totals($amounts->figures, $expenseRows),
             'expenses' => $expenseRows,
             'deadlines' => $this->deadlineRows($deadlines, $context, $year->year),
@@ -263,6 +266,34 @@ class YearService
     private function navYears(): Collection
     {
         return Year::query()->orderByDesc('year')->get(['id', 'year', 'pre_opened']);
+    }
+
+    /**
+     * Netto mese per mese dell'anno precedente (12 valori) per il confronto nella
+     * sparkline, o null se l'anno prima non è aperto. Gli importi vengono dal
+     * loader condiviso (scoped, cache per anno); il netto è assemblato come per
+     * l'anno corrente, col coefficiente dell'anno precedente.
+     *
+     * @return array<int, float>|null
+     */
+    private function previousNet(Year $year): ?array
+    {
+        $previous = Year::query()
+            ->where('user_id', $year->user_id)
+            ->where('year', $year->year - 1)
+            ->where('pre_opened', false)
+            ->first();
+
+        if ($previous === null) {
+            return null;
+        }
+
+        $amounts = $this->amountsLoader->load($previous);
+
+        return array_map(
+            fn (array $month): float => (float) $month['net'],
+            $this->months($amounts->invoices, $amounts->expenses, (float) $previous->profitability_coefficient),
+        );
     }
 
     /**

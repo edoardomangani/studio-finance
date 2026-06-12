@@ -5,7 +5,8 @@
  * mesi futuri come stub tratteggiato. Click su una barra → seleziona il mese
  * (sincronizzato con la tabella mensile). Collega la lettura visiva alla matrice.
  */
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+import ChartTooltip from '@/components/charts/ChartTooltip.vue';
 import { formatEUR } from '@/lib/format';
 import type { YearMonth } from '@/types';
 
@@ -80,19 +81,57 @@ function expPct(m: YearMonth): number {
         ? Math.min(100, (m.total_expenses / m.invoice_total) * 100)
         : 0;
 }
+
+// Frazione di altezza della barra (0–1); i futuri non hanno barra.
+function barFraction(m: YearMonth): number {
+    return isFuture(m) ? 0 : Math.max(m.invoice_total / maxInvoice.value, 0.02);
+}
+
+// Hover: card con fatturato + netto del mese, ancorata in cima alla barra.
+// Lo zona-barre è ~82% dell'altezza (il resto è l'etichetta sotto), quindi il
+// top della barra ≈ (1 − frazione) × 82%.
+const hoveredIdx = ref<number | null>(null);
+
+const hover = computed(() => {
+    const i = hoveredIdx.value;
+
+    if (i === null) {
+        return null;
+    }
+
+    const m = props.months[i];
+
+    if (isFuture(m)) {
+        return null;
+    }
+
+    const top = (1 - barFraction(m)) * 82;
+
+    return {
+        leftPct: ((i + 0.5) / props.months.length) * 100,
+        topPct: top,
+        below: top < 30,
+        label: MONTHS[m.month - 1],
+        invoiceTotal: m.invoice_total,
+        net: m.net,
+    };
+});
 </script>
 
 <template>
     <div class="flex flex-col gap-3">
-        <div class="flex h-[120px] items-end gap-2">
+        <div
+            class="relative flex h-[120px] items-end gap-2"
+            @mouseleave="hoveredIdx = null"
+        >
             <button
-                v-for="m in months"
+                v-for="(m, i) in months"
                 :key="m.month"
                 type="button"
                 class="group flex h-full flex-1 cursor-pointer flex-col items-center gap-1.5"
-                :title="`${MONTHS_FULL[m.month - 1]} · ${formatEUR(m.invoice_total)}`"
                 :aria-label="`${MONTHS_FULL[m.month - 1]}: fatturato ${formatEUR(m.invoice_total)}, netto ${formatEUR(m.net)}`"
                 @click="emit('select', m.month)"
+                @mouseenter="hoveredIdx = i"
             >
                 <span class="flex w-full flex-1 items-end justify-center">
                     <span
@@ -142,6 +181,21 @@ function expPct(m: YearMonth): number {
                     {{ MONTHS[m.month - 1] }}
                 </span>
             </button>
+
+            <ChartTooltip
+                v-if="hover"
+                :left-pct="hover.leftPct"
+                :top-pct="hover.topPct"
+                :below="hover.below"
+            >
+                <span class="text-muted-foreground">{{ hover.label }}</span>
+                <span class="tabular font-medium text-foreground">{{
+                    formatEUR(hover.invoiceTotal)
+                }}</span>
+                <span class="tabular text-muted-foreground"
+                    >· Netto {{ formatEUR(hover.net) }}</span
+                >
+            </ChartTooltip>
         </div>
         <div
             class="flex flex-wrap gap-x-4 gap-y-1 text-13 text-muted-foreground"
