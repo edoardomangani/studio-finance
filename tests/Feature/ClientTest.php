@@ -148,7 +148,8 @@ it('mostra la pagina show di un cliente', function (): void {
         ->assertInertia(fn ($page) => $page
             ->component('clients/Show')
             ->where('client.id', $client->id)
-            ->where('client.name', $client->name),
+            ->where('client.name', $client->name)
+            ->where('client.created_at', $client->created_at->toDateString()),
         );
 });
 

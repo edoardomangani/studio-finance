@@ -58,6 +58,7 @@ class ClientService
             'tax_code' => $client->tax_code,
             'bank_withholding' => $client->bank_withholding,
             'notes' => $client->notes,
+            'created_at' => $client->created_at?->toDateString(),
             'created_at_diff' => $client->created_at?->diffForHumans(),
         ];
     }

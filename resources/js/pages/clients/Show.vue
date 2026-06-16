@@ -12,7 +12,6 @@ import { Head, Link, router, setLayoutProps, useForm } from '@inertiajs/vue3';
 import { PhArchive, PhPencil, PhPlus } from '@phosphor-icons/vue';
 import { computed, ref } from 'vue';
 import ClientController from '@/actions/App/Http/Controllers/ClientController';
-import FormSection from '@/components/forms/FormSection.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/dialog';
@@ -71,6 +70,22 @@ const totalBilled = computed(() =>
     props.invoices.reduce((sum, i) => sum + i.total, 0),
 );
 
+/* Iniziali per l'avatar: prima lettera delle prime due parole del nome. */
+const initials = computed(() => {
+    const words = props.client.name.trim().split(/\s+/);
+    const letters =
+        words.length >= 2
+            ? words[0][0] + words[1][0]
+            : props.client.name.slice(0, 2);
+
+    return letters.toUpperCase();
+});
+
+/* Data dell'ultima fattura: invoices è ordinato DESC su issued_at. */
+const lastInvoiceDate = computed<string | null>(
+    () => props.invoices[0]?.issued_at ?? null,
+);
+
 /* Deep link "?client=X" gestito da InvoiceController@create. Wayfinder
    non genera helper per query string custom, quindi concateno a mano. */
 const createInvoiceUrl = computed(
@@ -97,68 +112,155 @@ const createInvoiceUrl = computed(
         </Button>
     </Teleport>
 
-    <div class="mx-auto w-full max-w-[820px] px-4 py-6 md:px-6">
-        <FormSection first title="Anagrafica">
-            <dl class="grid grid-cols-1 gap-x-6 gap-y-3 md:grid-cols-3">
-                <div class="md:col-span-3">
-                    <dt class="text-xs text-muted-foreground">Denominazione</dt>
-                    <dd class="mt-0.5 text-13 font-medium text-foreground">
-                        {{ client.name }}
-                    </dd>
-                </div>
-                <div>
-                    <dt class="text-xs text-muted-foreground">P.IVA</dt>
-                    <dd class="tabular mt-0.5 text-13 text-foreground">
-                        {{ client.vat_number ?? '—' }}
-                    </dd>
-                </div>
-                <div>
-                    <dt class="text-xs text-muted-foreground">
-                        Codice Fiscale
-                    </dt>
-                    <dd class="tabular mt-0.5 text-13 text-foreground">
-                        {{ client.tax_code ?? '—' }}
-                    </dd>
-                </div>
-                <div>
-                    <dt class="text-xs text-muted-foreground">Ritenuta</dt>
-                    <dd class="mt-0.5">
-                        <Badge v-if="client.bank_withholding" variant="outline">
-                            Sì
-                        </Badge>
-                        <span v-else class="text-13 text-muted-foreground"
-                            >No</span
-                        >
-                    </dd>
-                </div>
-                <div v-if="client.notes" class="md:col-span-3">
-                    <dt class="text-xs text-muted-foreground">Note</dt>
-                    <dd
-                        class="mt-0.5 text-13 leading-relaxed whitespace-pre-line text-foreground"
+    <div class="mx-auto flex w-full max-w-[860px] flex-col gap-6 px-4 py-6 md:px-6">
+        <!-- Identità: avatar a iniziali + nome + figure rapide -->
+        <div class="flex items-center gap-3.5">
+            <span
+                class="flex size-11 shrink-0 items-center justify-center rounded-lg bg-accent text-[15px] font-semibold text-accent-foreground"
+                aria-hidden="true"
+            >
+                {{ initials }}
+            </span>
+            <div class="min-w-0">
+                <h1
+                    class="text-[22px] leading-tight font-medium tracking-[-0.02em] text-foreground"
+                >
+                    {{ client.name }}
+                </h1>
+                <div
+                    class="mt-1 flex flex-wrap gap-x-3.5 gap-y-1 text-13 text-muted-foreground"
+                >
+                    <span v-if="client.vat_number"
+                        >P.IVA
+                        <span class="tabular font-medium text-foreground">{{
+                            client.vat_number
+                        }}</span></span
                     >
-                        {{ client.notes }}
-                    </dd>
+                    <span v-if="client.created_at"
+                        >Cliente dal
+                        <span class="tabular font-medium text-foreground">{{
+                            formatDateIT(client.created_at)
+                        }}</span></span
+                    >
                 </div>
-            </dl>
-        </FormSection>
+            </div>
+        </div>
 
-        <FormSection title="Storico fatturato">
-            <template #actions>
+        <!-- Riepilogo: banda KPI nello stile delle dashboard -->
+        <div
+            class="grid grid-cols-1 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card sm:grid-cols-3 sm:divide-y-0"
+        >
+            <div class="px-5 py-4">
+                <p class="kicker text-muted-foreground">Fatturato totale</p>
+                <p
+                    class="tabular mt-2 text-[1.625rem] leading-none font-medium tracking-tight text-foreground"
+                >
+                    {{ formatEUR(totalBilled) }}
+                </p>
+            </div>
+            <div class="relative px-5 py-4">
                 <span
-                    v-if="invoices.length > 0"
-                    class="tabular text-xs text-muted-foreground"
+                    class="absolute inset-y-3 left-0 hidden w-px bg-border sm:block"
+                    aria-hidden="true"
+                />
+                <p class="kicker text-muted-foreground">Fatture</p>
+                <p
+                    class="tabular mt-2 text-[1.625rem] leading-none font-medium tracking-tight text-foreground"
                 >
                     {{ invoices.length }}
-                    {{ invoices.length === 1 ? 'fattura' : 'fatture' }} ·
-                    {{ formatEUR(totalBilled) }}
-                </span>
-                <Button as-child size="sm" variant="outline">
-                    <Link :href="createInvoiceUrl">
-                        <PhPlus :size="14" weight="bold" />
-                        Nuova fattura
-                    </Link>
-                </Button>
-            </template>
+                </p>
+            </div>
+            <div class="relative px-5 py-4">
+                <span
+                    class="absolute inset-y-3 left-0 hidden w-px bg-border sm:block"
+                    aria-hidden="true"
+                />
+                <p class="kicker text-muted-foreground">Ultima fattura</p>
+                <p
+                    class="tabular mt-2 text-[1.625rem] leading-none font-medium tracking-tight"
+                    :class="
+                        lastInvoiceDate
+                            ? 'text-foreground'
+                            : 'text-muted-foreground'
+                    "
+                >
+                    {{ formatDateIT(lastInvoiceDate) }}
+                </p>
+            </div>
+        </div>
+
+        <section>
+            <h2 class="section-title mb-2.5">Anagrafica</h2>
+            <div class="rounded-lg border border-border bg-card px-5 py-4">
+                <dl class="grid grid-cols-1 gap-x-6 gap-y-3.5 md:grid-cols-2">
+                    <div>
+                        <dt class="text-xs text-muted-foreground">P.IVA</dt>
+                        <dd class="tabular mt-0.5 text-13 text-foreground">
+                            {{ client.vat_number ?? '—' }}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs text-muted-foreground">
+                            Codice Fiscale
+                        </dt>
+                        <dd class="tabular mt-0.5 text-13 text-foreground">
+                            {{ client.tax_code ?? '—' }}
+                        </dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs text-muted-foreground">Ritenuta</dt>
+                        <dd class="mt-0.5">
+                            <Badge
+                                v-if="client.bank_withholding"
+                                variant="outline"
+                            >
+                                Sì
+                            </Badge>
+                            <span v-else class="text-13 text-muted-foreground"
+                                >No</span
+                            >
+                        </dd>
+                    </div>
+                    <div v-if="client.created_at">
+                        <dt class="text-xs text-muted-foreground">
+                            Cliente dal
+                        </dt>
+                        <dd class="tabular mt-0.5 text-13 text-foreground">
+                            {{ formatDateIT(client.created_at) }}
+                        </dd>
+                    </div>
+                    <div v-if="client.notes" class="md:col-span-2">
+                        <dt class="text-xs text-muted-foreground">Note</dt>
+                        <dd
+                            class="mt-0.5 text-13 leading-relaxed whitespace-pre-line text-foreground"
+                        >
+                            {{ client.notes }}
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+        </section>
+
+        <section>
+            <div class="mb-2.5 flex items-baseline justify-between gap-3">
+                <h2 class="section-title">Storico fatturato</h2>
+                <div class="flex items-baseline gap-4">
+                    <span
+                        v-if="invoices.length > 0"
+                        class="tabular text-xs text-muted-foreground"
+                    >
+                        {{ invoices.length }}
+                        {{ invoices.length === 1 ? 'fattura' : 'fatture' }} ·
+                        {{ formatEUR(totalBilled) }}
+                    </span>
+                    <Button as-child size="sm" variant="link">
+                        <Link :href="createInvoiceUrl">
+                            <PhPlus weight="bold" class="size-3" />
+                            Nuova fattura
+                        </Link>
+                    </Button>
+                </div>
+            </div>
 
             <DataTable v-if="invoices.length > 0">
                 <DataTableHeader :has-actions="false">
@@ -205,7 +307,7 @@ const createInvoiceUrl = computed(
             <p v-else class="text-13 text-muted-foreground">
                 Nessuna fattura ancora. Crea la prima dal pulsante in alto.
             </p>
-        </FormSection>
+        </section>
     </div>
 
     <ClientFormDialog v-model:open="editOpen" :client="client" />

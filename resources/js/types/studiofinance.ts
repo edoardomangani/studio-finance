@@ -92,6 +92,7 @@ export type Client = {
     tax_code: string | null;
     bank_withholding: boolean;
     notes: string | null;
+    created_at?: string | null;
     created_at_diff?: string | null;
 };
 
