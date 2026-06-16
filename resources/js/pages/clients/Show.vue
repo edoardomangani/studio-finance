@@ -11,6 +11,7 @@
 import { Head, Link, router, setLayoutProps, useForm } from '@inertiajs/vue3';
 import { PhArchive, PhPencil, PhPlus } from '@phosphor-icons/vue';
 import { computed, ref } from 'vue';
+import { toast } from 'vue-sonner';
 import ClientController from '@/actions/App/Http/Controllers/ClientController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -57,6 +58,7 @@ function confirmArchive(): void {
             onSuccess: () => {
                 router.visit(clientsIndex().url);
             },
+            onError: () => toast.error('Archiviazione non riuscita. Riprova.'),
         },
     );
 }
@@ -255,7 +257,7 @@ const createInvoiceUrl = computed(
                     </span>
                     <Button as-child size="sm" variant="link">
                         <Link :href="createInvoiceUrl">
-                            <PhPlus weight="bold" class="size-3" />
+                            <PhPlus :size="14" weight="bold" />
                             Nuova fattura
                         </Link>
                     </Button>
