@@ -6,7 +6,7 @@
  * aperte, ultime fatture e pagamenti). Le liste riusano il pattern `DataTable`
  * della Panoramica anno. Empty state quando non c'è alcun anno.
  */
-import { Head, router, setLayoutProps } from '@inertiajs/vue3';
+import { Head, Link, setLayoutProps } from '@inertiajs/vue3';
 import { PhArrowRight, PhCalendarBlank } from '@phosphor-icons/vue';
 import { computed } from 'vue';
 import StackedBar from '@/components/charts/StackedBar.vue';
@@ -101,14 +101,12 @@ const monthExpenseItems = computed(() =>
         <template v-else>
             <!-- Azione di pagina nel topbar, come le altre viste. -->
             <Teleport to="#page-topbar-actions" defer>
-                <Button
-                    variant="secondary"
-                    size="sm"
-                    @click="router.visit(yearShow(data.current_year).url)"
-                >
-                    <PhCalendarBlank :size="14" />
-                    Vai all'anno {{ data.current_year }}
-                    <PhArrowRight :size="14" />
+                <Button as-child variant="secondary" size="sm">
+                    <Link :href="yearShow(data.current_year).url">
+                        <PhCalendarBlank :size="14" />
+                        Vai all'anno {{ data.current_year }}
+                        <PhArrowRight :size="14" />
+                    </Link>
                 </Button>
             </Teleport>
 
@@ -153,15 +151,15 @@ const monthExpenseItems = computed(() =>
                             Andamento mensile · {{ data.year.year }}
                         </h2>
                         <Button
+                            as-child
                             variant="link"
                             size="sm"
                             class="h-auto gap-1 p-0"
-                            @click="
-                                router.visit(yearShow(data.current_year).url)
-                            "
                         >
-                            Vedi anno
-                            <PhArrowRight :size="13" />
+                            <Link :href="yearShow(data.current_year).url">
+                                Vedi anno
+                                <PhArrowRight :size="13" />
+                            </Link>
                         </Button>
                     </header>
                     <div class="rounded-lg border border-border bg-card p-4">
@@ -180,13 +178,15 @@ const monthExpenseItems = computed(() =>
                             Scadenze aperte
                         </h2>
                         <Button
+                            as-child
                             variant="link"
                             size="sm"
                             class="h-auto gap-1 p-0"
-                            @click="router.visit(deadlinesIndex().url)"
                         >
-                            Tutte
-                            <PhArrowRight :size="13" />
+                            <Link :href="deadlinesIndex().url">
+                                Tutte
+                                <PhArrowRight :size="13" />
+                            </Link>
                         </Button>
                     </header>
                     <DataTable>
@@ -245,13 +245,15 @@ const monthExpenseItems = computed(() =>
                             Ultime fatture
                         </h2>
                         <Button
+                            as-child
                             variant="link"
                             size="sm"
                             class="h-auto gap-1 p-0"
-                            @click="router.visit(invoicesIndex().url)"
                         >
-                            Tutte
-                            <PhArrowRight :size="13" />
+                            <Link :href="invoicesIndex().url">
+                                Tutte
+                                <PhArrowRight :size="13" />
+                            </Link>
                         </Button>
                     </header>
                     <DataTable>
@@ -302,13 +304,15 @@ const monthExpenseItems = computed(() =>
                             Ultimi pagamenti
                         </h2>
                         <Button
+                            as-child
                             variant="link"
                             size="sm"
                             class="h-auto gap-1 p-0"
-                            @click="router.visit(paymentsIndex().url)"
                         >
-                            Tutti
-                            <PhArrowRight :size="13" />
+                            <Link :href="paymentsIndex().url">
+                                Tutti
+                                <PhArrowRight :size="13" />
+                            </Link>
                         </Button>
                     </header>
                     <DataTable>
