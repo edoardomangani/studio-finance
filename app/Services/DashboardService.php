@@ -95,7 +95,7 @@ class DashboardService
             'display_month' => $displayMonth,
             'current_year' => $current->year,
             'this_month' => $thisMonth,
-            'to_cover' => $this->toCover($amountsByYear, $deadlineRows),
+            'to_cover' => $this->toCover($amountsByYear, $deadlineRows, $calendarYear),
             'year' => $this->yearPanel($current, $amountsByYear->get($current->year)),
             'net_trend' => $this->netTrend($amountsByYear, $years, $displayYear, $displayMonth),
             'year_trend' => $this->yearTrend($amountsByYear, $current, $displayYear, $displayMonth),
@@ -171,23 +171,32 @@ class DashboardService
      * I numeri cross-anno di "Da coprire": spese da pagare a oggi (competenza,
      * maturato − pagato), spese da pagare in tutto (definitivo − pagato sull'anno
      * intero, distinto dalle scadenze perché senza minimi/acconti) e scadenze da
-     * pagare (cassa, somma dei previsti delle scadenze aperte). Gli anni chiusi
-     * contribuiscono 0 ai due "spese": niente accumulo storico. Il conteggio
-     * `upcoming_deadlines_count` è la base unica del badge (stessa di sidebar):
-     * scadenze prossime di ogni tipo, non solo i pagamenti sommati qui.
+     * pagare (cassa, somma dei previsti delle scadenze aperte).
+     *
+     * Per gli anni chiusi (anteriori a quello solare) ogni voce contribuisce solo
+     * col residuo ≥ 0: un sovra-pagamento (tipico dell'imposta sostitutiva, dove
+     * pagato > definitivo) è un credito già scalato sugli anni successivi, non un
+     * meno sul "da coprire" attuale. Il clamp è per voce, non per anno: un credito
+     * d'imposta non compensa un'altra spesa ancora da saldare nello stesso anno
+     * chiuso. L'anno in corso (e i futuri) tengono il valore grezzo, negativi
+     * inclusi (sovra-acconti che riducono davvero quel che resta da versare).
+     *
+     * Il conteggio `upcoming_deadlines_count` è la base unica del badge (stessa di
+     * sidebar): scadenze prossime di ogni tipo, non solo i pagamenti sommati qui.
      *
      * @param  Collection<int, YearAmounts>  $amountsByYear
      * @param  array<int, array<string, mixed>>  $deadlineRows  scadenze aperte già mappate (con previsto)
      * @return array<string, mixed>
      */
-    private function toCover(Collection $amountsByYear, array $deadlineRows): array
+    private function toCover(Collection $amountsByYear, array $deadlineRows, int $calendarYear): array
     {
         $dueToDate = 0.0;
         $due = 0.0;
-        foreach ($amountsByYear as $amounts) {
+        foreach ($amountsByYear as $year => $amounts) {
+            $closed = $year < $calendarYear;
             foreach ($amounts->expenseAmounts as $row) {
-                $dueToDate += $row['due_to_date'];
-                $due += $row['due'];
+                $dueToDate += $closed ? max(0.0, $row['due_to_date']) : $row['due_to_date'];
+                $due += $closed ? max(0.0, $row['due']) : $row['due'];
             }
         }
 

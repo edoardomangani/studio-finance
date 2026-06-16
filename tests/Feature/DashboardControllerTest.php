@@ -4,6 +4,7 @@ use App\Enums\ExpenseCalculationType;
 use App\Enums\ExpenseKind;
 use App\Models\AnnualExpense;
 use App\Models\Invoice;
+use App\Models\Payment;
 use App\Models\User;
 use App\Models\Year;
 use Illuminate\Support\Carbon;
@@ -142,6 +143,28 @@ it('mostra il mese precedente quando il mese in corso non ha ancora fatture', fu
             ->where('dashboard.display_year', 2026)
             ->where('dashboard.this_month.month', 5)
             ->where('dashboard.this_month.invoice_total', fn ($total) => $total > 0)); // maggio, non giugno (vuoto)
+});
+
+it('non scala il da-coprire col credito di un anno chiuso', function () {
+    // Oggi è 2026 → il 2025 è chiuso. La sua imposta sostitutiva è sovra-pagata
+    // (definitivo 0 senza fatturato, pagato 58): un credito già scalato sugli anni
+    // dopo, non un meno sul "da coprire" odierno. Deve contribuire 0, non −58.
+    $user = onboardedUserWithTemplates();
+    dashboardYear($user, 2026);
+    $closed = dashboardYear($user, 2025);
+
+    $imposta = AnnualExpense::factory()->impostaSostitutiva()->create([
+        'user_id' => $user->id, 'year_id' => $closed->id,
+    ]);
+    Payment::factory()->paid(58.00)->create([
+        'user_id' => $user->id, 'annual_expense_id' => $imposta->id,
+    ]);
+
+    $this->get(route('dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('dashboard.to_cover.expenses_due', fn ($v) => (float) $v === 0.0)          // niente −58 dall'anno chiuso
+            ->where('dashboard.to_cover.expenses_due_to_date', fn ($v) => (float) $v === 0.0));
 });
 
 it('richiede onboarding e autenticazione', function () {
