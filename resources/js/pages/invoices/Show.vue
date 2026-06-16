@@ -3,15 +3,15 @@
  * Invoices — Show page (dossier, paper-receipt).
  *
  * Gerarchia visiva in 2 zone:
- * 1. **Hero header** — identità (numero grande + cliente come link + data)
- *    con meta inline (P.IVA o CF · ritenuta default · storico). A destra
- *    outcome economico (totale + eventuale ritenuta + netto).
- * 2. **Voci fattura** — box paper-receipt sobrio (border + bg-muted/30)
- *    con tutte le righe + totale interno + (se ritenuta) sottrazione e
- *    netto. La metafora del documento dentro la pagina chiarisce "ecco
+ * 1. **Hero band** — card a zone come cliente/anno: a sinistra l'identità
+ *    (numero + data + cliente-link · P.IVA/CF · ritenuta default), divisa da
+ *    una hairline dal valore-guida a destra (Totale + netto a incassare se
+ *    c'è ritenuta).
+ * 2. **Voci fattura** — box paper-receipt con tutte le righe + totale e (se
+ *    ritenuta) sottrazione e netto. La metafora del documento chiarisce "ecco
  *    com'è composta la fattura".
  *
- * Niente sezione "Cliente" separata in fondo: tutto il meta vive nel hero.
+ * Niente sezione "Cliente" separata in fondo: tutto il meta vive nell'hero.
  *
  * Topbar actions: Modifica (link) + kebab (Duplica · Archivia).
  */
@@ -23,6 +23,7 @@ import {
     PhPencil,
 } from '@phosphor-icons/vue';
 import { computed, ref } from 'vue';
+import { toast } from 'vue-sonner';
 import InvoiceController from '@/actions/App/Http/Controllers/InvoiceController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -79,6 +80,7 @@ function confirmArchive(): void {
             onSuccess: () => {
                 router.visit(backUrl);
             },
+            onError: () => toast.error('Archiviazione non riuscita. Riprova.'),
         },
     );
 }
@@ -131,25 +133,27 @@ const netAmount = computed(
         </Button>
     </Teleport>
 
-    <div class="mx-auto w-full max-w-[820px] py-8 md:px-6 md:py-10">
-        <!-- ─── HERO ─── -->
-        <header
-            class="grid grid-cols-1 gap-y-6 border-b border-border pb-8 md:grid-cols-[1fr_auto] md:gap-x-10"
+    <div
+        class="mx-auto flex w-full max-w-[820px] flex-col gap-[18px] py-8 md:px-6 md:py-10"
+    >
+        <!-- ─── HERO (banda a zone: identità · Totale) ─── -->
+        <div
+            class="flex flex-col gap-4 rounded-lg border border-border bg-card px-6 py-5 sm:flex-row sm:items-center sm:gap-0"
         >
-            <!-- Identità + cliente meta a sx -->
-            <div class="min-w-0 space-y-2">
-                <h1 class="tabular text-2xl font-medium text-foreground">
+            <!-- Identità + cliente meta -->
+            <div class="flex min-w-0 flex-col gap-1.5 sm:flex-1 sm:pr-6">
+                <h1
+                    class="text-[22px] leading-tight font-medium tracking-[-0.02em] text-foreground"
+                >
                     Fattura # {{ invoice.number }}
-                    <span
-                        class="ml-1 text-sm font-normal text-muted-foreground"
-                    >
+                    <span class="text-13 font-normal text-muted-foreground">
                         del {{ formatDateIT(invoice.issued_at) }}
                     </span>
                 </h1>
                 <!-- Cliente + P.IVA/CF su una riga + badge ritenuta default.
                      Link su denominazione porta a /clients/{id} (storico + edit). -->
                 <div
-                    class="flex flex-wrap items-center gap-x-3 gap-y-2 text-13"
+                    class="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-13"
                 >
                     <Link
                         :href="clientShow(invoice.client.id).url"
@@ -187,20 +191,34 @@ const netAmount = computed(
                 </div>
             </div>
 
-            <!-- Outcome economico a dx -->
-            <div class="text-right">
+            <!-- Hairline divisorio (solo desktop) -->
+            <span
+                class="hidden w-px self-stretch bg-border-soft sm:block"
+                aria-hidden="true"
+            />
+
+            <!-- Outcome economico: Totale (+ netto a incassare se ritenuta) -->
+            <div class="flex flex-col gap-1 sm:items-end sm:pl-6 sm:text-right">
                 <p class="kicker text-muted-foreground">Totale fattura</p>
-                <p class="tabular text-3xl font-medium text-foreground">
+                <p
+                    class="tabular text-3xl leading-none font-medium tracking-[-0.022em] text-foreground"
+                >
                     {{ formatEUR(invoice.total) }}
                 </p>
+                <p
+                    v-if="invoice.bank_withholding"
+                    class="text-2xs text-muted-foreground"
+                >
+                    netto a incassare {{ formatEUR(netAmount) }}
+                </p>
             </div>
-        </header>
+        </div>
 
         <!-- ─── VOCI FATTURA (paper-receipt box) ─── -->
-        <section class="mt-8">
-            <h2 class="kicker mb-3 text-muted-foreground">Voci fattura</h2>
-            <div class="rounded-md border border-border bg-card px-6 py-5">
-                <dl class="space-y-2 text-13">
+        <section>
+            <h2 class="section-title mb-2.5">Voci fattura</h2>
+            <div class="rounded-lg border border-border bg-card px-6 py-5">
+                <dl class="flex flex-col gap-2.5 text-13">
                     <div class="flex items-baseline justify-between">
                         <dt class="text-muted-foreground">Imponibile</dt>
                         <dd class="tabular text-foreground">
