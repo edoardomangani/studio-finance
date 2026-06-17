@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3';
-import { PhList } from '@phosphor-icons/vue';
+import { Link, usePage } from '@inertiajs/vue3';
+import { PhArrowLeft } from '@phosphor-icons/vue';
 import { computed } from 'vue';
-import { Button } from '@/components/ui/button';
-import { useSidebar } from '@/components/ui/sidebar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useInitials } from '@/composables/useInitials';
+import { account } from '@/routes';
 
 type Crumb = { label: string; href?: string };
 type StatusTone = 'positive' | 'negative' | 'neutral' | 'warning';
@@ -44,10 +45,22 @@ const statusToneClass: Record<StatusTone, string> = {
     warning: 'pill pill--warning',
 };
 
-/* Tablet/mobile sidebar trigger: sotto lg (1024px) la Sidebar diventa Sheet
-   senza modo nativo di essere aperta. Da lg+ esiste il toggle a cavallo del
-   bordo in AppSidebar.vue, quindi qui lg:hidden. */
-const { toggleSidebar } = useSidebar();
+const page = usePage();
+const { getInitials } = useInitials();
+const user = computed(() => page.props.auth.user);
+const showAvatar = computed(
+    () => !!user.value.avatar && user.value.avatar !== '',
+);
+
+/* Top-left mobile (<lg): se la pagina dichiara crumb con href (= ha un parent)
+   mostra una freccia back verso il parent più vicino; altrimenti l'avatar che
+   apre la pagina-account. Da lg+ questa zona è nascosta (il toggle sidebar vive
+   a cavallo del bordo in AppSidebar.vue). */
+const backHref = computed<string | null>(() => {
+    const linked = props.crumbs.filter((c) => c.href);
+
+    return linked.length > 0 ? linked[linked.length - 1].href! : null;
+});
 </script>
 
 <template>
@@ -56,19 +69,38 @@ const { toggleSidebar } = useSidebar();
         <div
             class="flex h-12 items-center gap-2 border-b border-border-soft px-3 md:gap-3 md:px-5"
         >
-            <!-- Tablet/mobile: hamburger per aprire la Sidebar in modalità Sheet
-                 (sotto 1024px). Da lg+ nascosto: il toggle vive a cavallo del
-                 bordo della sidebar (vedi AppSidebar.vue). -->
-            <Button
-                type="button"
-                variant="ghost"
-                size="icon-sm"
-                class="-ml-1 lg:hidden"
-                aria-label="Apri menu di navigazione"
-                @click="toggleSidebar"
-            >
-                <PhList :size="16" weight="bold" />
-            </Button>
+            <!-- Mobile (<lg): avatar→account su pagina-radice, freccia back su
+                 dettaglio. Da lg+ nascosto: il toggle sidebar vive a cavallo
+                 del bordo (vedi AppSidebar.vue). -->
+            <div class="-ml-1 flex shrink-0 items-center lg:hidden">
+                <Link
+                    v-if="backHref"
+                    :href="backHref"
+                    class="flex size-9 items-center justify-center rounded-md text-foreground transition-colors hover:bg-accent"
+                    aria-label="Indietro"
+                >
+                    <PhArrowLeft :size="18" weight="bold" />
+                </Link>
+                <Link
+                    v-else
+                    :href="account()"
+                    class="flex items-center justify-center rounded-md p-1 transition-colors hover:bg-accent"
+                    aria-label="Account"
+                >
+                    <Avatar class="size-7 overflow-hidden rounded">
+                        <AvatarImage
+                            v-if="showAvatar"
+                            :src="user.avatar!"
+                            :alt="user.name"
+                        />
+                        <AvatarFallback
+                            class="rounded bg-secondary text-2xs font-medium text-foreground"
+                        >
+                            {{ getInitials(user.name) }}
+                        </AvatarFallback>
+                    </Avatar>
+                </Link>
+            </div>
 
             <!-- Breadcrumb: parent muted, ultimo segmento promosso a titolo -->
             <nav
