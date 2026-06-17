@@ -17,7 +17,6 @@ import {
 } from '@phosphor-icons/vue';
 import { computed } from 'vue';
 import type { Component } from 'vue';
-import { Badge } from '@/components/ui/badge';
 import { useCurrentUrl } from '@/composables/useCurrentUrl';
 import { dashboard } from '@/routes';
 import { index as clientsIndex } from '@/routes/clients';
@@ -74,16 +73,16 @@ const isActive = (item: FootbarLink): boolean =>
                     :weight="isActive(item) ? 'fill' : 'regular'"
                     :size="24"
                 />
-                <Badge
+                <span
                     v-if="item.badge"
-                    variant="warning"
-                    class="absolute -top-1.5 -right-2.5 min-w-4 justify-center px-1 py-0 text-2xs leading-none"
+                    class="absolute -top-1.5 -right-2.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-warning px-1 text-[10px] leading-none font-semibold text-white ring-2 ring-card"
+                    aria-hidden="true"
                 >
-                    {{ item.badge }}
-                </Badge>
+                    {{ item.badge > 99 ? '99+' : item.badge }}
+                </span>
             </span>
             <span
-                class="w-full truncate text-center text-[10px] leading-none font-semibold"
+                class="w-full truncate text-center text-[10px] leading-none font-medium"
             >
                 {{ item.label }}
             </span>
