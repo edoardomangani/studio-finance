@@ -165,6 +165,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
             ->whereIn('type', ArchiveService::types())
             ->middleware('throttle:60,1');
 
+        // Account (mobile): pagina-menu raggiunta dall'avatar nel topbar sotto
+        // lg. Aggrega profilo/sicurezza/aspetto + impostazioni di sistema +
+        // archivio + logout. Solo rendering: i link puntano a route esistenti.
+        Route::inertia('account', 'account/Index')->name('account');
+
         // Design system page: showroom dei componenti, accessibile solo in dev.
         // In production la rotta non esiste affatto.
         if (app()->environment('local')) {
