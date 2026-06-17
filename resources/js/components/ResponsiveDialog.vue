@@ -14,9 +14,10 @@
  * NON usano questo guscio: vanno a pagina.
  *
  * Azione primaria — il guscio la rende dove va, secondo la piattaforma:
- *  - Drawer (mobile / desktop sheet): check icona nell'header in alto a dx
- *    (pattern iOS), la X a sx chiude. Niente bottone in fondo.
- *  - Dialog (desktop dialog): bottone con label nel footer, accanto ad Annulla.
+ *  - Mobile (bottom sheet): check icona nell'header in alto a dx (pattern
+ *    iOS), la X a sx chiude. Niente bottone in fondo.
+ *  - Desktop (sheet a destra o dialog centrato): bottone con label nel footer,
+ *    accanto ad Annulla.
  * Passa `submit-form` (id del <form>) + `submit-label` + `:submitting` e il
  * guscio costruisce il bottone giusto in entrambi i contesti. Per casi fuori
  * standard usa lo slot #primary (override completo) e #footer (azioni
@@ -119,7 +120,10 @@ const asDrawer = computed(() => isMobile.value || props.mode === 'sheet');
                     {{ title }}
                 </DrawerTitle>
                 <div class="flex justify-self-end">
-                    <slot name="primary">
+                    <!-- Azione primaria nell'header solo su mobile (bottom
+                         sheet, pattern iOS). Su desktop sheet (pannello destro)
+                         va nel footer come bottone etichettato. -->
+                    <slot v-if="isMobile" name="primary">
                         <Button
                             v-if="submitForm"
                             type="submit"
@@ -144,11 +148,34 @@ const asDrawer = computed(() => isMobile.value || props.mode === 'sheet');
                 <slot />
             </div>
 
+            <!-- Mobile: solo eventuali azioni secondarie (#footer). Desktop
+                 sheet: footer con Annulla + azione primaria etichettata. -->
             <footer
-                v-if="$slots.footer"
-                class="shrink-0 border-t border-border px-4 py-3"
+                v-if="$slots.footer || (!isMobile && (submitForm || $slots.primary))"
+                class="flex shrink-0 items-center justify-end gap-2 border-t border-border px-4 py-3"
             >
                 <slot name="footer" />
+                <template v-if="!isMobile">
+                    <Button
+                        variant="outline"
+                        type="button"
+                        @click="open = false"
+                    >
+                        {{ cancelLabel }}
+                    </Button>
+                    <slot name="primary">
+                        <Button
+                            v-if="submitForm"
+                            type="submit"
+                            :form="submitForm"
+                            :disabled="submitting"
+                            :aria-busy="submitting"
+                        >
+                            <Spinner v-if="submitting" />
+                            {{ submitLabel }}
+                        </Button>
+                    </slot>
+                </template>
             </footer>
         </DrawerContent>
     </Drawer>

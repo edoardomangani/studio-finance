@@ -256,7 +256,7 @@ The surface for an entity's create / edit / detail is chosen by **what the form 
 
 - `mode="dialog"` → desktop centered dialog · mobile bottom sheet.
 - `mode="sheet"` → desktop right panel · mobile bottom sheet.
-- The primary action follows the platform: on the **mobile bottom sheet (and desktop sheet) it is a check in the iOS-style header**, top-right; on the **desktop dialog it is a labelled button in the footer** next to `Annulla`. Pass `submit-form` (the `<form id>`), `submit-label`, and `:submitting`; the shell builds the right button in each context (`#primary` slot to override, `#footer` for secondary actions).
+- The primary action follows the platform: on the **mobile bottom sheet it is a check in the iOS-style header**, top-right; on **desktop — both the sheet right-panel and the centered dialog — it is a labelled button in the footer** next to `Annulla`. Pass `submit-form` (the `<form id>`), `submit-label`, and `:submitting`; the shell builds the right button in each context (`#primary` slot to override, `#footer` for secondary actions).
 
 **Detail / show** follows the same content-driven logic:
 
