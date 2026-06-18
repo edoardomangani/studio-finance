@@ -194,16 +194,17 @@ function goToPage(page: number): void {
     <Head title="Fatture" />
 
     <Teleport to="#page-topbar-actions" defer>
-        <Button as-child variant="outline" size="sm">
+        <!-- Importa XML: flusso desktop (gli XML stanno sul PC), nascosto <lg. -->
+        <Button as-child variant="outline" size="sm" class="hidden lg:inline-flex">
             <Link href="/invoices/import">
                 <PhUploadSimple :size="14" />
                 Importa XML
             </Link>
         </Button>
         <Button as-child size="sm">
-            <Link :href="invoicesCreate().url">
+            <Link :href="invoicesCreate().url" aria-label="Nuova fattura">
                 <PhPlus :size="14" weight="bold" />
-                Nuova fattura
+                <span class="hidden lg:inline">Nuova fattura</span>
             </Link>
         </Button>
     </Teleport>
@@ -228,10 +229,11 @@ function goToPage(page: number): void {
             size="sm"
             class="relative"
             :aria-pressed="filtersOpen"
+            aria-label="Filtri"
             @click="filtersOpen = !filtersOpen"
         >
             <PhFunnel :size="14" />
-            Filtri
+            <span class="hidden lg:inline">Filtri</span>
             <Badge
                 v-if="activeFilterCount > 0"
                 variant="secondary"

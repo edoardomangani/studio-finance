@@ -27,6 +27,7 @@ import { useArchiveAction } from '@/composables/useArchiveAction';
 import { formatDateIT, formatEUR } from '@/lib/format';
 import { withOrigin } from '@/lib/origin';
 import type { OriginCrumb } from '@/lib/origin';
+import InvoicesMobileList from '@/pages/invoices/InvoicesMobileList.vue';
 import {
     create as invoiceCreate,
     edit as invoiceEdit,
@@ -67,9 +68,15 @@ const totals = computed(() => {
         total: sum((i) => i.total),
     };
 });
+
+function goToInvoice(invoice: InvoiceListItem): void {
+    router.visit(withOrigin(invoiceShow(invoice.id).url, props.origin));
+}
 </script>
 
 <template>
+    <!-- Desktop / tablet-landscape (≥lg): tabella completa con breakdown. -->
+    <div class="hidden lg:block">
     <DataTable>
         <DataTableHeader>
             <TableHead class="w-[100px]">Data</TableHead>
@@ -91,11 +98,7 @@ const totals = computed(() => {
                 v-else
                 :key="invoice.id"
                 interactive
-                @click="
-                    router.visit(
-                        withOrigin(invoiceShow(invoice.id).url, props.origin),
-                    )
-                "
+                @click="goToInvoice(invoice)"
             >
                 <TableCell class="tabular text-muted-foreground">
                     {{ formatDateIT(invoice.issued_at) }}
@@ -254,6 +257,21 @@ const totals = computed(() => {
             </TableRow>
         </TableFooter>
     </DataTable>
+    </div>
+
+    <!-- Mobile / tablet-portrait (<lg): lista a card (vedi InvoicesMobileList). -->
+    <InvoicesMobileList
+        class="lg:hidden"
+        :invoices="invoices"
+        :origin="props.origin"
+        :with-totals="withTotals"
+        :total="totals.total"
+        @archive="askArchive"
+    >
+        <template #empty>
+            <slot name="empty">Nessuna fattura.</slot>
+        </template>
+    </InvoicesMobileList>
 
     <ConfirmDialog
         v-model:open="archiveOpen"

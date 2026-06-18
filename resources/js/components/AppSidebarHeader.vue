@@ -188,7 +188,7 @@ const mobileTitle = computed(
             <!-- Mount point: search testuale della pagina (page-scoped). -->
             <div
                 id="page-topbar-search"
-                class="flex max-w-xs flex-1 items-center"
+                class="flex flex-1 items-center lg:max-w-xs"
             />
 
             <!-- Mount point: bottone Filtri (apre pannello a destra). -->
