@@ -41,7 +41,7 @@ const to = computed(() => Math.min(props.page * props.perPage, props.total))
 </script>
 
 <template>
-    <div class="mt-4 px-1">
+    <div class="mt-4">
         <!-- Desktop (≥sm): range + strip numerata -->
         <div class="hidden items-center justify-between text-13 sm:flex">
             <span class="tabular text-xs text-muted-foreground">

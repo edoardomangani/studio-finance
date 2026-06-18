@@ -93,16 +93,14 @@ const mobileTitle = computed(
                     class="flex items-center justify-center rounded-full transition-opacity hover:opacity-80"
                     aria-label="Account"
                 >
-                    <Avatar
-                        class="size-9 overflow-hidden rounded-full ring-1 ring-accent-vivid/20"
-                    >
+                    <Avatar class="size-9 overflow-hidden rounded-lg">
                         <AvatarImage
                             v-if="showAvatar"
                             :src="user.avatar!"
                             :alt="user.name"
                         />
                         <AvatarFallback
-                            class="rounded-full bg-accent-vivid/10 text-xs font-semibold text-accent-strong"
+                            class="rounded-lg bg-accent text-xs font-semibold text-accent-foreground"
                         >
                             {{ getInitials(user.name) }}
                         </AvatarFallback>

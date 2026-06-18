@@ -7,7 +7,6 @@
  */
 import { Link } from '@inertiajs/vue3';
 import { Badge } from '@/components/ui/badge';
-import { useInitials } from '@/composables/useInitials';
 import { formatDateIT, formatEUR } from '@/lib/format';
 import { withOrigin } from '@/lib/origin';
 import type { OriginCrumb } from '@/lib/origin';
@@ -23,8 +22,6 @@ const props = withDefaults(
     }>(),
     { origin: () => [], withTotals: false, total: 0 },
 );
-
-const { getInitials } = useInitials();
 </script>
 
 <template>
@@ -41,13 +38,6 @@ const { getInitials } = useInitials();
                     :href="withOrigin(invoiceShow(invoice.id).url, props.origin)"
                     class="flex items-center gap-3 py-2.5 transition-colors active:bg-accent"
                 >
-                    <span
-                        class="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-foreground"
-                        aria-hidden="true"
-                    >
-                        {{ getInitials(invoice.client.name) }}
-                    </span>
-
                     <div class="min-w-0 flex-1">
                         <div class="truncate font-medium text-foreground">
                             {{ invoice.client.name }}
@@ -55,8 +45,9 @@ const { getInitials } = useInitials();
                         <div
                             class="mt-0.5 truncate text-xs text-muted-foreground"
                         >
-                            n. {{ invoice.number }} ·
-                            {{ formatDateIT(invoice.issued_at) }}
+                            <span class="tabular font-medium text-foreground">
+                                {{ invoice.number }} </span
+                            >· {{ formatDateIT(invoice.issued_at) }}
                         </div>
                     </div>
 
