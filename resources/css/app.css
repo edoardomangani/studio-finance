@@ -454,6 +454,25 @@
     }
 }
 
+/* iOS Safari zooma sugli input con font-size < 16px al focus. Su mobile (<sm)
+   forziamo i form control a 16px; desktop resta a 13px. Selettori FUORI da
+   @layer così vincono sulle utility (es. text-13) applicate sui componenti,
+   che altrimenti batterebbero la regola base sul font-size. */
+@media (max-width: 639px) {
+    input,
+    textarea,
+    select,
+    [data-slot='input'],
+    [data-slot='textarea'],
+    [data-slot='select-trigger'] {
+        font-size: 16px;
+    }
+    input::placeholder,
+    textarea::placeholder {
+        font-size: 16px;
+    }
+}
+
 /* ─── Utility custom — kicker, numeric, code-pill, pill, hairline ─────────── */
 @layer components {
     /* Kicker — eyebrow label decorativa sopra heading o info di gruppo.

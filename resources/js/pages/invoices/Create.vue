@@ -10,7 +10,7 @@
  * `/clients/{id}` → "Nuova fattura").
  */
 import { Head, Link, setLayoutProps } from '@inertiajs/vue3';
-import { PhFloppyDisk } from '@phosphor-icons/vue';
+import { PhCheck, PhFloppyDisk } from '@phosphor-icons/vue';
 import { ref } from 'vue';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -42,13 +42,33 @@ const invoiceForm = ref<InstanceType<typeof InvoiceForm> | null>(null);
     <Head :title="isDuplicating ? 'Duplica fattura' : 'Nuova fattura'" />
 
     <Teleport to="#page-topbar-actions" defer>
-        <Button as-child variant="outline" size="sm">
+        <!-- Annulla solo desktop: su mobile il back nel topbar fa da Annulla. -->
+        <Button
+            as-child
+            variant="outline"
+            size="sm"
+            class="hidden lg:inline-flex"
+        >
             <Link :href="invoicesIndex().url">Annulla</Link>
+        </Button>
+        <!-- Primario: mobile check 36, desktop con label. -->
+        <Button
+            type="submit"
+            form="invoice-form"
+            size="icon-md"
+            class="lg:hidden"
+            :disabled="invoiceForm?.processing"
+            :aria-busy="invoiceForm?.processing"
+            aria-label="Aggiungi fattura"
+        >
+            <Spinner v-if="invoiceForm?.processing" />
+            <PhCheck v-else :size="18" weight="bold" />
         </Button>
         <Button
             type="submit"
             form="invoice-form"
             size="sm"
+            class="hidden lg:inline-flex"
             :disabled="invoiceForm?.processing"
         >
             <Spinner v-if="invoiceForm?.processing" />
@@ -57,7 +77,7 @@ const invoiceForm = ref<InstanceType<typeof InvoiceForm> | null>(null);
         </Button>
     </Teleport>
 
-    <div class="mx-auto w-full max-w-[820px] px-4 py-6 md:px-6">
+    <div class="mx-auto w-full max-w-[820px]">
         <InvoiceForm
             ref="invoiceForm"
             :clients="clients"
