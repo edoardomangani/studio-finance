@@ -40,8 +40,8 @@ const plugins = [
         injectRegister: null,
         scope: '/',
         manifest: {
-            name: 'Studiofinance',
-            short_name: 'Studiofinance',
+            name: 'StudioFinance',
+            short_name: 'StudioFinance',
             description: 'Gestionale fiscale per studi professionali',
             lang: 'it',
             theme_color: '#18181b',
@@ -52,10 +52,22 @@ const plugins = [
             start_url: '/',
             icons: [
                 {
-                    src: '/pwa-icon.svg',
-                    sizes: 'any',
-                    type: 'image/svg+xml',
-                    purpose: 'any maskable',
+                    src: '/pwa-192x192.png',
+                    sizes: '192x192',
+                    type: 'image/png',
+                    purpose: 'any',
+                },
+                {
+                    src: '/pwa-512x512.png',
+                    sizes: '512x512',
+                    type: 'image/png',
+                    purpose: 'any',
+                },
+                {
+                    src: '/pwa-512x512.png',
+                    sizes: '512x512',
+                    type: 'image/png',
+                    purpose: 'maskable',
                 },
             ],
         },

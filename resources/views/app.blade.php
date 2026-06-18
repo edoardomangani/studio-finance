@@ -11,7 +11,7 @@
         <meta name="mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-capable" content="yes">
         <meta name="apple-mobile-web-app-status-bar-style" content="default">
-        <meta name="apple-mobile-web-app-title" content="Studiofinance">
+        <meta name="apple-mobile-web-app-title" content="{{ config('app.name', 'StudioFinance') }}">
 
         {{-- Inline script to detect system dark mode preference and apply it immediately --}}
         <script>
