@@ -9,13 +9,24 @@
  * Topbar actions: Modifica (apre dialog) + Archivia (confirm dialog).
  */
 import { Head, Link, router, setLayoutProps, useForm } from '@inertiajs/vue3';
-import { PhArchive, PhPencil, PhPlus } from '@phosphor-icons/vue';
+import {
+    PhArchive,
+    PhDotsThreeVertical,
+    PhPencil,
+    PhPlus,
+} from '@phosphor-icons/vue';
 import { computed, ref } from 'vue';
 import { toast } from 'vue-sonner';
 import ClientController from '@/actions/App/Http/Controllers/ClientController';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/dialog';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import {
     DataTable,
     DataTableBody,
@@ -83,11 +94,6 @@ const initials = computed(() => {
     return letters.toUpperCase();
 });
 
-/* Data dell'ultima fattura: invoices è ordinato DESC su issued_at. */
-const lastInvoiceDate = computed<string | null>(
-    () => props.invoices[0]?.issued_at ?? null,
-);
-
 /* Deep link "?client=X" gestito da InvoiceController@create. Wayfinder
    non genera helper per query string custom, quindi concateno a mano. */
 const createInvoiceUrl = computed(
@@ -99,22 +105,35 @@ const createInvoiceUrl = computed(
     <Head :title="client.name" />
 
     <Teleport to="#page-topbar-actions" defer>
-        <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            @click="archiveOpen = true"
-        >
-            <PhArchive :size="14" />
-            Archivia
-        </Button>
-        <Button type="button" size="sm" @click="editOpen = true">
-            <PhPencil :size="14" />
-            Modifica
-        </Button>
+        <!-- Un solo kebab: Modifica · Archivia. -->
+        <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+                <Button
+                    type="button"
+                    variant="outline"
+                    size="icon-md"
+                    aria-label="Azioni"
+                >
+                    <PhDotsThreeVertical :size="16" weight="bold" />
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+                <DropdownMenuItem @select="editOpen = true">
+                    <PhPencil :size="14" />
+                    Modifica
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                    variant="destructive"
+                    @select="archiveOpen = true"
+                >
+                    <PhArchive :size="14" />
+                    Archivia
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
     </Teleport>
 
-    <div class="mx-auto flex w-full max-w-[860px] flex-col gap-6 px-4 py-6 md:px-6">
+    <div class="mx-auto flex w-full max-w-[860px] flex-col gap-6">
         <!-- Identità: avatar a iniziali + nome + figure rapide -->
         <div class="flex items-center gap-3.5">
             <span
@@ -138,56 +157,19 @@ const createInvoiceUrl = computed(
                             client.vat_number
                         }}</span></span
                     >
-                    <span v-if="client.created_at"
+                    <span v-if="client.created_at" class="hidden sm:inline"
                         >Cliente dal
                         <span class="tabular font-medium text-foreground">{{
                             formatDateIT(client.created_at)
                         }}</span></span
                     >
+                    <span
+                        >Fatturato
+                        <span class="tabular font-medium text-foreground">{{
+                            formatEUR(totalBilled)
+                        }}</span></span
+                    >
                 </div>
-            </div>
-        </div>
-
-        <!-- Riepilogo: banda KPI nello stile delle dashboard -->
-        <div
-            class="grid grid-cols-1 divide-y divide-border overflow-hidden rounded-lg border border-border bg-card sm:grid-cols-3 sm:divide-y-0"
-        >
-            <div class="px-5 py-4">
-                <p class="kicker text-muted-foreground">Fatturato totale</p>
-                <p
-                    class="tabular mt-2 text-[1.625rem] leading-none font-medium tracking-tight text-foreground"
-                >
-                    {{ formatEUR(totalBilled) }}
-                </p>
-            </div>
-            <div class="relative px-5 py-4">
-                <span
-                    class="absolute inset-y-3 left-0 hidden w-px bg-border sm:block"
-                    aria-hidden="true"
-                />
-                <p class="kicker text-muted-foreground">Fatture</p>
-                <p
-                    class="tabular mt-2 text-[1.625rem] leading-none font-medium tracking-tight text-foreground"
-                >
-                    {{ invoices.length }}
-                </p>
-            </div>
-            <div class="relative px-5 py-4">
-                <span
-                    class="absolute inset-y-3 left-0 hidden w-px bg-border sm:block"
-                    aria-hidden="true"
-                />
-                <p class="kicker text-muted-foreground">Ultima fattura</p>
-                <p
-                    class="tabular mt-2 text-[1.625rem] leading-none font-medium tracking-tight"
-                    :class="
-                        lastInvoiceDate
-                            ? 'text-foreground'
-                            : 'text-muted-foreground'
-                    "
-                >
-                    {{ formatDateIT(lastInvoiceDate) }}
-                </p>
             </div>
         </div>
 
@@ -246,25 +228,16 @@ const createInvoiceUrl = computed(
         <section>
             <div class="mb-2.5 flex items-baseline justify-between gap-3">
                 <h2 class="section-title">Storico fatturato</h2>
-                <div class="flex items-baseline gap-4">
-                    <span
-                        v-if="invoices.length > 0"
-                        class="tabular text-xs text-muted-foreground"
-                    >
-                        {{ invoices.length }}
-                        {{ invoices.length === 1 ? 'fattura' : 'fatture' }} ·
-                        {{ formatEUR(totalBilled) }}
-                    </span>
-                    <Button as-child size="sm" variant="link">
-                        <Link :href="createInvoiceUrl">
-                            <PhPlus :size="14" weight="bold" />
-                            Nuova fattura
-                        </Link>
-                    </Button>
-                </div>
+                <Button as-child size="sm" variant="link">
+                    <Link :href="createInvoiceUrl">
+                        <PhPlus :size="14" weight="bold" />
+                        Nuova fattura
+                    </Link>
+                </Button>
             </div>
 
-            <DataTable v-if="invoices.length > 0">
+            <!-- Desktop / tablet-landscape (≥lg): tabella. -->
+            <DataTable v-if="invoices.length > 0" class="hidden lg:block">
                 <DataTableHeader :has-actions="false">
                     <TableHead class="w-[110px]">Data</TableHead>
                     <TableHead class="w-[130px]">Numero</TableHead>
@@ -306,6 +279,31 @@ const createInvoiceUrl = computed(
                     </DataTableRow>
                 </DataTableBody>
             </DataTable>
+
+            <!-- Mobile (<lg): lista-card — numero · data a sx, totale a dx. -->
+            <ul
+                v-if="invoices.length > 0"
+                class="divide-y divide-border lg:hidden"
+            >
+                <li v-for="invoice in invoices" :key="invoice.id">
+                    <Link
+                        :href="invoiceShow(invoice.id).url"
+                        class="flex items-center gap-3 py-2.5 text-13 transition-colors active:bg-accent"
+                    >
+                        <span class="min-w-0 flex-1 truncate">
+                            <span class="tabular font-medium text-foreground">{{
+                                invoice.number
+                            }}</span>
+                            <span class="text-muted-foreground">
+                                · {{ formatDateIT(invoice.issued_at) }}</span
+                            >
+                        </span>
+                        <span class="tabular shrink-0 font-medium text-foreground">
+                            {{ formatEUR(invoice.total) }}
+                        </span>
+                    </Link>
+                </li>
+            </ul>
             <p v-else class="text-13 text-muted-foreground">
                 Nessuna fattura ancora. Crea la prima dal pulsante in alto.
             </p>
