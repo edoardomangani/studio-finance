@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Studiofinance">
+  <rect width="512" height="512" fill="#18181B"/>
+  <g transform="translate(256 256) scale(12)" fill="#FAFAFA">
+    <path d="M 0 -10 A 5 5 0 0 1 0 -2 A 5 5 0 0 1 0 -10 Z"/>
+    <path d="M 0 -10 A 5 5 0 0 1 0 -2 A 5 5 0 0 1 0 -10 Z" transform="rotate(60)"/>
+    <path d="M 0 -10 A 5 5 0 0 1 0 -2 A 5 5 0 0 1 0 -10 Z" transform="rotate(120)"/>
+    <path d="M 0 -10 A 5 5 0 0 1 0 -2 A 5 5 0 0 1 0 -10 Z" transform="rotate(180)"/>
+    <path d="M 0 -10 A 5 5 0 0 1 0 -2 A 5 5 0 0 1 0 -10 Z" transform="rotate(240)"/>
+    <path d="M 0 -10 A 5 5 0 0 1 0 -2 A 5 5 0 0 1 0 -10 Z" transform="rotate(300)"/>
+  </g>
+</svg>

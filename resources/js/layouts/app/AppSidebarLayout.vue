@@ -4,6 +4,7 @@ import AppFootbar from '@/components/AppFootbar.vue';
 import AppShell from '@/components/AppShell.vue';
 import AppSidebar from '@/components/AppSidebar.vue';
 import AppSidebarHeader from '@/components/AppSidebarHeader.vue';
+import InstallPrompt from '@/components/InstallPrompt.vue';
 import { Toaster } from '@/components/ui/sonner';
 
 type Crumb = { label: string; href?: string };
@@ -51,8 +52,9 @@ withDefaults(
                     <div id="page-right-sidebar" class="contents" />
                 </div>
             </div>
-            <!-- Footbar mobile: figlia flex in fondo alla colonna (<lg). Su
-                 desktop è lg:hidden e non occupa spazio. -->
+            <!-- Banner installazione PWA + footbar mobile: figli flex in fondo
+                 alla colonna (<lg). Su desktop sono lg:hidden, niente spazio. -->
+            <InstallPrompt />
             <AppFootbar />
         </AppContent>
         <Toaster />

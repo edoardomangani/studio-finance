@@ -32,3 +32,14 @@ initializeTheme();
 
 // This will listen for flash toast data from the server...
 initializeFlashToast();
+
+// PWA: registra il service worker (servito a scope root da /sw.js) solo in
+// build di produzione — in dev non esiste, così l'HMR di Vite resta intatto.
+// Fallimento silenzioso: senza SW l'app funziona, manca solo l'installabilità.
+if (import.meta.env.PROD && 'serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker
+            .register('/build/serviceworker.js', { scope: '/' })
+            .catch(() => {});
+    });
+}

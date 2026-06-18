@@ -5,6 +5,7 @@ import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
 import { bunny } from 'laravel-vite-plugin/fonts';
 import { defineConfig } from 'vite';
+import { VitePWA } from 'vite-plugin-pwa';
 
 // In build Docker gli asset si compilano in uno stage Node senza PHP: i file
 // Wayfinder vengono pre-generati nello stage PHP e copiati, quindi il plugin
@@ -27,6 +28,45 @@ const plugins = [
                 base: null,
                 includeAbsolute: false,
             },
+        },
+    }),
+    // PWA: manifest + service worker Workbox. Il SW NON viene registrato in
+    // dev (devOptions.enabled=false) per non interferire con l'HMR di Vite, e
+    // viene servito a scope root via la rotta Laravel /sw.js (vedi routes).
+    // Niente navigateFallback: l'app è server-rendered (Inertia), il SW fa solo
+    // precache degli asset statici, nessun caching dei dati.
+    VitePWA({
+        registerType: 'autoUpdate',
+        injectRegister: null,
+        scope: '/',
+        manifest: {
+            name: 'Studiofinance',
+            short_name: 'Studiofinance',
+            description: 'Gestionale fiscale per studi professionali',
+            lang: 'it',
+            theme_color: '#18181b',
+            background_color: '#18181b',
+            display: 'standalone',
+            orientation: 'portrait',
+            scope: '/',
+            start_url: '/',
+            icons: [
+                {
+                    src: '/pwa-icon.svg',
+                    sizes: 'any',
+                    type: 'image/svg+xml',
+                    purpose: 'any maskable',
+                },
+            ],
+        },
+        workbox: {
+            navigateFallback: null,
+            cleanupOutdatedCaches: true,
+            clientsClaim: true,
+            skipWaiting: true,
+        },
+        devOptions: {
+            enabled: false,
         },
     }),
 ];

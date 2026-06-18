@@ -18,6 +18,23 @@ Route::get('/', function () {
     return redirect()->route(auth()->check() ? 'dashboard' : 'login');
 })->name('home');
 
+// Service worker. È servito da dentro /build (così gli URL relativi del SW
+// verso workbox e gli asset precache risolvono correttamente), ma a un path
+// che NON esiste come file statico: il web server fa fallthrough a Laravel,
+// che aggiunge `Service-Worker-Allowed: /` per dargli scope sull'intera app.
+// Il file reale è generato da vite-plugin-pwa in public/build/sw.js.
+Route::get('build/serviceworker.js', function () {
+    $path = public_path('build/sw.js');
+
+    abort_unless(file_exists($path), 404);
+
+    return response()->file($path, [
+        'Content-Type' => 'application/javascript',
+        'Service-Worker-Allowed' => '/',
+        'Cache-Control' => 'no-cache',
+    ]);
+})->name('sw');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     // Onboarding: NON protetto da EnsureOnboarded (loop). Il controller fa
     // la redirect inversa se l'utente è già onboarded.
