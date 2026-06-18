@@ -174,7 +174,7 @@ const mobileTitle = computed(
             <!-- Mount point: azioni primarie della pagina. -->
             <div
                 id="page-topbar-actions"
-                class="flex shrink-0 items-center gap-2"
+                class="flex shrink-0 items-center gap-2 empty:hidden"
             />
         </div>
 
@@ -185,17 +185,19 @@ const mobileTitle = computed(
             v-show="subbar"
             class="flex h-11 items-center gap-3 border-b border-border px-3 md:px-5"
         >
-            <!-- Mount point: search testuale della pagina (page-scoped). -->
+            <!-- Mount point: search testuale della pagina (page-scoped).
+                 empty:hidden → se la pagina non teleporta nulla, non resta un
+                 flex-item vuoto che crea gap fantasma (idem sotto). -->
             <div
                 id="page-topbar-search"
-                class="flex flex-1 items-center lg:max-w-xs"
+                class="flex flex-1 items-center empty:hidden lg:max-w-xs"
             />
 
             <!-- Mount point: bottone Filtri (apre pannello a destra). -->
-            <div id="page-topbar-filters" class="flex items-center" />
+            <div id="page-topbar-filters" class="flex items-center empty:hidden" />
 
             <!-- Mount point: toggle viste (Lista/Griglia, ecc). -->
-            <div id="page-topbar-views" class="flex items-center" />
+            <div id="page-topbar-views" class="flex items-center empty:hidden" />
 
             <!-- Spacer: riempie la subbar SOLO su desktop (dove la search è
                  capata a max-w-xs). Su mobile la search è flex-1 a tutta

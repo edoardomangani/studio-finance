@@ -1,14 +1,16 @@
 <script setup lang="ts">
 /**
- * DataTablePagination — strip canonica con numeri pagine cliccabili.
+ * DataTablePagination — paginazione server-side, responsive.
  *
- * Layout: [range "1–25 di 124"]                  [« ‹ 1 … 5 › »]
+ * - Desktop (≥sm): range "1–25 di 124" + strip numerata [« ‹ 1 … 5 › »].
+ * - Mobile (<sm): compatta [‹ Indietro · Pag X di Y · Avanti ›] — bersagli
+ *   grandi, niente numeri/edge che si accavallano su schermo stretto.
  *
- * Stato server-side: la pagina passa current/total/perPage e ascolta
- * `update:page`. Numeri pagine + ellipsis via primitive shadcn Pagination.
- * Niente selector "per pagina" — il valore è fisso lato pagina/server.
+ * Stato: passa current/total/perPage e ascolta `update:page`.
  */
+import { PhCaretLeft, PhCaretRight } from '@phosphor-icons/vue'
 import { computed } from 'vue'
+import { Button } from '@/components/ui/button'
 import {
     Pagination,
     PaginationContent,
@@ -39,42 +41,70 @@ const to = computed(() => Math.min(props.page * props.perPage, props.total))
 </script>
 
 <template>
-    <div class="mt-4 flex items-center justify-between px-1 text-13">
-        <span class="text-xs tabular text-muted-foreground">
-            {{ from.toLocaleString('it-IT') }}–{{ to.toLocaleString('it-IT') }}
-            <span class="text-muted-foreground/60">di</span>
-            {{ total.toLocaleString('it-IT') }}
-        </span>
+    <div class="mt-4 px-1">
+        <!-- Desktop (≥sm): range + strip numerata -->
+        <div class="hidden items-center justify-between text-13 sm:flex">
+            <span class="tabular text-xs text-muted-foreground">
+                {{ from.toLocaleString('it-IT') }}–{{ to.toLocaleString('it-IT') }}
+                <span class="text-muted-foreground/60">di</span>
+                {{ total.toLocaleString('it-IT') }}
+            </span>
 
-        <Pagination
-            v-slot="{ page: cur }"
-            :total="total"
-            :items-per-page="perPage"
-            :sibling-count="0"
-            show-edges
-            :default-page="page"
-            :page="page"
-            @update:page="(v) => emit('update:page', v)"
-        >
-            <PaginationContent v-slot="{ items }" class="gap-1">
-                <PaginationFirst />
-                <PaginationPrevious />
-                <template v-for="(item, idx) in items" :key="idx">
-                    <PaginationItem
-                        v-if="item.type === 'page'"
-                        :value="item.value"
-                        :is-active="cur === item.value"
-                        size="icon-sm"
-                        class="h-8 w-8 text-xs tabular"
-                    >
-                        {{ item.value }}
-                    </PaginationItem>
-                    <PaginationEllipsis v-else :index="idx" class="text-muted-foreground" />
-                </template>
-                <PaginationNext />
-                <PaginationLast />
-            </PaginationContent>
-        </Pagination>
+            <Pagination
+                v-slot="{ page: cur }"
+                :total="total"
+                :items-per-page="perPage"
+                :sibling-count="0"
+                show-edges
+                :default-page="page"
+                :page="page"
+                @update:page="(v) => emit('update:page', v)"
+            >
+                <PaginationContent v-slot="{ items }" class="gap-1">
+                    <PaginationFirst />
+                    <PaginationPrevious />
+                    <template v-for="(item, idx) in items" :key="idx">
+                        <PaginationItem
+                            v-if="item.type === 'page'"
+                            :value="item.value"
+                            :is-active="cur === item.value"
+                            size="icon-sm"
+                            class="h-8 w-8 text-xs tabular"
+                        >
+                            {{ item.value }}
+                        </PaginationItem>
+                        <PaginationEllipsis v-else :index="idx" class="text-muted-foreground" />
+                    </template>
+                    <PaginationNext />
+                    <PaginationLast />
+                </PaginationContent>
+            </Pagination>
+        </div>
+
+        <!-- Mobile (<sm): compatta -->
+        <div class="flex items-center justify-between gap-2 sm:hidden">
+            <Button
+                variant="outline"
+                size="sm"
+                :disabled="page <= 1"
+                @click="emit('update:page', page - 1)"
+            >
+                <PhCaretLeft :size="14" />
+                Indietro
+            </Button>
+            <span class="tabular text-xs text-muted-foreground">
+                Pag {{ page }} di {{ totalPages }}
+            </span>
+            <Button
+                variant="outline"
+                size="sm"
+                :disabled="page >= totalPages"
+                @click="emit('update:page', page + 1)"
+            >
+                Avanti
+                <PhCaretRight :size="14" />
+            </Button>
+        </div>
 
         <span class="sr-only">Pagina {{ page }} di {{ totalPages }}</span>
     </div>
