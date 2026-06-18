@@ -1,33 +1,17 @@
 <script setup lang="ts">
 /**
- * InvoicesMobileList — faccia mobile (<lg) di InvoicesTable: lista a card con
- * solo l'essenziale (cliente, totale, numero·data, ritenuta). Il breakdown
- * vive nel dettaglio. Stesso click→dettaglio e stesse azioni della tabella;
- * l'archiviazione è delegata al parent (che possiede il ConfirmDialog).
+ * InvoicesMobileList — faccia mobile (<lg) di InvoicesTable: lista "transaction
+ * row" con monogramma cliente, importo a destra e meta (numero · data). Niente
+ * kebab: la riga è un Link al dettaglio, dove vivono le azioni. Il breakdown
+ * (imponibile/bollo/cassa/art.15) sta nel dettaglio, non qui.
  */
-import { Link, router } from '@inertiajs/vue3';
-import {
-    PhArchive,
-    PhCopy,
-    PhDotsThreeVertical,
-    PhPencil,
-} from '@phosphor-icons/vue';
+import { Link } from '@inertiajs/vue3';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { useInitials } from '@/composables/useInitials';
 import { formatDateIT, formatEUR } from '@/lib/format';
 import { withOrigin } from '@/lib/origin';
 import type { OriginCrumb } from '@/lib/origin';
-import {
-    create as invoiceCreate,
-    edit as invoiceEdit,
-    show as invoiceShow,
-} from '@/routes/invoices';
+import { show as invoiceShow } from '@/routes/invoices';
 import type { InvoiceListItem } from '@/types';
 
 const props = withDefaults(
@@ -40,11 +24,7 @@ const props = withDefaults(
     { origin: () => [], withTotals: false, total: 0 },
 );
 
-const emit = defineEmits<{ archive: [invoice: InvoiceListItem] }>();
-
-function goToInvoice(invoice: InvoiceListItem): void {
-    router.visit(withOrigin(invoiceShow(invoice.id).url, props.origin));
-}
+const { getInitials } = useInitials();
 </script>
 
 <template>
@@ -57,96 +37,49 @@ function goToInvoice(invoice: InvoiceListItem): void {
         </div>
         <ul v-else class="divide-y divide-border">
             <li v-for="invoice in invoices" :key="invoice.id">
-                <div
-                    class="flex items-center gap-2 py-3 transition-colors active:bg-accent"
-                    role="button"
-                    tabindex="0"
-                    @click="goToInvoice(invoice)"
-                    @keydown.enter="goToInvoice(invoice)"
+                <Link
+                    :href="withOrigin(invoiceShow(invoice.id).url, props.origin)"
+                    class="flex items-center gap-3 py-2.5 transition-colors active:bg-accent"
                 >
+                    <span
+                        class="flex size-9 shrink-0 items-center justify-center rounded-full bg-muted text-xs font-semibold text-foreground"
+                        aria-hidden="true"
+                    >
+                        {{ getInitials(invoice.client.name) }}
+                    </span>
+
                     <div class="min-w-0 flex-1">
-                        <div class="flex items-baseline justify-between gap-2">
-                            <span class="truncate font-medium text-foreground">
-                                {{ invoice.client.name }}
-                            </span>
-                            <span
-                                class="tabular shrink-0 text-sm font-medium"
-                                :class="
-                                    invoice.total < 0
-                                        ? 'text-destructive'
-                                        : 'text-foreground'
-                                "
-                            >
-                                {{ formatEUR(invoice.total) }}
-                            </span>
+                        <div class="truncate font-medium text-foreground">
+                            {{ invoice.client.name }}
                         </div>
                         <div
-                            class="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground"
+                            class="mt-0.5 truncate text-xs text-muted-foreground"
                         >
-                            <span class="tabular truncate">{{
-                                invoice.number
-                            }}</span>
-                            <span aria-hidden="true">·</span>
-                            <span class="tabular shrink-0">{{
-                                formatDateIT(invoice.issued_at)
-                            }}</span>
-                            <Badge
-                                v-if="invoice.bank_withholding"
-                                variant="outline"
-                                class="ml-0.5 shrink-0 py-0 text-2xs"
-                            >
-                                Ritenuta
-                            </Badge>
+                            n. {{ invoice.number }} ·
+                            {{ formatDateIT(invoice.issued_at) }}
                         </div>
                     </div>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger as-child>
-                            <Button
-                                variant="ghost"
-                                size="icon-sm"
-                                class="shrink-0 text-muted-foreground"
-                                aria-label="Azioni"
-                                @click.stop
-                            >
-                                <PhDotsThreeVertical :size="18" />
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuItem as-child>
-                                <Link
-                                    :href="
-                                        withOrigin(
-                                            invoiceEdit(invoice.id).url,
-                                            props.origin,
-                                        )
-                                    "
-                                >
-                                    <PhPencil :size="14" />
-                                    Modifica
-                                </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem as-child>
-                                <Link
-                                    :href="
-                                        invoiceCreate.url({
-                                            query: { from: invoice.id },
-                                        })
-                                    "
-                                >
-                                    <PhCopy :size="14" />
-                                    Duplica
-                                </Link>
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                variant="destructive"
-                                @select="emit('archive', invoice)"
-                            >
-                                <PhArchive :size="14" />
-                                Archivia
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
+
+                    <div class="flex shrink-0 flex-col items-end gap-0.5">
+                        <span
+                            class="tabular text-sm font-semibold"
+                            :class="
+                                invoice.total < 0
+                                    ? 'text-destructive'
+                                    : 'text-foreground'
+                            "
+                        >
+                            {{ formatEUR(invoice.total) }}
+                        </span>
+                        <Badge
+                            v-if="invoice.bank_withholding"
+                            variant="outline"
+                            class="py-0 text-2xs"
+                        >
+                            Ritenuta
+                        </Badge>
+                    </div>
+                </Link>
             </li>
         </ul>
         <div

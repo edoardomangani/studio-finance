@@ -266,7 +266,6 @@ function goToInvoice(invoice: InvoiceListItem): void {
         :origin="props.origin"
         :with-totals="withTotals"
         :total="totals.total"
-        @archive="askArchive"
     >
         <template #empty>
             <slot name="empty">Nessuna fattura.</slot>

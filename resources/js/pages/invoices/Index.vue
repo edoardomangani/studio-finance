@@ -201,10 +201,16 @@ function goToPage(page: number): void {
                 Importa XML
             </Link>
         </Button>
-        <Button as-child size="sm">
+        <!-- Nuova fattura: mobile icon 36×36, desktop con label. -->
+        <Button as-child size="icon-md" class="lg:hidden">
             <Link :href="invoicesCreate().url" aria-label="Nuova fattura">
+                <PhPlus :size="16" weight="bold" />
+            </Link>
+        </Button>
+        <Button as-child size="sm" class="hidden lg:inline-flex">
+            <Link :href="invoicesCreate().url">
                 <PhPlus :size="14" weight="bold" />
-                <span class="hidden lg:inline">Nuova fattura</span>
+                Nuova fattura
             </Link>
         </Button>
     </Teleport>
@@ -223,17 +229,35 @@ function goToPage(page: number): void {
     </Teleport>
 
     <Teleport to="#page-topbar-filters" defer>
+        <!-- Mobile: icon 36×36 (badge a corner). Desktop: con label. -->
         <Button
             type="button"
             variant="outline"
-            size="sm"
-            class="relative"
+            size="icon-md"
+            class="relative lg:hidden"
             :aria-pressed="filtersOpen"
             aria-label="Filtri"
             @click="filtersOpen = !filtersOpen"
         >
+            <PhFunnel :size="16" />
+            <Badge
+                v-if="activeFilterCount > 0"
+                variant="secondary"
+                class="tabular absolute -top-1 -right-1 h-4 min-w-4 px-1 text-2xs"
+            >
+                {{ activeFilterCount }}
+            </Badge>
+        </Button>
+        <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            class="relative hidden lg:inline-flex"
+            :aria-pressed="filtersOpen"
+            @click="filtersOpen = !filtersOpen"
+        >
             <PhFunnel :size="14" />
-            <span class="hidden lg:inline">Filtri</span>
+            Filtri
             <Badge
                 v-if="activeFilterCount > 0"
                 variant="secondary"

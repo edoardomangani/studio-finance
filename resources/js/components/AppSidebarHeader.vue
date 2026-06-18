@@ -197,8 +197,10 @@ const mobileTitle = computed(
             <!-- Mount point: toggle viste (Lista/Griglia, ecc). -->
             <div id="page-topbar-views" class="flex items-center" />
 
-            <!-- Spacer per riempire la subbar (no actions qui — sono in topbar). -->
-            <div class="flex-1" />
+            <!-- Spacer: riempie la subbar SOLO su desktop (dove la search è
+                 capata a max-w-xs). Su mobile la search è flex-1 a tutta
+                 larghezza, quindi niente spacer che le rubi spazio. -->
+            <div class="hidden flex-1 lg:block" />
         </div>
     </header>
 </template>

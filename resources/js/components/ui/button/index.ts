@@ -32,6 +32,9 @@ export const buttonVariants = cva(
         "icon": "size-6",
         "icon-sm": "size-6",
         "icon-lg": "size-8",
+        // 36×36 — icon-button pari all'altezza di input/Button default (h-9).
+        // È la dimensione standard per gli icon-button in topbar/subbar mobile.
+        "icon-md": "size-9",
       },
     },
     defaultVariants: {
