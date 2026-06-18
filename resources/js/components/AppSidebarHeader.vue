@@ -62,10 +62,11 @@ const backHref = computed<string | null>(() => {
     return linked.length > 0 ? linked[linked.length - 1].href! : null;
 });
 
-/* Titolo mobile: niente breadcrumb (artefatto desktop). Il nome della pagina
-   è l'ultimo crumb (= pagina corrente) o il `title` esplicito. */
+/* Titolo mobile: niente breadcrumb (artefatto desktop). Preferisce il `title`
+   esplicito (descrittivo, es. "Fattura 2026/14") all'ultimo crumb (che nei
+   dettagli è solo l'identificatore breve, es. "2026/14"). */
 const mobileTitle = computed(
-    () => props.crumbs[props.crumbs.length - 1]?.label ?? props.title ?? '',
+    () => props.title ?? props.crumbs[props.crumbs.length - 1]?.label ?? '',
 );
 </script>
 
