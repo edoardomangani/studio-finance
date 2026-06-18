@@ -102,7 +102,20 @@ const {
     <Head title="Scadenze" />
 
     <Teleport to="#page-topbar-actions" defer>
-        <Button size="sm" @click="table?.openCreate()">
+        <!-- Nuova scadenza: mobile icon 36, desktop con label. -->
+        <Button
+            size="icon-md"
+            class="lg:hidden"
+            aria-label="Nuova scadenza"
+            @click="table?.openCreate()"
+        >
+            <PhPlus :size="16" weight="bold" />
+        </Button>
+        <Button
+            size="sm"
+            class="hidden lg:inline-flex"
+            @click="table?.openCreate()"
+        >
             <PhPlus :size="14" weight="bold" />
             Nuova scadenza
         </Button>
@@ -129,10 +142,11 @@ const {
                 size="sm"
                 class="relative"
                 :aria-pressed="filtersOpen"
+                aria-label="Filtri"
                 @click="filtersOpen = !filtersOpen"
             >
                 <PhFunnel :size="14" />
-                Filtri
+                <span class="hidden lg:inline">Filtri</span>
                 <Badge
                     v-if="activeFilterCount > 0"
                     variant="secondary"
@@ -141,11 +155,14 @@ const {
                     {{ activeFilterCount }}
                 </Badge>
             </Button>
+            <!-- Toggle stati: nella subbar solo da lg (su mobile è una riga
+                 propria sopra la lista, vedi sotto). -->
             <ToggleGroup
                 :model-value="statusTab"
                 type="single"
                 variant="boxed"
                 size="sm"
+                class="hidden lg:flex"
                 @update:model-value="setStatus"
             >
                 <ToggleGroupItem
@@ -155,12 +172,32 @@ const {
                     :aria-label="tab.label"
                 >
                     <component :is="tab.icon" :size="14" />
-                    <!-- Solo icona su phone per non far debordare il subbar. -->
-                    <span class="hidden sm:inline">{{ tab.label }}</span>
+                    {{ tab.label }}
                 </ToggleGroupItem>
             </ToggleGroup>
         </div>
     </Teleport>
+
+    <!-- Toggle stati: su mobile riga propria full-width sopra la lista (la
+         subbar è già piena di search + Filtri). Da lg vive nella subbar. -->
+    <ToggleGroup
+        :model-value="statusTab"
+        type="single"
+        variant="boxed"
+        size="sm"
+        class="mb-3 w-full lg:hidden"
+        @update:model-value="setStatus"
+    >
+        <ToggleGroupItem
+            v-for="tab in STATE_TABS"
+            :key="tab.value"
+            :value="tab.value"
+            :aria-label="tab.label"
+            class="flex-1"
+        >
+            {{ tab.label }}
+        </ToggleGroupItem>
+    </ToggleGroup>
 
     <DeadlinesTable
         ref="table"

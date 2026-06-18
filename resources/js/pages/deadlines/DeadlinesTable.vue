@@ -123,11 +123,29 @@ function isArchivable(deadline: DeadlineListItem): boolean {
     return deadline.is_custom && deadline.payment?.status !== 'paid';
 }
 
+// Dallo sheet (mobile): Modifica/Archivia. Chiudo lo sheet e apro la
+// superficie giusta (form dialog / confirm), riusando gli handler esistenti.
+function onSheetEdit(): void {
+    if (selectedDeadline.value) {
+        sheetOpen.value = false;
+        openEdit(selectedDeadline.value);
+    }
+}
+
+function onSheetArchive(): void {
+    if (selectedDeadline.value) {
+        sheetOpen.value = false;
+        askArchive(selectedDeadline.value);
+    }
+}
+
 // Il chiamante (topbar lista / header tab) apre la creazione.
 defineExpose({ openCreate });
 </script>
 
 <template>
+    <!-- Desktop / tablet-landscape (≥lg): tabella completa. -->
+    <div class="hidden lg:block">
     <DataTable>
         <DataTableHeader>
             <TableHead class="w-[100px]">Scadenza</TableHead>
@@ -255,8 +273,84 @@ defineExpose({ openCreate });
             </TableRow>
         </TableFooter>
     </DataTable>
+    </div>
 
-    <DeadlineSheet v-model:open="sheetOpen" :deadline="selectedDeadline" />
+    <!-- Mobile / tablet-portrait (<lg): lista a card. Nome + importo, riga 2
+         data scadenza + badge stato. Niente kebab: tap → sheet (azioni lì). -->
+    <div class="lg:hidden">
+        <div
+            v-if="deadlines.length === 0"
+            class="py-10 text-center text-sm text-muted-foreground"
+        >
+            <slot name="empty">Nessuna scadenza.</slot>
+        </div>
+        <ul v-else class="divide-y divide-border">
+            <li v-for="deadline in deadlines" :key="deadline.id">
+                <div
+                    class="flex items-center gap-3 py-2.5 transition-colors active:bg-accent"
+                    role="button"
+                    tabindex="0"
+                    @click="openDeadline(deadline)"
+                    @keydown.enter="openDeadline(deadline)"
+                >
+                    <div class="min-w-0 flex-1">
+                        <div class="flex items-baseline justify-between gap-2">
+                            <span class="truncate font-medium text-foreground">
+                                {{ deadline.name }}
+                            </span>
+                            <span
+                                v-if="effectiveAmount(deadline) !== null"
+                                class="tabular shrink-0 text-sm font-medium"
+                                :class="
+                                    isPaid(deadline)
+                                        ? 'text-foreground'
+                                        : 'text-muted-foreground'
+                                "
+                            >
+                                {{ formatEUR(effectiveAmount(deadline)!) }}
+                            </span>
+                        </div>
+                        <div class="mt-1 flex items-center gap-2 text-xs">
+                            <span class="tabular text-muted-foreground">
+                                {{ formatDateIT(deadline.due_at) }}
+                            </span>
+                            <Badge
+                                :variant="
+                                    DEADLINE_STATUS_META[deadline.status].variant
+                                "
+                                class="gap-1 py-0 text-2xs"
+                            >
+                                <component
+                                    :is="
+                                        DEADLINE_STATUS_META[deadline.status]
+                                            .icon
+                                    "
+                                    :size="11"
+                                />
+                                {{ deadline.status_label }}
+                            </Badge>
+                        </div>
+                    </div>
+                </div>
+            </li>
+        </ul>
+        <div
+            v-if="withTotals && deadlines.length > 0"
+            class="flex items-center justify-between border-t border-border py-3 font-medium"
+        >
+            <span class="text-foreground">Totale</span>
+            <span class="tabular text-foreground">{{
+                formatEUR(totalAmount)
+            }}</span>
+        </div>
+    </div>
+
+    <DeadlineSheet
+        v-model:open="sheetOpen"
+        :deadline="selectedDeadline"
+        @edit="onSheetEdit"
+        @archive="onSheetArchive"
+    />
 
     <DeadlineFormDialog
         v-model:open="formOpen"

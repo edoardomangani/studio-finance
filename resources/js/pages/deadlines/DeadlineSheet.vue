@@ -10,7 +10,7 @@
  * confermata inline nel footer.
  */
 import { router, useForm } from '@inertiajs/vue3';
-import { PhCheck } from '@phosphor-icons/vue';
+import { PhArchive, PhCheck, PhPencil } from '@phosphor-icons/vue';
 import { useMediaQuery } from '@vueuse/core';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
@@ -37,6 +37,19 @@ const props = defineProps<{
 }>();
 
 const open = defineModel<boolean>('open', { default: false });
+
+// Gestione scadenza dal mobile: lo sheet è il dettaglio, quindi emette
+// Modifica/Archivia che il parent (DeadlinesTable) instrada su form/confirm.
+// Su desktop quelle azioni restano nel kebab della tabella.
+const emit = defineEmits<{ edit: []; archive: [] }>();
+
+// Archiviabile solo le ad-hoc (custom) col pagamento non registrato — stessa
+// regola del kebab tabella. Modifica invece è sempre disponibile.
+const archivable = computed(
+    () =>
+        props.deadline?.is_custom === true &&
+        props.deadline?.payment?.status !== 'paid',
+);
 
 const isMobile = useMediaQuery('(max-width: 767px)');
 
@@ -386,8 +399,8 @@ function submit(): void {
 
             <p v-else class="pt-4 text-xs text-muted-foreground">
                 <span v-if="isFulfillableOpen"
-                    >Adempimento senza pagamento: usa il check in alto per
-                    segnarlo come svolto.</span
+                    >Adempimento senza pagamento: usa «Segna come svolto» per
+                    chiuderlo.</span
                 >
                 <span v-else-if="deadline.kind === 'fulfillment'"
                     >Adempimento svolto.</span
@@ -397,6 +410,31 @@ function submit(): void {
                 >
                 <span v-else>Nessun pagamento da registrare.</span>
             </p>
+
+            <!-- Gestione (solo mobile: su desktop le azioni sono nel kebab della
+                 tabella). Modifica sempre, Archivia solo per le custom.
+                 Secondarie e leggere, fuori dai bottoni-azione del footer. -->
+            <div
+                class="mt-4 flex items-center gap-4 border-t border-border-soft pt-3 text-13 lg:hidden"
+            >
+                <button
+                    type="button"
+                    class="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
+                    @click="emit('edit')"
+                >
+                    <PhPencil :size="14" />
+                    Modifica
+                </button>
+                <button
+                    v-if="archivable"
+                    type="button"
+                    class="flex items-center gap-1.5 text-destructive/80 transition-colors hover:text-destructive"
+                    @click="emit('archive')"
+                >
+                    <PhArchive :size="14" />
+                    Archivia
+                </button>
+            </div>
         </template>
 
         <template v-if="showFooter" #footer>
