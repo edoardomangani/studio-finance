@@ -148,7 +148,7 @@ watch(
                     :id="id"
                     type="button"
                     variant="outline"
-                    class="w-full justify-between font-normal"
+                    class="h-12 w-full justify-between font-normal sm:h-9"
                     :class="invalid ? 'border-destructive' : ''"
                 >
                     <span

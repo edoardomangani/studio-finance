@@ -471,6 +471,15 @@
     textarea::placeholder {
         font-size: 16px;
     }
+    /* Campi form più alti (48px) su mobile: touch comodo, stile iOS. Scoping
+       ai soli data-slot dei form (input/native-select/select-trigger), NON alla
+       search del topbar (data-slot input-group-control, vive nella subbar h-11)
+       né alle textarea (crescono in altezza). */
+    [data-slot='input'],
+    [data-slot='native-select'],
+    [data-slot='select-trigger'] {
+        height: 3rem;
+    }
 }
 
 /* ─── Utility custom — kicker, numeric, code-pill, pill, hairline ─────────── */
