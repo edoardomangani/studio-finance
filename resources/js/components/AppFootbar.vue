@@ -56,7 +56,7 @@ const isActive = (item: FootbarLink): boolean =>
 
 <template>
     <nav
-        class="flex h-[calc(5.25rem+env(safe-area-inset-bottom))] shrink-0 items-start justify-between border-t border-sidebar-border bg-card px-6 pt-2.5 lg:hidden"
+        class="flex h-21 shrink-0 items-start justify-between border-t border-sidebar-border bg-card px-6 pt-2.5 lg:hidden"
         aria-label="Navigazione principale"
     >
         <Link
