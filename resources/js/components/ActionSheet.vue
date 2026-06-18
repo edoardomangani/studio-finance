@@ -4,7 +4,9 @@
  *
  * Drawer (vaul) responsive: bottom su mobile (con grabber per il drag), pannello
  * da destra su desktop. Header stile iOS: X (chiudi) a sinistra, titolo
- * centrato, azione primaria a destra (slot #primary, tipicamente un check).
+ * centrato, azione primaria a destra (slot #primary, tipicamente un check) —
+ * mostrata SOLO su mobile. Su desktop il primario va messo dal consumer nel
+ * footer (slot #footer), come bottone etichettato.
  * I CONTENUTI vanno nello slot default; le azioni secondarie nello slot #footer.
  *
  * @example
@@ -60,8 +62,11 @@ const isMobile = useMediaQuery('(max-width: 767px)');
                 >
                     {{ title }}
                 </DrawerTitle>
+                <!-- Primario nell'header SOLO su mobile (pattern iOS). Su
+                     desktop (pannello destro) il primario va nel footer, gestito
+                     dal consumer che conosce il proprio layout. -->
                 <div class="flex justify-self-end">
-                    <slot name="primary" />
+                    <slot v-if="isMobile" name="primary" />
                 </div>
             </header>
             <DrawerDescription class="sr-only">{{

@@ -11,6 +11,7 @@
  */
 import { router, useForm } from '@inertiajs/vue3';
 import { PhCheck } from '@phosphor-icons/vue';
+import { useMediaQuery } from '@vueuse/core';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
 import ActionSheet from '@/components/ActionSheet.vue';
@@ -36,6 +37,8 @@ const props = defineProps<{
 }>();
 
 const open = defineModel<boolean>('open', { default: false });
+
+const isMobile = useMediaQuery('(max-width: 767px)');
 
 const isPayableOpen = computed(
     () =>
@@ -84,11 +87,14 @@ type PendingReversal = {
 const pending = ref<PendingReversal | null>(null);
 const reversing = ref(false);
 
-// Footer visibile solo quando c'è un'azione (primario a parte, in header).
+// Footer visibile quando c'è un'azione. Su desktop ospita anche il primario
+// (su mobile il primario è il check nell'header): per gli stati "open" senza
+// secondaria (adempimento) il footer serve solo da desktop.
 const showFooter = computed(
     () =>
         pending.value !== null ||
         isPayableOpen.value ||
+        (!isMobile.value && isFulfillableOpen.value) ||
         props.deadline?.status === 'completed' ||
         props.deadline?.status === 'not_due',
 );
@@ -424,34 +430,63 @@ function submit(): void {
                 </div>
             </div>
 
-            <!-- Azioni secondarie per stato (il primario è il check in header). -->
-            <Button
-                v-else-if="isPayableOpen"
-                type="button"
-                variant="ghost"
-                size="sm"
-                class="w-full"
-                @click="askMarkNotDue"
-            >
-                Marca come non dovuta
-            </Button>
-            <Button
-                v-else-if="deadline && deadline.status === 'completed'"
-                type="button"
-                variant="outline"
-                class="w-full"
-                @click="askUndoCompletion"
-            >
-                Annulla completamento
-            </Button>
-            <Button
-                v-else-if="deadline && deadline.status === 'not_due'"
-                type="button"
-                class="w-full"
-                @click="askReopen"
-            >
-                Riapri scadenza
-            </Button>
+            <div v-else class="space-y-2">
+                <!-- Desktop: il primario vive nel footer (su mobile è il check
+                     nell'header iOS). -->
+                <Button
+                    v-if="isPayableOpen"
+                    type="submit"
+                    form="register-payment"
+                    class="hidden w-full sm:flex"
+                    :disabled="form.processing"
+                    :aria-busy="form.processing"
+                >
+                    <Spinner v-if="form.processing" />
+                    <PhCheck v-else :size="16" weight="bold" />
+                    Registra pagamento
+                </Button>
+                <Button
+                    v-else-if="isFulfillableOpen"
+                    type="button"
+                    class="hidden w-full sm:flex"
+                    :disabled="fulfilling"
+                    :aria-busy="fulfilling"
+                    @click="markFulfilled"
+                >
+                    <Spinner v-if="fulfilling" />
+                    <PhCheck v-else :size="16" weight="bold" />
+                    Segna come svolto
+                </Button>
+
+                <!-- Azioni secondarie per stato. -->
+                <Button
+                    v-if="isPayableOpen"
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    class="w-full"
+                    @click="askMarkNotDue"
+                >
+                    Marca come non dovuta
+                </Button>
+                <Button
+                    v-else-if="deadline && deadline.status === 'completed'"
+                    type="button"
+                    variant="outline"
+                    class="w-full"
+                    @click="askUndoCompletion"
+                >
+                    Annulla completamento
+                </Button>
+                <Button
+                    v-else-if="deadline && deadline.status === 'not_due'"
+                    type="button"
+                    class="w-full"
+                    @click="askReopen"
+                >
+                    Riapri scadenza
+                </Button>
+            </div>
         </template>
     </ActionSheet>
 </template>
