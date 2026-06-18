@@ -61,13 +61,19 @@ const backHref = computed<string | null>(() => {
 
     return linked.length > 0 ? linked[linked.length - 1].href! : null;
 });
+
+/* Titolo mobile: niente breadcrumb (artefatto desktop). Il nome della pagina
+   è l'ultimo crumb (= pagina corrente) o il `title` esplicito. */
+const mobileTitle = computed(
+    () => props.crumbs[props.crumbs.length - 1]?.label ?? props.title ?? '',
+);
 </script>
 
 <template>
     <header class="shrink-0 bg-background">
         <!-- ─── FASCIA TOP (h-12): breadcrumb-titolo · azioni pagina ─── -->
         <div
-            class="flex h-12 items-center gap-2 border-b border-border-soft px-3 md:gap-3 md:px-5"
+            class="flex h-[calc(3.5rem+env(safe-area-inset-top))] items-center gap-2 border-b border-border-soft px-3 pt-[env(safe-area-inset-top)] md:gap-3 md:px-5 lg:h-12 lg:pt-0"
         >
             <!-- Mobile (<lg): avatar→account su pagina-radice, freccia back su
                  dettaglio. Da lg+ nascosto: il toggle sidebar vive a cavallo
@@ -84,17 +90,19 @@ const backHref = computed<string | null>(() => {
                 <Link
                     v-else
                     :href="account()"
-                    class="flex items-center justify-center rounded-md p-1 transition-colors hover:bg-accent"
+                    class="flex items-center justify-center rounded-full transition-opacity hover:opacity-80"
                     aria-label="Account"
                 >
-                    <Avatar class="size-7 overflow-hidden rounded">
+                    <Avatar
+                        class="size-9 overflow-hidden rounded-full ring-1 ring-accent-vivid/20"
+                    >
                         <AvatarImage
                             v-if="showAvatar"
                             :src="user.avatar!"
                             :alt="user.name"
                         />
                         <AvatarFallback
-                            class="rounded bg-secondary text-2xs font-medium text-foreground"
+                            class="rounded-full bg-accent-vivid/10 text-xs font-semibold text-accent-strong"
                         >
                             {{ getInitials(user.name) }}
                         </AvatarFallback>
@@ -102,9 +110,30 @@ const backHref = computed<string | null>(() => {
                 </Link>
             </div>
 
-            <!-- Breadcrumb: parent muted, ultimo segmento promosso a titolo -->
+            <!-- Mobile (<lg): titolo pagina inline, no breadcrumb. Radice →
+                 sinistra; dettaglio (con back) → centrato, stile app. -->
+            <div
+                class="flex min-w-0 flex-1 items-center gap-2 lg:hidden"
+                :class="backHref ? 'justify-center' : ''"
+            >
+                <h1
+                    class="truncate font-semibold text-foreground"
+                    :class="backHref ? 'text-base' : 'text-xl tracking-tight'"
+                >
+                    {{ mobileTitle }}
+                </h1>
+                <span
+                    v-if="status"
+                    :class="statusToneClass[status.tone ?? 'neutral']"
+                >
+                    {{ status.label }}
+                </span>
+            </div>
+
+            <!-- Breadcrumb: parent muted, ultimo segmento promosso a titolo.
+                 Solo desktop (≥lg); su mobile c'è il titolo inline sopra. -->
             <nav
-                class="flex min-w-0 flex-1 items-center gap-1.5"
+                class="hidden min-w-0 flex-1 items-center gap-1.5 lg:flex"
                 aria-label="Breadcrumb"
             >
                 <template v-for="(c, i) in fullCrumbs" :key="i">
