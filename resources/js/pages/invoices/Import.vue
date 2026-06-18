@@ -371,17 +371,27 @@ function humanizeErrorField(path: string): string {
     <Head title="Importa fatture XML" />
 
     <Teleport to="#page-topbar-actions" defer>
-        <Button type="button" variant="outline" size="sm" @click="reset">
+        <!-- Vuoto: "Annulla" è ridondante col back su mobile → solo desktop.
+             Con anteprime: "Svuota" è un'azione vera, resta ovunque. -->
+        <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            :class="previewList.length === 0 ? 'hidden lg:inline-flex' : ''"
+            @click="reset"
+        >
             {{ previewList.length === 0 ? 'Annulla' : 'Svuota' }}
         </Button>
         <Button type="button" size="sm" :disabled="!canSubmit" @click="submit">
             <Spinner v-if="submitForm.processing" />
             Importa {{ counts.pronto }}
-            {{ counts.pronto === 1 ? 'fattura' : 'fatture' }}
+            <span class="hidden sm:inline">{{
+                counts.pronto === 1 ? 'fattura' : 'fatture'
+            }}</span>
         </Button>
     </Teleport>
 
-    <div class="mx-auto w-full max-w-[1100px] px-4 py-6 md:px-6 md:py-8">
+    <div class="mx-auto w-full max-w-[1100px]">
         <!-- ─── Drop zone ─── -->
         <div
             ref="dropZoneRef"
