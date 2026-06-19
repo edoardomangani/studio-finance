@@ -59,8 +59,13 @@ COPY --from=assets --chown=www-data:www-data /app/public/build ./public/build
 # NGINX_FASTCGI_BUFFER_SIZE: il primo buffer FastCGI contiene gli header di
 # risposta; il default 8k va in 502 "upstream sent too big header" su pagine
 # con header grossi (es. /years/{anno} con error-bag/flash). Alzato a 32k.
+# AUTORUN_LARAVEL_MIGRATION=false: su Render free il container riparte a ogni
+# risveglio (spin-down notturno), e migrare a ogni boot aggiunge ~9s di
+# connessione a Neon freddo — oltre il timeout di 30s del cron. Le migration
+# si lanciano a mano al deploy (php artisan migrate --force verso Neon).
 ENV APP_ENV=production \
     APP_DEBUG=false \
+    AUTORUN_LARAVEL_MIGRATION=false \
     NGINX_FASTCGI_BUFFER_SIZE=32k \
     NGINX_FASTCGI_BUFFERS="16 16k"
 EXPOSE 8080
