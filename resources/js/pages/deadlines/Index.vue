@@ -136,17 +136,35 @@ const {
 
     <Teleport to="#page-topbar-filters" defer>
         <div class="flex items-center gap-2">
+            <!-- Mobile: icon 36 (badge a corner). Desktop: con label. -->
             <Button
                 type="button"
                 variant="outline"
-                size="sm"
-                class="relative"
+                size="icon-md"
+                class="relative lg:hidden"
                 :aria-pressed="filtersOpen"
                 aria-label="Filtri"
                 @click="filtersOpen = !filtersOpen"
             >
+                <PhFunnel :size="16" />
+                <Badge
+                    v-if="activeFilterCount > 0"
+                    variant="secondary"
+                    class="tabular absolute -top-1 -right-1 h-4 min-w-4 px-1 text-2xs"
+                >
+                    {{ activeFilterCount }}
+                </Badge>
+            </Button>
+            <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                class="relative hidden lg:inline-flex"
+                :aria-pressed="filtersOpen"
+                @click="filtersOpen = !filtersOpen"
+            >
                 <PhFunnel :size="14" />
-                <span class="hidden lg:inline">Filtri</span>
+                Filtri
                 <Badge
                     v-if="activeFilterCount > 0"
                     variant="secondary"
@@ -195,6 +213,7 @@ const {
             :aria-label="tab.label"
             class="flex-1"
         >
+            <component :is="tab.icon" :size="14" />
             {{ tab.label }}
         </ToggleGroupItem>
     </ToggleGroup>

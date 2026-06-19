@@ -10,7 +10,12 @@
  * confermata inline nel footer.
  */
 import { router, useForm } from '@inertiajs/vue3';
-import { PhArchive, PhCheck, PhPencil } from '@phosphor-icons/vue';
+import {
+    PhArchive,
+    PhCheck,
+    PhDotsThreeVertical,
+    PhPencil,
+} from '@phosphor-icons/vue';
 import { useMediaQuery } from '@vueuse/core';
 import { computed, ref, watch } from 'vue';
 import { toast } from 'vue-sonner';
@@ -19,6 +24,12 @@ import DateField from '@/components/forms/DateField.vue';
 import FormField from '@/components/forms/FormField.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { FieldGroup } from '@/components/ui/field';
 import { DecimalInput, Input } from '@/components/ui/input';
 import { Spinner } from '@/components/ui/spinner';
@@ -257,29 +268,59 @@ function submit(): void {
 
 <template>
     <ActionSheet v-model:open="open" :title="deadline?.name ?? 'Scadenza'">
-        <!-- Primario stile iOS: check in alto a destra. -->
-        <template v-if="isPayableOpen" #primary>
+        <!-- Header iOS (mobile): kebab "altre azioni" (Modifica · Archivia) +
+             check del primario. Su desktop lo slot #primary non si mostra (le
+             azioni sono nel kebab della tabella). -->
+        <template #primary>
+            <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                    <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon-md"
+                        aria-label="Altre azioni"
+                    >
+                        <PhDotsThreeVertical :size="20" weight="bold" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem @select="emit('edit')">
+                        <PhPencil :size="14" />
+                        Modifica
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                        v-if="archivable"
+                        variant="destructive"
+                        @select="emit('archive')"
+                    >
+                        <PhArchive :size="14" />
+                        Archivia
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
             <Button
+                v-if="isPayableOpen"
                 type="submit"
                 form="register-payment"
-                size="icon"
+                size="icon-md"
                 aria-label="Registra pagamento"
                 :disabled="form.processing"
+                :aria-busy="form.processing"
             >
                 <Spinner v-if="form.processing" />
-                <PhCheck v-else :size="18" weight="bold" />
+                <PhCheck v-else :size="20" weight="bold" />
             </Button>
-        </template>
-        <template v-else-if="isFulfillableOpen" #primary>
             <Button
+                v-else-if="isFulfillableOpen"
                 type="button"
-                size="icon"
+                size="icon-md"
                 aria-label="Segna come svolto"
                 :disabled="fulfilling"
+                :aria-busy="fulfilling"
                 @click="markFulfilled"
             >
                 <Spinner v-if="fulfilling" />
-                <PhCheck v-else :size="18" weight="bold" />
+                <PhCheck v-else :size="20" weight="bold" />
             </Button>
         </template>
 
@@ -410,31 +451,6 @@ function submit(): void {
                 >
                 <span v-else>Nessun pagamento da registrare.</span>
             </p>
-
-            <!-- Gestione (solo mobile: su desktop le azioni sono nel kebab della
-                 tabella). Modifica sempre, Archivia solo per le custom.
-                 Secondarie e leggere, fuori dai bottoni-azione del footer. -->
-            <div
-                class="mt-4 flex items-center gap-4 border-t border-border-soft pt-3 text-13 lg:hidden"
-            >
-                <button
-                    type="button"
-                    class="flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
-                    @click="emit('edit')"
-                >
-                    <PhPencil :size="14" />
-                    Modifica
-                </button>
-                <button
-                    v-if="archivable"
-                    type="button"
-                    class="flex items-center gap-1.5 text-destructive/80 transition-colors hover:text-destructive"
-                    @click="emit('archive')"
-                >
-                    <PhArchive :size="14" />
-                    Archivia
-                </button>
-            </div>
         </template>
 
         <template v-if="showFooter" #footer>

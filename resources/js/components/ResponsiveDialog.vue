@@ -107,11 +107,11 @@ const asDrawer = computed(() => isMobile.value || props.mode === 'sheet');
                     <Button
                         type="button"
                         variant="ghost"
-                        size="icon"
+                        size="icon-md"
                         aria-label="Chiudi"
                         @click="open = false"
                     >
-                        <PhX :size="18" />
+                        <PhX :size="20" />
                     </Button>
                 </div>
                 <DrawerTitle
@@ -129,7 +129,7 @@ const asDrawer = computed(() => isMobile.value || props.mode === 'sheet');
                             type="submit"
                             :form="submitForm"
                             variant="default"
-                            size="icon"
+                            size="icon-md"
                             :disabled="submitting"
                             :aria-busy="submitting"
                             :aria-label="submitLabel ?? 'Conferma'"

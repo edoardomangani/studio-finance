@@ -50,11 +50,11 @@ const isMobile = useMediaQuery('(max-width: 767px)');
                     <Button
                         type="button"
                         variant="ghost"
-                        size="icon"
+                        size="icon-md"
                         aria-label="Chiudi"
                         @click="open = false"
                     >
-                        <PhX :size="18" />
+                        <PhX :size="20" />
                     </Button>
                 </div>
                 <DrawerTitle
@@ -65,7 +65,7 @@ const isMobile = useMediaQuery('(max-width: 767px)');
                 <!-- Primario nell'header SOLO su mobile (pattern iOS). Su
                      desktop (pannello destro) il primario va nel footer, gestito
                      dal consumer che conosce il proprio layout. -->
-                <div class="flex justify-self-end">
+                <div class="flex justify-self-end gap-1">
                     <slot v-if="isMobile" name="primary" />
                 </div>
             </header>
