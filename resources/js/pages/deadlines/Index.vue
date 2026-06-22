@@ -211,10 +211,10 @@ const {
             :key="tab.value"
             :value="tab.value"
             :aria-label="tab.label"
-            class="flex-1"
+            class="min-w-0 flex-1 gap-1.5"
         >
             <component :is="tab.icon" :size="14" />
-            {{ tab.label }}
+            <span class="truncate">{{ tab.label }}</span>
         </ToggleGroupItem>
     </ToggleGroup>
 
