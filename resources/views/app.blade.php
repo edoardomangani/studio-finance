@@ -42,7 +42,7 @@
 
         <link rel="icon" href="/favicon.ico" sizes="any">
         <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=2">
 
         {{-- Font loading: <link> nel head + preconnect, NON @import in CSS.
              Parallelo e prioritario, evita il FOUT prolungato. --}}
