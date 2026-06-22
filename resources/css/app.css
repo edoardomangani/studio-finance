@@ -482,7 +482,22 @@
     }
 }
 
-/* ─── Utility custom — kicker, numeric, code-pill, pill, hairline ─────────── */
+/* iOS: gli <input type="date|time"> nativi hanno una larghezza intrinseca che
+   ignora width:100% (sforano il contenitore) e col font a 16px crescono anche
+   in altezza. `appearance: none` li normalizza a box-model standard, così
+   rispettano width/height come gli altri input. Il picker nativo si apre
+   comunque al tap. (Renderizzati solo su mobile via DateField.) */
+input[type='date'],
+input[type='time'],
+input[type='datetime-local'] {
+    -webkit-appearance: none;
+    appearance: none;
+    min-width: 0;
+}
+input[type='date']::-webkit-date-and-time-value {
+    text-align: left;
+    min-width: 0;
+}
 @layer components {
     /* Kicker — eyebrow label decorativa sopra heading o info di gruppo.
        Letter-spacing largo, peso medio. Es. sopra titoli pagina ("MANIFESTO"). */
