@@ -1,0 +1,31 @@
+name: Render warm-up
+
+# Sveglia il servizio Render (piano free, spin-down notturno) la mattina.
+# cron-job.org non riesce a completare il cold start (~24s): risponde un 503 al
+# volo e non tiene la connessione abbastanza da far portare a termine lo spin-up.
+# Solo una richiesta tenuta aperta a lungo (come curl --max-time) lo sveglia.
+# Più tentativi distribuiti assorbono i ritardi tipici dello scheduler GH Actions:
+# basta che UNO atterri e regga, poi il job */5 7-21 tiene caldo il resto del giorno.
+
+on:
+  schedule:
+    # Cron in UTC. 04:00–06:30 UTC = 06:00–08:30 ora di Roma (estate, UTC+2),
+    # a cavallo dell'avvio del cron principale (07:00 Roma). 6 colpi.
+    - cron: "0,30 4-6 * * *"
+  workflow_dispatch: {}
+
+jobs:
+  warmup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping /up tenendo aperta la connessione fino al boot
+        run: |
+          for i in 1 2 3 4 5; do
+            code=$(curl -sS -o /dev/null -w '%{http_code}' --max-time 120 \
+              https://studio-finance.onrender.com/up) || code="000"
+            echo "Tentativo $i -> HTTP $code"
+            [ "$code" = "200" ] && exit 0
+            sleep 20
+          done
+          echo "Servizio non sveglio dopo i tentativi"
+          exit 1
