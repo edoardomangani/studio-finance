@@ -69,7 +69,7 @@ const crossYearConfirmed = defineModel<boolean>('crossYearConfirmed', {
             </label>
         </div>
 
-        <DataTable>
+        <DataTable container-class="hidden lg:block">
             <DataTableHeader :has-actions="false">
                 <TableHead>Scadenza</TableHead>
                 <TableHead class="w-[120px]">Tipo</TableHead>
@@ -118,5 +118,51 @@ const crossYearConfirmed = defineModel<boolean>('crossYearConfirmed', {
                 </DataTableRow>
             </DataTableBody>
         </DataTable>
+
+        <!-- Mobile (<lg): card con data editabile per scadenza. -->
+        <div class="lg:hidden">
+            <div
+                v-if="deadlines.length === 0"
+                class="rounded-lg border border-dashed border-border p-6 text-center text-13 text-muted-foreground"
+            >
+                Nessuna scadenza da generare per quest'anno.
+            </div>
+            <ul v-else class="divide-y divide-border">
+                <li
+                    v-for="(deadline, index) in deadlines"
+                    :key="deadline.recurring_deadline_id ?? `row-${index}`"
+                    class="py-3"
+                >
+                    <div class="flex items-center justify-between gap-3">
+                        <span class="min-w-0 truncate font-medium text-foreground">
+                            {{ deadline.name }}
+                        </span>
+                        <Badge
+                            :variant="DEADLINE_KIND_META[deadline.kind].variant"
+                            class="shrink-0 gap-1"
+                        >
+                            <component
+                                :is="DEADLINE_KIND_META[deadline.kind].icon"
+                                :size="12"
+                            />
+                            {{
+                                deadline.kind === 'payment'
+                                    ? 'Pagamento'
+                                    : 'Adempimento'
+                            }}
+                        </Badge>
+                    </div>
+                    <div class="mt-2 flex items-center justify-between gap-3">
+                        <span class="text-sm text-muted-foreground">Data prevista</span>
+                        <Input
+                            v-model="deadline.due_at"
+                            type="date"
+                            class="tabular w-40"
+                            :aria-label="`Data ${deadline.name}`"
+                        />
+                    </div>
+                </li>
+            </ul>
+        </div>
     </section>
 </template>

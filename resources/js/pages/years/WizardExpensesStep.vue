@@ -58,7 +58,7 @@ function isFixed(type: ExpenseCalculationType): boolean {
             collegate non verranno generate.
         </p>
 
-        <DataTable>
+        <DataTable container-class="hidden lg:block">
             <DataTableHeader :has-actions="false">
                 <TableHead class="w-[52px]"
                     ><span class="sr-only">Includi</span></TableHead
@@ -156,5 +156,95 @@ function isFixed(type: ExpenseCalculationType): boolean {
                 </DataTableRow>
             </DataTableBody>
         </DataTable>
+
+        <!-- Mobile (<lg): card editabile per voce. Checkbox include/esclude,
+             sotto i campi pertinenti al tipo con input a destra. -->
+        <div class="lg:hidden">
+            <div
+                v-if="expenses.length === 0"
+                class="rounded-lg border border-dashed border-border p-6 text-center text-13 text-muted-foreground"
+            >
+                Nessuna voce di spesa attiva. Aggiungine dalle impostazioni
+                prima di aprire l'anno.
+            </div>
+            <ul v-else class="divide-y divide-border">
+                <li
+                    v-for="(expense, index) in expenses"
+                    :key="expense.expense_item_id ?? `row-${index}`"
+                    class="py-3"
+                    :class="expense.included ? '' : 'opacity-50'"
+                >
+                    <label class="flex items-center gap-2.5">
+                        <Checkbox
+                            v-model="expense.included"
+                            :aria-label="`Includi ${expense.name}`"
+                        />
+                        <span class="min-w-0">
+                            <span class="block truncate font-medium text-foreground">
+                                {{ expense.name }}
+                            </span>
+                            <span class="block text-xs text-muted-foreground">
+                                {{ CALCULATION_LABELS[expense.calculation_type] }}
+                            </span>
+                        </span>
+                    </label>
+
+                    <div
+                        v-if="isPercentage(expense.calculation_type)"
+                        class="mt-2.5 flex flex-col gap-2"
+                    >
+                        <div class="flex items-center justify-between gap-3">
+                            <span class="text-sm text-muted-foreground">Aliquota %</span>
+                            <DecimalInput
+                                v-model="expense.rate"
+                                :min="0"
+                                :max="100"
+                                :disabled="!expense.included"
+                                class="tabular w-36 text-right"
+                                :aria-label="`Aliquota ${expense.name}`"
+                            />
+                        </div>
+                        <div class="flex items-center justify-between gap-3">
+                            <span class="text-sm text-muted-foreground">Minimale</span>
+                            <DecimalInput
+                                v-model="expense.minimum"
+                                :min="0"
+                                :disabled="!expense.included"
+                                class="tabular w-36 text-right"
+                                :aria-label="`Minimale ${expense.name}`"
+                            />
+                        </div>
+                        <div class="flex items-center justify-between gap-3">
+                            <span class="text-sm text-muted-foreground">Massimale</span>
+                            <DecimalInput
+                                v-model="expense.maximum"
+                                :min="0"
+                                :disabled="!expense.included"
+                                class="tabular w-36 text-right"
+                                :aria-label="`Massimale ${expense.name}`"
+                            />
+                        </div>
+                    </div>
+
+                    <div
+                        v-else-if="isFixed(expense.calculation_type)"
+                        class="mt-2.5 flex items-center justify-between gap-3"
+                    >
+                        <span class="text-sm text-muted-foreground">Quota €</span>
+                        <DecimalInput
+                            v-model="expense.amount"
+                            :min="0"
+                            :disabled="!expense.included"
+                            class="tabular w-36 text-right"
+                            :aria-label="`Quota ${expense.name}`"
+                        />
+                    </div>
+
+                    <p v-else class="mt-1.5 text-xs text-muted-foreground">
+                        Importo derivato dalla somma dei bolli delle fatture.
+                    </p>
+                </li>
+            </ul>
+        </div>
     </section>
 </template>
