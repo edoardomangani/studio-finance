@@ -120,7 +120,7 @@ function barLabel(m: DashboardYearTrendMonth): string {
                 :key="m.month"
                 role="img"
                 :aria-label="barLabel(m)"
-                class="relative h-full flex-1 rounded"
+                class="relative h-full min-w-0 flex-1 rounded"
                 :class="hoveredIdx === i ? 'bg-muted/50' : ''"
                 @mouseenter="hoveredIdx = i"
             >
@@ -169,7 +169,7 @@ function barLabel(m: DashboardYearTrendMonth): string {
             <span
                 v-for="m in months"
                 :key="m.month"
-                class="tabular flex-1 text-center text-[10.5px]"
+                class="tabular min-w-0 flex-1 text-center text-[10.5px]"
                 :class="
                     m.month === currentMonth
                         ? 'font-semibold text-accent-strong'

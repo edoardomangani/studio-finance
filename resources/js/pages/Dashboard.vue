@@ -145,7 +145,7 @@ const monthExpenseItems = computed(() =>
             <!-- Andamento anno a 2/3 (titolo + link fuori, grafico nella card —
                  come la pagina anno) + Scadenze aperte a 1/3. -->
             <div class="grid items-stretch gap-4 md:grid-cols-[2fr_1fr]">
-                <section class="flex flex-col gap-2">
+                <section class="flex min-w-0 flex-col gap-2">
                     <header class="flex items-baseline justify-between gap-3">
                         <h2 class="kicker text-muted-foreground">
                             Andamento mensile · {{ data.year.year }}
@@ -172,7 +172,7 @@ const monthExpenseItems = computed(() =>
                     </div>
                 </section>
 
-                <section class="flex flex-col gap-2">
+                <section class="flex min-w-0 flex-col gap-2">
                     <header class="flex items-baseline justify-between gap-3">
                         <h2 class="kicker text-muted-foreground">
                             Scadenze aperte
@@ -239,7 +239,7 @@ const monthExpenseItems = computed(() =>
 
             <!-- Ultime fatture + Ultimi pagamenti -->
             <div class="grid gap-4 md:grid-cols-2">
-                <section class="flex flex-col gap-2">
+                <section class="flex min-w-0 flex-col gap-2">
                     <header class="flex items-baseline justify-between gap-3">
                         <h2 class="kicker text-muted-foreground">
                             Ultime fatture
@@ -298,7 +298,7 @@ const monthExpenseItems = computed(() =>
                     </DataTable>
                 </section>
 
-                <section class="flex flex-col gap-2">
+                <section class="flex min-w-0 flex-col gap-2">
                     <header class="flex items-baseline justify-between gap-3">
                         <h2 class="kicker text-muted-foreground">
                             Ultimi pagamenti
