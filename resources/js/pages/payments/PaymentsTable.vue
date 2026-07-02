@@ -92,7 +92,7 @@ defineExpose({ openCreate });
 </script>
 
 <template>
-    <DataTable>
+    <DataTable class="hidden lg:block">
         <DataTableHeader>
             <TableHead class="w-[100px]">Data</TableHead>
             <TableHead>Descrizione</TableHead>
@@ -164,6 +164,53 @@ defineExpose({ openCreate });
             </TableRow>
         </TableFooter>
     </DataTable>
+
+    <!-- Mobile: registro di cassa in righe piatte (la tabella densa vive da lg).
+         Tap = stessa azione del click riga: manuale → modifica, scadenza → vai. -->
+    <ul class="divide-y lg:hidden">
+        <li
+            v-if="payments.length === 0"
+            class="px-1 py-10 text-center text-sm text-muted-foreground"
+        >
+            <slot name="empty">Nessun pagamento.</slot>
+        </li>
+        <li v-for="payment in payments" v-else :key="payment.id">
+            <button
+                type="button"
+                class="flex w-full items-start gap-3 py-3 text-left active:bg-muted/40"
+                @click="openRow(payment)"
+            >
+                <div class="min-w-0 flex-1">
+                    <p class="truncate font-medium text-foreground">
+                        {{ payment.description || payment.annual_expense_name || '—' }}
+                    </p>
+                    <p class="mt-0.5 flex items-center gap-1.5 text-sm text-muted-foreground">
+                        <span class="tabular shrink-0">{{ formatDateIT(payment.paid_at) }}</span>
+                        <template v-if="payment.description && payment.annual_expense_name">
+                            <span aria-hidden="true">·</span>
+                            <span class="min-w-0 truncate">{{ payment.annual_expense_name }}</span>
+                        </template>
+                        <Badge
+                            :variant="payment.is_manual ? 'outline' : 'secondary'"
+                            class="ml-0.5 shrink-0"
+                        >
+                            {{ payment.is_manual ? 'Manuale' : 'Scadenza' }}
+                        </Badge>
+                    </p>
+                </div>
+                <span class="tabular shrink-0 pt-0.5 font-medium text-foreground">
+                    {{ formatEUR(payment.amount) }}
+                </span>
+            </button>
+        </li>
+        <li
+            v-if="withTotals && payments.length > 0"
+            class="flex items-center justify-between py-3 font-medium"
+        >
+            <span class="text-foreground">Totale</span>
+            <span class="tabular text-foreground">{{ formatEUR(totalAmount) }}</span>
+        </li>
+    </ul>
 
     <PaymentFormDialog
         v-model:open="formOpen"
