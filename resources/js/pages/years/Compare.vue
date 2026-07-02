@@ -138,7 +138,7 @@ function openYear(year: YearListItem): void {
     </Teleport>
 
     <!-- Desktop (md+): tabella densa, colonne del focus attivo. -->
-    <DataTable class="hidden md:table">
+    <DataTable container-class="hidden md:block">
         <DataTableHeader :has-actions="false">
             <TableHead class="w-[100px]">Anno</TableHead>
             <!-- whitespace-nowrap: le label fiscali (UNICO, 8 col) restano su una

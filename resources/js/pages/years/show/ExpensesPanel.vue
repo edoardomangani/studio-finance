@@ -97,7 +97,7 @@ const KPI: { label: string; key: ExpenseNumKey; total: TotalsNumKey }[] = [
             </Button>
         </header>
 
-        <DataTable class="hidden lg:block">
+        <DataTable container-class="hidden lg:block">
             <DataTableHeader>
                 <TableHead>Voce</TableHead>
                 <TableHead>Famiglia</TableHead>

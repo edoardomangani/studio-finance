@@ -4,6 +4,8 @@ import { cn } from "@/lib/utils"
 
 const props = defineProps<{
   class?: HTMLAttributes["class"]
+  /** Classe sul container esterno (la scatola boxed): es. hide responsive. */
+  containerClass?: HTMLAttributes["class"]
   /**
    * Boxed (default per DataTable): wrap in card con border + radius.
    * Header dentro al box (`bg-muted/50`), body con divisori tra righe.
@@ -22,7 +24,7 @@ const props = defineProps<{
   <div
     v-if="boxed"
     data-slot="table-container"
-    class="overflow-x-auto rounded-md border border-border bg-card"
+    :class="cn('overflow-x-auto rounded-md border border-border bg-card', props.containerClass)"
   >
     <table
       data-slot="table"
@@ -38,7 +40,7 @@ const props = defineProps<{
   <div
     v-else
     data-slot="table-container"
-    class="relative w-full overflow-x-auto"
+    :class="cn('relative w-full overflow-x-auto', props.containerClass)"
   >
     <table data-slot="table" :class="cn('w-full caption-bottom text-13', props.class)">
       <slot />

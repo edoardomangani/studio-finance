@@ -15,11 +15,15 @@
 import type { HTMLAttributes } from 'vue'
 import Table from './Table.vue'
 
-defineProps<{ class?: HTMLAttributes['class'] }>()
+defineProps<{
+  class?: HTMLAttributes['class']
+  /** Classe sulla scatola esterna (border/radius): es. hide responsive. */
+  containerClass?: HTMLAttributes['class']
+}>()
 </script>
 
 <template>
-  <Table boxed :class="$props.class">
+  <Table boxed :class="$props.class" :container-class="$props.containerClass">
     <slot />
   </Table>
 </template>

@@ -92,7 +92,7 @@ defineExpose({ openCreate });
 </script>
 
 <template>
-    <DataTable class="hidden lg:block">
+    <DataTable container-class="hidden lg:block">
         <DataTableHeader>
             <TableHead class="w-[100px]">Data</TableHead>
             <TableHead>Descrizione</TableHead>
