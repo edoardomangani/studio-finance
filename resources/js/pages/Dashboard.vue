@@ -83,7 +83,7 @@ const monthExpenseItems = computed(() =>
 <template>
     <Head title="Dashboard" />
 
-    <div class="flex flex-col gap-8">
+    <div class="flex flex-col gap-6 lg:gap-8">
         <!-- Empty state: nessun anno aperto. -->
         <div
             v-if="!data"

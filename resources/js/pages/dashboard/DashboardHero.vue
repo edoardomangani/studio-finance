@@ -75,7 +75,7 @@ const sparkLabels = computed<string[] | undefined>(() =>
         class="grid divide-y divide-border overflow-hidden rounded-lg border border-border bg-card md:grid-cols-[1fr_1.25fr_1fr] md:divide-y-0"
     >
         <!-- Stipendio del mese -->
-        <section class="flex flex-col px-6 py-5">
+        <section class="flex flex-col px-5 py-4 lg:px-6 lg:py-5">
             <header class="flex h-7 items-center">
                 <h3 class="kicker text-muted-foreground">
                     Stipendio · {{ monthName }} {{ displayYear }}
@@ -102,7 +102,7 @@ const sparkLabels = computed<string[] | undefined>(() =>
         </section>
 
         <!-- Netto · ultimi 12 mesi (sparkline) -->
-        <section class="relative flex flex-col justify-center gap-2 px-6 py-5">
+        <section class="relative flex flex-col justify-center gap-2 px-5 py-4 lg:px-6 lg:py-5">
             <span
                 class="absolute inset-y-5 left-0 hidden w-px bg-border md:block"
                 aria-hidden="true"
@@ -152,7 +152,7 @@ const sparkLabels = computed<string[] | undefined>(() =>
         </section>
 
         <!-- Anno -->
-        <section class="relative flex flex-col px-6 py-5">
+        <section class="relative flex flex-col px-5 py-4 lg:px-6 lg:py-5">
             <span
                 class="absolute inset-y-5 left-0 hidden w-px bg-border md:block"
                 aria-hidden="true"
