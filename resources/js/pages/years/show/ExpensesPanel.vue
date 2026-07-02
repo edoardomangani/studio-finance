@@ -174,7 +174,7 @@ const KPI: { label: string; key: ExpenseNumKey; total: TotalsNumKey }[] = [
                 >
                     <button
                         type="button"
-                        class="flex w-full flex-col gap-2 py-3 text-left active:bg-muted/40"
+                        class="flex w-full flex-col gap-2 py-3 text-left transition-colors active:bg-accent"
                         @click="openExpense(e)"
                     >
                         <div class="flex items-start justify-between gap-3">
@@ -182,7 +182,7 @@ const KPI: { label: string; key: ExpenseNumKey; total: TotalsNumKey }[] = [
                                 <p class="truncate font-medium text-foreground">
                                     {{ e.name }}
                                 </p>
-                                <p class="truncate text-sm text-muted-foreground">
+                                <p class="truncate text-xs text-muted-foreground">
                                     {{ e.calculation_type_label }}
                                 </p>
                             </div>

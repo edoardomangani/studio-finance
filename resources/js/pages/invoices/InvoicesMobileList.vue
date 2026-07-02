@@ -43,33 +43,31 @@ const props = withDefaults(
                             {{ invoice.client.name }}
                         </div>
                         <div
-                            class="mt-0.5 truncate text-xs text-muted-foreground"
+                            class="mt-0.5 flex items-center gap-1.5 truncate text-xs text-muted-foreground"
                         >
-                            <span class="tabular font-medium text-foreground">
-                                {{ invoice.number }} </span
-                            >· {{ formatDateIT(invoice.issued_at) }}
+                            <span class="tabular shrink-0">{{ invoice.number }}</span>
+                            <span aria-hidden="true">·</span>
+                            <span class="shrink-0">{{ formatDateIT(invoice.issued_at) }}</span>
+                            <Badge
+                                v-if="invoice.bank_withholding"
+                                variant="outline"
+                                class="shrink-0 py-0 text-2xs"
+                            >
+                                Ritenuta
+                            </Badge>
                         </div>
                     </div>
 
-                    <div class="flex shrink-0 flex-col items-end gap-0.5">
-                        <span
-                            class="tabular text-sm font-semibold"
-                            :class="
-                                invoice.total < 0
-                                    ? 'text-destructive'
-                                    : 'text-foreground'
-                            "
-                        >
-                            {{ formatEUR(invoice.total) }}
-                        </span>
-                        <Badge
-                            v-if="invoice.bank_withholding"
-                            variant="outline"
-                            class="py-0 text-2xs"
-                        >
-                            Ritenuta
-                        </Badge>
-                    </div>
+                    <span
+                        class="tabular shrink-0 text-sm font-semibold"
+                        :class="
+                            invoice.total < 0
+                                ? 'text-destructive'
+                                : 'text-foreground'
+                        "
+                    >
+                        {{ formatEUR(invoice.total) }}
+                    </span>
                 </Link>
             </li>
         </ul>

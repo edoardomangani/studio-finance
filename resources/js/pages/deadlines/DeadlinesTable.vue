@@ -294,31 +294,18 @@ defineExpose({ openCreate });
                     @keydown.enter="openDeadline(deadline)"
                 >
                     <div class="min-w-0 flex-1">
-                        <div class="flex items-baseline justify-between gap-2">
-                            <span class="truncate font-medium text-foreground">
-                                {{ deadline.name }}
-                            </span>
-                            <span
-                                v-if="effectiveAmount(deadline) !== null"
-                                class="tabular shrink-0 text-sm font-medium"
-                                :class="
-                                    isPaid(deadline)
-                                        ? 'text-foreground'
-                                        : 'text-muted-foreground'
-                                "
-                            >
-                                {{ formatEUR(effectiveAmount(deadline)!) }}
-                            </span>
+                        <div class="truncate font-medium text-foreground">
+                            {{ deadline.name }}
                         </div>
-                        <div class="mt-1 flex items-center gap-2 text-xs">
-                            <span class="tabular text-muted-foreground">
+                        <div class="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                            <span class="tabular shrink-0">
                                 {{ formatDateIT(deadline.due_at) }}
                             </span>
                             <Badge
                                 :variant="
                                     DEADLINE_STATUS_META[deadline.status].variant
                                 "
-                                class="gap-1 py-0 text-2xs"
+                                class="shrink-0 gap-1 py-0 text-2xs"
                             >
                                 <component
                                     :is="
@@ -330,6 +317,28 @@ defineExpose({ openCreate });
                                 {{ deadline.status_label }}
                             </Badge>
                         </div>
+                    </div>
+
+                    <div
+                        v-if="effectiveAmount(deadline) !== null"
+                        class="shrink-0 text-right"
+                    >
+                        <span
+                            class="tabular text-sm font-semibold"
+                            :class="
+                                isPaid(deadline)
+                                    ? 'text-foreground'
+                                    : 'text-muted-foreground'
+                            "
+                        >
+                            {{ formatEUR(effectiveAmount(deadline)!) }}
+                        </span>
+                        <span
+                            v-if="paymentDelta(deadline) !== null"
+                            class="block text-2xs text-muted-foreground"
+                        >
+                            {{ formatDelta(paymentDelta(deadline)!) }}
+                        </span>
                     </div>
                 </div>
             </li>
