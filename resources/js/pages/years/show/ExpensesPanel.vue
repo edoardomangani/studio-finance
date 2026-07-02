@@ -71,6 +71,20 @@ function runDelete(): void {
 
 // Creazione spesa una-tantum dell'anno.
 const createOpen = ref(false);
+
+// KPI mostrati come dl sulla card mobile (e nel totale in coda).
+type ExpenseNumKey = 'expected' | 'definitive' | 'paid' | 'due';
+type TotalsNumKey =
+    | 'expenses_expected'
+    | 'expenses_definitive'
+    | 'expenses_paid'
+    | 'expenses_due';
+const KPI: { label: string; key: ExpenseNumKey; total: TotalsNumKey }[] = [
+    { label: 'Previsto', key: 'expected', total: 'expenses_expected' },
+    { label: 'Definitivo', key: 'definitive', total: 'expenses_definitive' },
+    { label: 'Pagato', key: 'paid', total: 'expenses_paid' },
+    { label: 'Da pagare', key: 'due', total: 'expenses_due' },
+];
 </script>
 
 <template>
@@ -83,7 +97,7 @@ const createOpen = ref(false);
             </Button>
         </header>
 
-        <DataTable>
+        <DataTable class="hidden lg:block">
             <DataTableHeader>
                 <TableHead>Voce</TableHead>
                 <TableHead>Famiglia</TableHead>
@@ -143,6 +157,72 @@ const createOpen = ref(false);
                 </TableRow>
             </TableFooter>
         </DataTable>
+
+        <!-- Mobile: card list (tap → sheet, che gestisce modifica ed elimina). -->
+        <ul class="lg:hidden">
+            <li
+                v-if="year.expenses.length === 0"
+                class="px-1 py-10 text-center text-sm text-muted-foreground"
+            >
+                Nessuna voce di spesa.
+            </li>
+            <template v-else>
+                <li
+                    v-for="e in year.expenses"
+                    :key="e.id"
+                    class="border-b border-border"
+                >
+                    <button
+                        type="button"
+                        class="flex w-full flex-col gap-2 py-3 text-left active:bg-muted/40"
+                        @click="openExpense(e)"
+                    >
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <p class="truncate font-medium text-foreground">
+                                    {{ e.name }}
+                                </p>
+                                <p class="truncate text-sm text-muted-foreground">
+                                    {{ e.calculation_type_label }}
+                                </p>
+                            </div>
+                            <FamilyBadge
+                                :kind="e.kind"
+                                :name="e.family_name"
+                                class="shrink-0"
+                            />
+                        </div>
+                        <dl class="grid grid-cols-2 gap-x-5 gap-y-1 text-sm">
+                            <div
+                                v-for="k in KPI"
+                                :key="k.key"
+                                class="flex items-baseline justify-between gap-1.5"
+                            >
+                                <dt class="text-muted-foreground">{{ k.label }}</dt>
+                                <dd class="tabular text-foreground">
+                                    {{ formatEUR(e[k.key]) }}
+                                </dd>
+                            </div>
+                        </dl>
+                    </button>
+                </li>
+                <li class="py-3">
+                    <p class="mb-1 font-medium text-foreground">Totale</p>
+                    <dl class="grid grid-cols-2 gap-x-5 gap-y-1 text-sm">
+                        <div
+                            v-for="k in KPI"
+                            :key="k.total"
+                            class="flex items-baseline justify-between gap-1.5"
+                        >
+                            <dt class="text-muted-foreground">{{ k.label }}</dt>
+                            <dd class="tabular font-medium text-foreground">
+                                {{ formatEUR(year.totals[k.total]) }}
+                            </dd>
+                        </div>
+                    </dl>
+                </li>
+            </template>
+        </ul>
 
         <AnnualExpenseSheet v-model:open="sheetOpen" :expense="selected" />
         <AnnualExpenseFormDialog v-model:open="createOpen" :year-id="year.id" :families="year.families" />
