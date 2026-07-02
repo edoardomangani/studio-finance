@@ -10,10 +10,16 @@
  * esistenti. Desktop-first: il pass mobile è lo step successivo.
  */
 import { Head, Link, router, setLayoutProps } from '@inertiajs/vue3';
-import { PhArrowsLeftRight, PhPlus } from '@phosphor-icons/vue';
+import { PhArrowsLeftRight, PhDotsThreeVertical, PhPlus } from '@phosphor-icons/vue';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import DeadlinesPanel from '@/pages/years/show/DeadlinesPanel.vue';
@@ -118,6 +124,7 @@ function switchYear(value: unknown): void {
                 type="single"
                 variant="boxed"
                 size="sm"
+                class="max-w-38 justify-start overflow-x-auto scrollbar-none lg:max-w-none [&::-webkit-scrollbar]:hidden"
                 @update:model-value="switchYear"
             >
                 <ToggleGroupItem
@@ -138,11 +145,13 @@ function switchYear(value: unknown): void {
 
             <Badge v-if="year.pre_opened" variant="secondary">Pre-aperto</Badge>
 
+            <!-- Desktop: azioni inline. -->
             <Button
                 v-if="year.years_nav.length > 1"
                 as-child
                 variant="outline"
                 size="sm"
+                class="hidden lg:inline-flex"
             >
                 <Link :href="yearsCompare().url">
                     <PhArrowsLeftRight :size="14" />
@@ -150,21 +159,62 @@ function switchYear(value: unknown): void {
                 </Link>
             </Button>
 
-            <Button v-if="year.meta.can_open_next" as-child size="sm">
+            <Button
+                v-if="year.meta.can_open_next"
+                as-child
+                size="sm"
+                class="hidden lg:inline-flex"
+            >
                 <Link :href="yearCreate().url">
                     <PhPlus :size="14" weight="bold" />
                     Apri {{ year.meta.next_year }}
                 </Link>
             </Button>
+
+            <!-- Mobile: azioni secondarie in kebab, la topbar resta snella. -->
+            <DropdownMenu
+                v-if="year.years_nav.length > 1 || year.meta.can_open_next"
+            >
+                <DropdownMenuTrigger as-child>
+                    <Button
+                        variant="outline"
+                        size="icon-md"
+                        class="lg:hidden"
+                        aria-label="Altre azioni anno"
+                    >
+                        <PhDotsThreeVertical :size="18" />
+                    </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                    <DropdownMenuItem
+                        v-if="year.years_nav.length > 1"
+                        as-child
+                    >
+                        <Link :href="yearsCompare().url">
+                            <PhArrowsLeftRight :size="14" />
+                            Confronto
+                        </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem v-if="year.meta.can_open_next" as-child>
+                        <Link :href="yearCreate().url">
+                            <PhPlus :size="14" />
+                            Apri {{ year.meta.next_year }}
+                        </Link>
+                    </DropdownMenuItem>
+                </DropdownMenuContent>
+            </DropdownMenu>
         </div>
     </Teleport>
 
     <Tabs :model-value="activeTab" @update:model-value="selectTab">
-        <TabsList>
+        <TabsList
+            class="max-w-full justify-start overflow-x-auto scrollbar-none lg:justify-center [&::-webkit-scrollbar]:hidden"
+        >
             <TabsTrigger
                 v-for="tab in TABS"
                 :key="tab.value"
                 :value="tab.value"
+                class="shrink-0"
             >
                 {{ tab.label }}
             </TabsTrigger>
