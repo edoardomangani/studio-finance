@@ -43,7 +43,7 @@ const props = withDefaults(
                             {{ invoice.client.name }}
                         </div>
                         <div
-                            class="mt-0.5 flex items-center gap-1.5 truncate text-xs text-muted-foreground"
+                            class="mt-0.5 flex items-center gap-1.5 truncate text-xs text-muted-foreground min-h-[18px]"
                         >
                             <span class="tabular shrink-0">{{ invoice.number }}</span>
                             <span aria-hidden="true">·</span>
