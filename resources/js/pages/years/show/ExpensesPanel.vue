@@ -71,20 +71,6 @@ function runDelete(): void {
 
 // Creazione spesa una-tantum dell'anno.
 const createOpen = ref(false);
-
-// KPI mostrati come dl sulla card mobile (e nel totale in coda).
-type ExpenseNumKey = 'expected' | 'definitive' | 'paid' | 'due';
-type TotalsNumKey =
-    | 'expenses_expected'
-    | 'expenses_definitive'
-    | 'expenses_paid'
-    | 'expenses_due';
-const KPI: { label: string; key: ExpenseNumKey; total: TotalsNumKey }[] = [
-    { label: 'Previsto', key: 'expected', total: 'expenses_expected' },
-    { label: 'Definitivo', key: 'definitive', total: 'expenses_definitive' },
-    { label: 'Pagato', key: 'paid', total: 'expenses_paid' },
-    { label: 'Da pagare', key: 'due', total: 'expenses_due' },
-];
 </script>
 
 <template>
@@ -158,71 +144,62 @@ const KPI: { label: string; key: ExpenseNumKey; total: TotalsNumKey }[] = [
             </TableFooter>
         </DataTable>
 
-        <!-- Mobile: card list (tap → sheet, che gestisce modifica ed elimina). -->
-        <ul class="lg:hidden">
-            <li
+        <!-- Mobile: card list (tap → sheet, che gestisce modifica ed elimina).
+             Eroe = Definitivo (costo della voce); riga stato = residuo/pagato. -->
+        <div class="lg:hidden">
+            <div
                 v-if="year.expenses.length === 0"
-                class="px-1 py-10 text-center text-sm text-muted-foreground"
+                class="py-10 text-center text-sm text-muted-foreground"
             >
                 Nessuna voce di spesa.
-            </li>
-            <template v-else>
-                <li
-                    v-for="e in year.expenses"
-                    :key="e.id"
-                    class="border-b border-border"
-                >
+            </div>
+            <ul v-else class="divide-y divide-border">
+                <li v-for="e in year.expenses" :key="e.id">
                     <button
                         type="button"
-                        class="flex w-full flex-col gap-2 py-3 text-left transition-colors active:bg-accent"
+                        class="flex w-full items-start gap-3 py-2.5 text-left transition-colors active:bg-accent"
                         @click="openExpense(e)"
                     >
-                        <div class="flex items-start justify-between gap-3">
-                            <div class="min-w-0">
-                                <p class="truncate font-medium text-foreground">
-                                    {{ e.name }}
-                                </p>
-                                <p class="truncate text-xs text-muted-foreground">
-                                    {{ e.calculation_type_label }}
-                                </p>
+                        <div class="min-w-0 flex-1">
+                            <div class="truncate font-medium text-foreground">
+                                {{ e.name }}
                             </div>
-                            <FamilyBadge
-                                :kind="e.kind"
-                                :name="e.family_name"
-                                class="shrink-0"
-                            />
+                            <div class="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                                <FamilyBadge
+                                    :kind="e.kind"
+                                    :name="e.family_name"
+                                    class="shrink-0"
+                                />
+                                <span class="truncate">{{ e.calculation_type_label }}</span>
+                            </div>
+                            <div class="mt-1 text-xs">
+                                <template v-if="e.due > 0">
+                                    <span class="font-medium text-foreground">Resta {{ formatEUR(e.due) }}</span>
+                                    <span class="text-muted-foreground"> · pagato {{ formatEUR(e.paid) }}</span>
+                                </template>
+                                <span v-else class="text-muted-foreground">Saldato</span>
+                            </div>
                         </div>
-                        <dl class="grid grid-cols-2 gap-x-5 gap-y-1 text-sm">
-                            <div
-                                v-for="k in KPI"
-                                :key="k.key"
-                                class="flex items-baseline justify-between gap-1.5"
-                            >
-                                <dt class="text-muted-foreground">{{ k.label }}</dt>
-                                <dd class="tabular text-foreground">
-                                    {{ formatEUR(e[k.key]) }}
-                                </dd>
-                            </div>
-                        </dl>
+                        <span class="tabular shrink-0 text-sm font-semibold text-foreground">
+                            {{ formatEUR(e.definitive) }}
+                        </span>
                     </button>
                 </li>
-                <li class="py-3">
-                    <p class="mb-1 font-medium text-foreground">Totale</p>
-                    <dl class="grid grid-cols-2 gap-x-5 gap-y-1 text-sm">
-                        <div
-                            v-for="k in KPI"
-                            :key="k.total"
-                            class="flex items-baseline justify-between gap-1.5"
-                        >
-                            <dt class="text-muted-foreground">{{ k.label }}</dt>
-                            <dd class="tabular font-medium text-foreground">
-                                {{ formatEUR(year.totals[k.total]) }}
-                            </dd>
-                        </div>
-                    </dl>
-                </li>
-            </template>
-        </ul>
+            </ul>
+            <div
+                v-if="year.expenses.length > 0"
+                class="border-t border-border py-3"
+            >
+                <div class="flex items-baseline justify-between gap-3 font-medium">
+                    <span class="text-foreground">Totale</span>
+                    <span class="tabular text-foreground">{{ formatEUR(year.totals.expenses_definitive) }}</span>
+                </div>
+                <div class="mt-0.5 text-xs">
+                    <span class="font-medium text-foreground">Resta {{ formatEUR(year.totals.expenses_due) }}</span>
+                    <span class="text-muted-foreground"> · pagato {{ formatEUR(year.totals.expenses_paid) }}</span>
+                </div>
+            </div>
+        </div>
 
         <AnnualExpenseSheet v-model:open="sheetOpen" :expense="selected" />
         <AnnualExpenseFormDialog v-model:open="createOpen" :year-id="year.id" :families="year.families" />
