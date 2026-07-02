@@ -51,7 +51,7 @@ function openDeadline(deadline: DeadlineListItem): void {
 
 <template>
     <div class="grid gap-6 lg:grid-cols-2">
-        <section>
+        <section class="min-w-0">
             <header class="mb-2 flex items-baseline justify-between gap-3">
                 <h2 class="kicker text-muted-foreground">
                     Ultime fatture
@@ -94,7 +94,7 @@ function openDeadline(deadline: DeadlineListItem): void {
             </DataTable>
         </section>
 
-        <section>
+        <section class="min-w-0">
             <header class="mb-2 flex items-baseline justify-between gap-3">
                 <h2 class="kicker text-muted-foreground">
                     Scadenze aperte

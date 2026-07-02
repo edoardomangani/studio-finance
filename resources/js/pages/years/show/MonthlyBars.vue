@@ -131,7 +131,7 @@ const hover = computed(() => {
                 v-for="(m, i) in months"
                 :key="m.month"
                 type="button"
-                class="group flex h-full flex-1 cursor-pointer flex-col items-center gap-1.5"
+                class="group flex h-full min-w-0 flex-1 cursor-pointer flex-col items-center gap-1.5"
                 :aria-label="`${MONTHS_FULL[m.month - 1]}: fatturato ${formatEUR(m.invoice_total)}, netto ${formatEUR(m.net)}`"
                 @click="emit('select', m.month)"
                 @mouseenter="hoveredIdx = i"

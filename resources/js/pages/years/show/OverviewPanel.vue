@@ -119,7 +119,7 @@ function openMonth(month: YearMonth): void {
                 <!-- Andamento mensile: titolo + dettaglio del mese selezionato
                      in testa alla card, barre sotto. -->
                 <div
-                    class="flex flex-col gap-3 rounded-lg border border-border bg-card p-4"
+                    class="flex min-w-0 flex-col gap-3 rounded-lg border border-border bg-card p-4"
                 >
                     <div class="flex items-baseline justify-between gap-3">
                         <h2 class="kicker text-muted-foreground">
@@ -151,7 +151,7 @@ function openMonth(month: YearMonth): void {
                 <StackedBar
                     :items="yearExpenseItems"
                     empty-label="Nessuna spesa nell'anno."
-                    class="h-full"
+                    class="h-full min-w-0"
                 >
                     <template #header>
                         <header
