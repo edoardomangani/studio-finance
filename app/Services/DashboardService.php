@@ -168,10 +168,10 @@ class DashboardService
     }
 
     /**
-     * I numeri cross-anno di "Da coprire": spese da pagare a oggi (competenza,
-     * maturato − pagato), spese da pagare in tutto (definitivo − pagato sull'anno
-     * intero, distinto dalle scadenze perché senza minimi/acconti) e scadenze da
-     * pagare (cassa, somma dei previsti delle scadenze aperte).
+     * I due numeri di "Da coprire": spese da pagare a oggi (competenza, maturato −
+     * pagato: quanto tenere sul conto per le spese già maturate) e scadenze da
+     * versare (cassa, somma dei previsti delle scadenze aperte, minimi fissi
+     * inclusi). Sono due lenti sugli stessi obblighi, non si sommano.
      *
      * Per gli anni chiusi (anteriori a quello solare) ogni voce contribuisce solo
      * col residuo ≥ 0: un sovra-pagamento (tipico dell'imposta sostitutiva, dove
@@ -191,18 +191,15 @@ class DashboardService
     private function toCover(Collection $amountsByYear, array $deadlineRows, int $calendarYear): array
     {
         $dueToDate = 0.0;
-        $due = 0.0;
         foreach ($amountsByYear as $year => $amounts) {
             $closed = $year < $calendarYear;
             foreach ($amounts->expenseAmounts as $row) {
                 $dueToDate += $closed ? max(0.0, $row['due_to_date']) : $row['due_to_date'];
-                $due += $closed ? max(0.0, $row['due']) : $row['due'];
             }
         }
 
         return [
             'expenses_due_to_date' => round($dueToDate, 2),
-            'expenses_due' => round($due, 2),
             'deadlines_due' => round((float) array_sum(array_column($deadlineRows, 'expected_amount')), 2),
             'upcoming_deadlines_count' => $this->deadlineService->upcomingCount(),
         ];

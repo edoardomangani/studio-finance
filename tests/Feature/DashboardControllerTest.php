@@ -33,6 +33,7 @@ it('mostra empty state senza anni aperti', function () {
 
 it('assembla il payload della dashboard per l anno in corso', function () {
     // Oggi è 2026-06-06 → l'anno 2026 è "in corso", mese 6.
+    $this->travelTo(Carbon::create(2026, 6, 6));
     $user = onboardedUserWithTemplates();
     $year = dashboardYear($user, 2026);
 
@@ -78,8 +79,8 @@ it('assembla il payload della dashboard per l anno in corso', function () {
             ->has('dashboard.month_expenses.0.label')
             ->has('dashboard.month_expenses.0.amount')
             ->where('dashboard.to_cover.upcoming_deadlines_count', 0)
-            ->has('dashboard.to_cover.expenses_due_to_date')
-            ->has('dashboard.to_cover.expenses_due')              // spese da pagare in tutto (definitivo − pagato)
+            ->has('dashboard.to_cover.expenses_due_to_date')     // spese maturate a oggi ancora da pagare
+            ->has('dashboard.to_cover.deadlines_due')
             ->has('dashboard.recent_invoices', 2)
             ->has('dashboard.recent_payments')
             ->has('dashboard.net_trend.points')                  // sparkline netto 12 mesi
@@ -163,8 +164,7 @@ it('non scala il da-coprire col credito di un anno chiuso', function () {
     $this->get(route('dashboard'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('dashboard.to_cover.expenses_due', fn ($v) => (float) $v === 0.0)          // niente −58 dall'anno chiuso
-            ->where('dashboard.to_cover.expenses_due_to_date', fn ($v) => (float) $v === 0.0));
+            ->where('dashboard.to_cover.expenses_due_to_date', fn ($v) => (float) $v === 0.0));   // niente −58 dall'anno chiuso (clamp per voce)
 });
 
 it('richiede onboarding e autenticazione', function () {

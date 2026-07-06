@@ -426,10 +426,9 @@ export type DashboardThisMonth = {
     yoy_percent: number | null;
 };
 
-/** I numeri cross-anno di "Da coprire": competenza (a oggi, in tutto) vs cassa. */
+/** I numeri di "Da coprire": spese maturate a oggi ancora da pagare (competenza) vs scadenze da versare (cassa). */
 export type DashboardToCover = {
     expenses_due_to_date: number;
-    expenses_due: number;
     deadlines_due: number;
     upcoming_deadlines_count: number;
 };
