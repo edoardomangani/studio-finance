@@ -84,12 +84,12 @@ function save(family: Family): void {
                 </div>
 
                 <form
-                    class="flex shrink-0 items-center gap-2"
+                    class="flex items-center gap-2 sm:shrink-0"
                     @submit.prevent="save(family)"
                 >
                     <Input
                         v-model="names[family.id]"
-                        class="w-52"
+                        class="flex-1 sm:w-52 sm:flex-none"
                         :aria-label="`Nome della famiglia ${family.name}`"
                     />
                     <Button
