@@ -7,7 +7,7 @@
  * via Teleport.
  */
 import { Head, setLayoutProps, useForm } from '@inertiajs/vue3';
-import { PhArchive, PhPencil, PhPlus } from '@phosphor-icons/vue';
+import { PhArchive, PhDotsThreeVertical, PhPencil, PhPlus } from '@phosphor-icons/vue';
 import { computed, ref } from 'vue';
 import ExpenseItemController from '@/actions/App/Http/Controllers/Settings/ExpenseItemController';
 import FamilyBadge from '@/components/FamilyBadge.vue';
@@ -16,7 +16,12 @@ import ResponsiveDialog from '@/components/ResponsiveDialog.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/dialog';
-import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
 import { DecimalInput, Input } from '@/components/ui/input';
 import {
@@ -186,7 +191,7 @@ function formatDefault(item: ExpenseItem): string {
         </Button>
     </Teleport>
 
-    <DataTable>
+    <DataTable container-class="hidden lg:block">
         <DataTableHeader>
             <TableHead class="w-[34%]">Nome</TableHead>
             <TableHead>Tipo calcolo</TableHead>
@@ -253,6 +258,88 @@ function formatDefault(item: ExpenseItem): string {
             </DataTableRow>
         </DataTableBody>
     </DataTable>
+
+    <!-- Mobile (<lg): card list. Tap → modifica (che è il dettaglio); kebab
+         con Modifica/Archivia come da convenzione delle tabelle di settings. -->
+    <div class="lg:hidden">
+        <div
+            v-if="expenseItems.length === 0"
+            class="rounded-lg border border-dashed border-border p-6 text-center text-13 text-muted-foreground"
+        >
+            Nessuna voce di spesa. Creane una dal pulsante in alto.
+        </div>
+        <ul v-else class="divide-y divide-border">
+            <li
+                v-for="item in expenseItems"
+                :key="item.id"
+                class="flex items-start gap-2"
+                :class="!item.active && 'opacity-60'"
+            >
+                <button
+                    type="button"
+                    class="min-w-0 flex-1 py-3 text-left"
+                    @click="openEdit(item)"
+                >
+                    <div class="flex items-center gap-2">
+                        <span class="truncate font-medium text-foreground">
+                            {{ item.name }}
+                        </span>
+                        <Badge
+                            v-if="!item.active"
+                            variant="outline"
+                            class="shrink-0 py-0 text-2xs"
+                        >
+                            Inattiva
+                        </Badge>
+                    </div>
+                    <div class="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                        <FamilyBadge
+                            :kind="item.kind"
+                            :name="item.family_name"
+                            class="shrink-0"
+                        />
+                        <span class="truncate">{{ item.calculation_type_label }}</span>
+                    </div>
+                    <div class="mt-1 text-xs text-muted-foreground">
+                        Default
+                        <span class="tabular text-foreground">{{ formatDefault(item) }}</span>
+                        <template v-if="item.default_minimum !== null">
+                            · min <span class="tabular">{{ formatEUR(item.default_minimum) }}</span>
+                        </template>
+                        <template v-if="item.default_maximum !== null">
+                            · max <span class="tabular">{{ formatEUR(item.default_maximum) }}</span>
+                        </template>
+                    </div>
+                </button>
+
+                <DropdownMenu>
+                    <DropdownMenuTrigger as-child>
+                        <Button
+                            variant="ghost"
+                            size="icon-md"
+                            class="mt-1.5 shrink-0"
+                            aria-label="Azioni"
+                        >
+                            <PhDotsThreeVertical :size="18" />
+                        </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                        <DropdownMenuItem @select="openEdit(item)">
+                            <PhPencil :size="14" />
+                            Modifica
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                            variant="destructive"
+                            @select="askArchive(item)"
+                        >
+                            <PhArchive :size="14" />
+                            Archivia
+                        </DropdownMenuItem>
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </li>
+        </ul>
+    </div>
 
     <ResponsiveDialog
         v-model:open="dialogOpen"
