@@ -37,6 +37,9 @@ const deadlines = defineModel<YearPlanDeadline[]>('deadlines', {
 const crossYearConfirmed = defineModel<boolean>('crossYearConfirmed', {
     required: true,
 });
+
+// Stesso testo per l'empty desktop (TableEmpty) e mobile (card).
+const EMPTY_LABEL = "Nessuna scadenza da generare per quest'anno.";
 </script>
 
 <template>
@@ -77,7 +80,7 @@ const crossYearConfirmed = defineModel<boolean>('crossYearConfirmed', {
             </DataTableHeader>
             <DataTableBody>
                 <TableEmpty v-if="deadlines.length === 0" :colspan="3">
-                    Nessuna scadenza da generare per quest'anno.
+                    {{ EMPTY_LABEL }}
                 </TableEmpty>
                 <DataTableRow
                     v-for="(deadline, index) in deadlines"
@@ -125,7 +128,7 @@ const crossYearConfirmed = defineModel<boolean>('crossYearConfirmed', {
                 v-if="deadlines.length === 0"
                 class="rounded-lg border border-dashed border-border p-6 text-center text-13 text-muted-foreground"
             >
-                Nessuna scadenza da generare per quest'anno.
+                {{ EMPTY_LABEL }}
             </div>
             <ul v-else class="divide-y divide-border">
                 <li

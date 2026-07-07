@@ -286,12 +286,10 @@ defineExpose({ openCreate });
         </div>
         <ul v-else class="divide-y divide-border">
             <li v-for="deadline in deadlines" :key="deadline.id">
-                <div
-                    class="flex items-center gap-3 py-2.5 transition-colors active:bg-accent"
-                    role="button"
-                    tabindex="0"
+                <button
+                    type="button"
+                    class="flex w-full items-center gap-3 py-2.5 text-left transition-colors active:bg-accent"
                     @click="openDeadline(deadline)"
-                    @keydown.enter="openDeadline(deadline)"
                 >
                     <div class="min-w-0 flex-1">
                         <div class="truncate font-medium text-foreground">
@@ -340,7 +338,7 @@ defineExpose({ openCreate });
                             {{ formatDelta(paymentDelta(deadline)!) }}
                         </span>
                     </div>
-                </div>
+                </button>
             </li>
         </ul>
         <div

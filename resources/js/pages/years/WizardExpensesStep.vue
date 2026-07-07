@@ -31,6 +31,10 @@ const expenses = defineModel<YearWizardExpense[]>('expenses', {
     required: true,
 });
 
+// Stesso testo per l'empty desktop (TableEmpty) e mobile (card).
+const EMPTY_LABEL =
+    "Nessuna voce di spesa attiva. Aggiungine dalle impostazioni prima di aprire l'anno.";
+
 const CALCULATION_LABELS: Record<ExpenseCalculationType, string> = {
     percentage_of_irpef_income: '% reddito IRPEF',
     percentage_of_iva_revenue: '% volume IVA',
@@ -72,8 +76,7 @@ function isFixed(type: ExpenseCalculationType): boolean {
             </DataTableHeader>
             <DataTableBody>
                 <TableEmpty v-if="expenses.length === 0" :colspan="7">
-                    Nessuna voce di spesa attiva. Aggiungine dalle impostazioni
-                    prima di aprire l'anno.
+                    {{ EMPTY_LABEL }}
                 </TableEmpty>
                 <DataTableRow
                     v-for="(expense, index) in expenses"
@@ -164,8 +167,7 @@ function isFixed(type: ExpenseCalculationType): boolean {
                 v-if="expenses.length === 0"
                 class="rounded-lg border border-dashed border-border p-6 text-center text-13 text-muted-foreground"
             >
-                Nessuna voce di spesa attiva. Aggiungine dalle impostazioni
-                prima di aprire l'anno.
+                {{ EMPTY_LABEL }}
             </div>
             <ul v-else class="divide-y divide-border">
                 <li

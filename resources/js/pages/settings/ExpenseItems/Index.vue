@@ -277,7 +277,7 @@ function formatDefault(item: ExpenseItem): string {
             >
                 <button
                     type="button"
-                    class="min-w-0 flex-1 py-3 text-left"
+                    class="min-w-0 flex-1 py-3 text-left transition-colors active:bg-accent"
                     @click="openEdit(item)"
                 >
                     <div class="flex items-center gap-2">

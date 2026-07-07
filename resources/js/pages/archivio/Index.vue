@@ -43,6 +43,9 @@ const TABS: TabDef[] = [
     { type: 'payments', label: 'Pagamenti', hasAmount: true },
 ];
 
+// Stesso testo per l'empty desktop (TableEmpty) e mobile (card): una fonte.
+const EMPTY_LABEL = 'Nessun elemento archiviato.';
+
 // Apre sul primo tab con contenuto: atterrare su un tab vuoto quando altrove
 // ci sono record archiviati è disorientante.
 const firstNonEmpty =
@@ -132,7 +135,7 @@ function confirmRestore(): void {
                         v-if="props.archive[t.type].length === 0"
                         :colspan="colspanFor(t)"
                     >
-                        Nessun elemento archiviato.
+                        {{ EMPTY_LABEL }}
                     </TableEmpty>
                     <DataTableRow
                         v-for="row in props.archive[t.type]"
@@ -175,7 +178,7 @@ function confirmRestore(): void {
                     v-if="props.archive[t.type].length === 0"
                     class="rounded-lg border border-dashed border-border p-6 text-center text-13 text-muted-foreground"
                 >
-                    Nessun elemento archiviato.
+                    {{ EMPTY_LABEL }}
                 </div>
                 <ul v-else class="divide-y divide-border">
                     <li
