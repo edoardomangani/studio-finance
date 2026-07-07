@@ -207,7 +207,7 @@ useShortcut(
         >
             <Spinner v-if="isAnyProcessing" />
             Salva modifiche
-            <Kbd class="ml-1">⌘↵</Kbd>
+            <Kbd class="ml-1 hidden sm:inline-flex">⌘↵</Kbd>
         </Button>
     </Teleport>
 
