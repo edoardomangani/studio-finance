@@ -97,8 +97,15 @@ function confirmRestore(): void {
     <Head title="Archivio" />
 
     <Tabs v-model="activeTab">
-        <TabsList>
-            <TabsTrigger v-for="t in TABS" :key="t.type" :value="t.type">
+        <TabsList
+            class="max-w-full justify-start overflow-x-auto scrollbar-none lg:justify-center [&::-webkit-scrollbar]:hidden"
+        >
+            <TabsTrigger
+                v-for="t in TABS"
+                :key="t.type"
+                :value="t.type"
+                class="shrink-0"
+            >
                 {{ t.label }}
                 <Badge
                     v-if="props.archive[t.type].length"
@@ -111,7 +118,7 @@ function confirmRestore(): void {
         </TabsList>
 
         <TabsContent v-for="t in TABS" :key="t.type" :value="t.type">
-            <DataTable>
+            <DataTable container-class="hidden lg:block">
                 <DataTableHeader>
                     <TableHead>Nome</TableHead>
                     <TableHead>Dettaglio</TableHead>
@@ -160,6 +167,53 @@ function confirmRestore(): void {
                     </DataTableRow>
                 </DataTableBody>
             </DataTable>
+
+            <!-- Mobile (<lg): card list. Sola lettura + Ripristina (unica azione,
+                 quindi bottone visibile, non in kebab). -->
+            <div class="lg:hidden">
+                <div
+                    v-if="props.archive[t.type].length === 0"
+                    class="rounded-lg border border-dashed border-border p-6 text-center text-13 text-muted-foreground"
+                >
+                    Nessun elemento archiviato.
+                </div>
+                <ul v-else class="divide-y divide-border">
+                    <li
+                        v-for="row in props.archive[t.type]"
+                        :key="row.id"
+                        class="flex items-start gap-3 py-3"
+                    >
+                        <div class="min-w-0 flex-1">
+                            <div class="truncate font-medium text-foreground">
+                                {{ row.name }}
+                            </div>
+                            <div
+                                v-if="row.detail"
+                                class="truncate text-xs text-muted-foreground"
+                            >
+                                {{ row.detail }}
+                            </div>
+                            <div class="mt-0.5 text-xs text-muted-foreground">
+                                <template v-if="t.hasAmount && row.amount !== null">
+                                    <span class="tabular text-foreground">{{ formatEUR(row.amount) }}</span>
+                                    ·
+                                </template>
+                                archiviato
+                                <span class="tabular">{{ row.archived_at ? formatDateIT(row.archived_at) : '—' }}</span>
+                            </div>
+                        </div>
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            class="shrink-0"
+                            @click="askRestore(t.type, row)"
+                        >
+                            <PhArrowCounterClockwise :size="14" />
+                            Ripristina
+                        </Button>
+                    </li>
+                </ul>
+            </div>
         </TabsContent>
     </Tabs>
 
