@@ -292,23 +292,14 @@ function formatDefault(item: ExpenseItem): string {
                             Inattiva
                         </Badge>
                     </div>
-                    <div class="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <div class="mt-0.5 flex items-center gap-2 text-xs text-muted-foreground">
                         <FamilyBadge
                             :kind="item.kind"
                             :name="item.family_name"
                             class="shrink-0"
                         />
-                        <span class="truncate">{{ item.calculation_type_label }}</span>
-                    </div>
-                    <div class="mt-1 text-xs text-muted-foreground">
-                        Default
-                        <span class="tabular text-foreground">{{ formatDefault(item) }}</span>
-                        <template v-if="item.default_minimum !== null">
-                            · min <span class="tabular">{{ formatEUR(item.default_minimum) }}</span>
-                        </template>
-                        <template v-if="item.default_maximum !== null">
-                            · max <span class="tabular">{{ formatEUR(item.default_maximum) }}</span>
-                        </template>
+                        <span class="min-w-0 truncate">{{ item.calculation_type_label }}</span>
+                        <span class="tabular ml-auto shrink-0 text-foreground">{{ formatDefault(item) }}</span>
                     </div>
                 </button>
 
