@@ -6,13 +6,11 @@
  * create/edit + confirm archivio. La CTA "Nuova voce" vive nel topbar
  * via Teleport.
  */
-import { Head, setLayoutProps, useForm } from '@inertiajs/vue3';
+import { Head, setLayoutProps } from '@inertiajs/vue3';
 import { PhArchive, PhDotsThreeVertical, PhPencil, PhPlus } from '@phosphor-icons/vue';
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import ExpenseItemController from '@/actions/App/Http/Controllers/Settings/ExpenseItemController';
 import FamilyBadge from '@/components/FamilyBadge.vue';
-import FormField from '@/components/forms/FormField.vue';
-import ResponsiveDialog from '@/components/ResponsiveDialog.vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ConfirmDialog } from '@/components/ui/dialog';
@@ -22,16 +20,6 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { Field, FieldGroup, FieldLabel } from '@/components/ui/field';
-import { DecimalInput, Input } from '@/components/ui/input';
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
 import {
     DataTable,
     DataTableBody,
@@ -43,7 +31,8 @@ import {
 } from '@/components/ui/table';
 import { useArchiveAction } from '@/composables/useArchiveAction';
 import { formatEUR, formatPercent } from '@/lib/format';
-import type { EnumOption, ExpenseCalculationType, ExpenseItem, ExpenseKind } from '@/types';
+import ExpenseItemFormDialog from '@/pages/settings/ExpenseItems/ExpenseItemFormDialog.vue';
+import type { EnumOption, ExpenseItem } from '@/types';
 
 defineProps<{
     expenseItems: ExpenseItem[];
@@ -57,113 +46,26 @@ setLayoutProps({
     subbar: false,
 });
 
-// Campi numerici `number | string`: input grezzi (no formattazione in edit), il
-// vuoto è '' (Laravel ConvertEmptyStringsToNull → null lato server).
-type FormPayload = {
-    name: string;
-    calculation_type: ExpenseCalculationType;
-    kind: ExpenseKind;
-    default_rate: number | string;
-    default_minimum: number | string;
-    default_maximum: number | string;
-    default_amount: number | string;
-    active: boolean;
-    position: number;
-};
+// Stesso testo per l'empty desktop (TableEmpty) e mobile (card).
+const EMPTY_LABEL = 'Nessuna voce di spesa. Creane una dal pulsante in alto.';
 
-const emptyForm = (): FormPayload => ({
-    name: '',
-    calculation_type: 'fixed_annual',
-    kind: 'fixed',
-    default_rate: '',
-    default_minimum: '',
-    default_maximum: '',
-    default_amount: '',
-    active: true,
-    position: 0,
-});
-
+// Voce in modifica (null = creazione); il form vive in ExpenseItemFormDialog.
 const dialogOpen = ref(false);
 const editing = ref<ExpenseItem | null>(null);
-const form = useForm<FormPayload>(emptyForm());
 
 const { archiveOpen, archiveTarget, askArchive, confirmArchive } =
     useArchiveAction<ExpenseItem>((item) =>
         ExpenseItemController.destroy.url({ expenseItem: item.id }),
     );
 
-const isPercentage = computed(
-    () =>
-        form.calculation_type === 'percentage_of_irpef_income' ||
-        form.calculation_type === 'percentage_of_iva_revenue',
-);
-const isFixed = computed(() => form.calculation_type === 'fixed_annual');
-
-const dialogTitle = computed(() =>
-    editing.value ? 'Modifica voce di spesa' : 'Nuova voce di spesa',
-);
-const dialogDescription = computed(() =>
-    editing.value
-        ? 'Modifica i default del template. Le istanze già create negli anni esistenti restano invariate.'
-        : 'Aggiungi una voce di spesa al catalogo. Verrà proposta nei prossimi anni che apri.',
-);
-
 function openNew(): void {
     editing.value = null;
-    form.clearErrors();
-    form.defaults(emptyForm());
-    form.reset();
     dialogOpen.value = true;
 }
 
 function openEdit(item: ExpenseItem): void {
     editing.value = item;
-    form.clearErrors();
-    const next: FormPayload = {
-        name: item.name,
-        calculation_type: item.calculation_type,
-        kind: item.kind,
-        default_rate: item.default_rate ?? '',
-        default_minimum: item.default_minimum ?? '',
-        default_maximum: item.default_maximum ?? '',
-        default_amount: item.default_amount ?? '',
-        active: item.active,
-        position: item.position,
-    };
-    form.defaults(next);
-    form.reset();
     dialogOpen.value = true;
-}
-
-function onSubmit(): void {
-    if (!isPercentage.value) {
-        form.default_rate = '';
-        form.default_minimum = '';
-        form.default_maximum = '';
-    }
-
-    if (!isFixed.value) {
-        form.default_amount = '';
-    }
-
-    if (editing.value) {
-        form.patch(
-            ExpenseItemController.update.url({ expenseItem: editing.value.id }),
-            {
-                preserveScroll: true,
-                onSuccess: () => {
-                    dialogOpen.value = false;
-                },
-            },
-        );
-    } else {
-        form.post(ExpenseItemController.store.url(), {
-            preserveScroll: true,
-            onSuccess: () => {
-                dialogOpen.value = false;
-            },
-        });
-    }
 }
 
 function formatDefault(item: ExpenseItem): string {
@@ -203,7 +105,7 @@ function formatDefault(item: ExpenseItem): string {
         </DataTableHeader>
         <DataTableBody>
             <TableEmpty v-if="expenseItems.length === 0" :colspan="8">
-                Nessuna voce di spesa. Creane una dal pulsante in alto.
+                {{ EMPTY_LABEL }}
             </TableEmpty>
             <DataTableRow
                 v-for="item in expenseItems"
@@ -266,7 +168,7 @@ function formatDefault(item: ExpenseItem): string {
             v-if="expenseItems.length === 0"
             class="rounded-lg border border-dashed border-border p-6 text-center text-13 text-muted-foreground"
         >
-            Nessuna voce di spesa. Creane una dal pulsante in alto.
+            {{ EMPTY_LABEL }}
         </div>
         <ul v-else class="divide-y divide-border">
             <li
@@ -332,138 +234,12 @@ function formatDefault(item: ExpenseItem): string {
         </ul>
     </div>
 
-    <ResponsiveDialog
+    <ExpenseItemFormDialog
         v-model:open="dialogOpen"
-        :title="dialogTitle"
-        :description="dialogDescription"
-        submit-form="expense-item-form"
-        :submit-label="editing ? 'Salva modifiche' : 'Aggiungi voce'"
-        :submitting="form.processing"
-    >
-        <form id="expense-item-form" @submit.prevent="onSubmit">
-            <FieldGroup>
-                <FormField label="Nome" for="item-name" required>
-                    <Input
-                        id="item-name"
-                        v-model="form.name"
-                        placeholder="Es. Imposta sostitutiva"
-                    />
-                    <template v-if="form.errors.name" #error>{{
-                        form.errors.name
-                    }}</template>
-                </FormField>
-
-                <FormField label="Tipo di calcolo" for="item-type" required>
-                    <Select v-model="form.calculation_type">
-                        <SelectTrigger id="item-type" class="w-full">
-                            <SelectValue placeholder="Seleziona…" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem
-                                v-for="opt in calculationTypes"
-                                :key="opt.value"
-                                :value="opt.value"
-                            >
-                                {{ opt.label }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <template v-if="form.errors.calculation_type" #error>{{
-                        form.errors.calculation_type
-                    }}</template>
-                </FormField>
-
-                <FormField label="Famiglia" for="item-kind" required>
-                    <Select v-model="form.kind">
-                        <SelectTrigger id="item-kind" class="w-full">
-                            <SelectValue placeholder="Seleziona…" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            <SelectItem
-                                v-for="opt in familyKinds"
-                                :key="opt.value"
-                                :value="opt.value"
-                            >
-                                {{ opt.label }}
-                            </SelectItem>
-                        </SelectContent>
-                    </Select>
-                    <template v-if="form.errors.kind" #error>{{
-                        form.errors.kind
-                    }}</template>
-                </FormField>
-
-                <div
-                    v-if="isPercentage"
-                    class="grid grid-cols-1 gap-4 md:grid-cols-3"
-                >
-                    <FormField label="Aliquota (%)" for="item-rate">
-                        <DecimalInput
-                            id="item-rate"
-                            v-model="form.default_rate"
-                            :min="0"
-                            :max="100"
-                            class="tabular text-right"
-                            placeholder="0,00"
-                        />
-                        <template v-if="form.errors.default_rate" #error>{{
-                            form.errors.default_rate
-                        }}</template>
-                    </FormField>
-
-                    <FormField label="Minimale (€)" for="item-min">
-                        <DecimalInput
-                            id="item-min"
-                            v-model="form.default_minimum"
-                            :min="0"
-                            class="tabular text-right"
-                            placeholder="0,00"
-                        />
-                        <template v-if="form.errors.default_minimum" #error>{{
-                            form.errors.default_minimum
-                        }}</template>
-                    </FormField>
-
-                    <FormField label="Massimale (€)" for="item-max">
-                        <DecimalInput
-                            id="item-max"
-                            v-model="form.default_maximum"
-                            :min="0"
-                            class="tabular text-right"
-                            placeholder="0,00"
-                        />
-                        <template v-if="form.errors.default_maximum" #error>{{
-                            form.errors.default_maximum
-                        }}</template>
-                    </FormField>
-                </div>
-
-                <FormField
-                    v-if="isFixed"
-                    label="Importo annuale (€)"
-                    for="item-amount"
-                >
-                    <DecimalInput
-                        id="item-amount"
-                        v-model="form.default_amount"
-                        :min="0"
-                        class="tabular text-right"
-                        placeholder="0,00"
-                    />
-                    <template v-if="form.errors.default_amount" #error>{{
-                        form.errors.default_amount
-                    }}</template>
-                </FormField>
-
-                <Field orientation="horizontal">
-                    <Switch id="item-active" v-model="form.active" />
-                    <FieldLabel for="item-active" class="font-normal">
-                        Voce attiva (proposta nei nuovi anni)
-                    </FieldLabel>
-                </Field>
-            </FieldGroup>
-        </form>
-    </ResponsiveDialog>
+        :item="editing"
+        :calculation-types="calculationTypes"
+        :family-kinds="familyKinds"
+    />
 
     <ConfirmDialog
         v-model:open="archiveOpen"
