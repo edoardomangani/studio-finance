@@ -10,7 +10,10 @@ use App\Notifications\DeadlineReminder;
 use App\Services\DeadlineReminderService;
 use App\Services\YearOpeningPlanner;
 use Carbon\CarbonImmutable;
+use Illuminate\Notifications\ChannelManager;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
+use NotificationChannels\WebPush\WebPushChannel;
 
 beforeEach(function () {
     Notification::fake();
@@ -150,4 +153,20 @@ it('il comando invia i promemoria del giorno', function () {
     $this->artisan('deadlines:send-reminders')
         ->expectsOutputToContain('Promemoria inviati: 1')
         ->assertSuccessful();
+});
+
+it('se l\'invio fallisce registra un warning, scrive il log e prosegue', function () {
+    // Canale reale (non il fake del beforeEach) con il WebPushChannel che esplode.
+    Notification::swap(new ChannelManager(app()));
+    $this->mock(WebPushChannel::class, fn ($mock) => $mock->shouldReceive('send')->andThrow(new RuntimeException('push service down')));
+    Log::spy();
+
+    $first = reminderDeadline(reminderUser(), $this->today);
+    $second = reminderDeadline(reminderUser(), $this->today->addDay());
+
+    expect(reminders()->send($this->today))->toBe(2);
+
+    Log::shouldHaveReceived('warning')->twice();
+    $this->assertDatabaseHas('deadline_notifications', ['deadline_id' => $first->id]);
+    $this->assertDatabaseHas('deadline_notifications', ['deadline_id' => $second->id]);
 });
