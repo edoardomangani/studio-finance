@@ -139,8 +139,9 @@ function onSheetArchive(): void {
     }
 }
 
-// Il chiamante (topbar lista / header tab) apre la creazione.
-defineExpose({ openCreate });
+// Il chiamante (topbar lista / header tab) apre la creazione; la pagina apre
+// lo sheet del deep link `?deadline=` (tap su una notifica push).
+defineExpose({ openCreate, openDeadline });
 </script>
 
 <template>

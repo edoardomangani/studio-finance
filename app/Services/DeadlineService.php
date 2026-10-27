@@ -9,6 +9,7 @@ use App\Models\Deadline;
 use App\Models\ExpenseItem;
 use App\Models\Year;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 
@@ -81,6 +82,25 @@ class DeadlineService
         $context = $this->contextBuilder->build($paginator->getCollection());
 
         return $paginator->through(fn (Deadline $d): array => $this->toListItem($d, $context));
+    }
+
+    /**
+     * Riga di una singola scadenza per il deep link `?deadline=` (tap su una
+     * notifica): ignora i filtri della lista. null se non esiste o non è dell'utente.
+     *
+     * @return array<string, mixed>|null
+     */
+    public function forFocus(int $id): ?array
+    {
+        $deadline = Deadline::query()
+            ->with(['payment', 'annualExpense.year', 'year'])
+            ->find($id);
+
+        if ($deadline === null) {
+            return null;
+        }
+
+        return $this->toListItem($deadline, $this->contextBuilder->build(new Collection([$deadline])));
     }
 
     /**

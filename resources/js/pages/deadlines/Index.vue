@@ -19,7 +19,7 @@ import {
     PhMagnifyingGlass,
     PhPlus,
 } from '@phosphor-icons/vue';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import type { Component } from 'vue';
 import FilterPanel from '@/components/FilterPanel.vue';
 import { Badge } from '@/components/ui/badge';
@@ -59,6 +59,7 @@ const props = defineProps<{
     kindOptions: EnumOption[];
     annualExpenses: AnnualExpenseForPicker[];
     yearOptions: YearOption[];
+    focusedDeadline: DeadlineListItem | null;
 }>();
 
 // Toggle stato: segmentatore primario. 'upcoming' (default) = prossime, aperte
@@ -81,6 +82,12 @@ setLayoutProps({
 // la pagina resta chrome (search/filtri/paginazione) + la creazione, aperta
 // via il metodo esposto dalla tabella.
 const table = ref<InstanceType<typeof DeadlinesTable> | null>(null);
+
+onMounted(() => {
+    if (props.focusedDeadline) {
+        table.value?.openDeadline(props.focusedDeadline);
+    }
+});
 
 // Chrome filtri (search + toggle stato + pannello faccette + paginazione)
 // estratta in composable.

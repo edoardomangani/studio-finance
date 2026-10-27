@@ -72,6 +72,10 @@ class DeadlineController extends Controller
             'kindOptions' => $this->deadlines->kindOptions(),
             'annualExpenses' => $this->deadlines->annualExpensesForPicker(),
             'yearOptions' => $this->deadlines->yearOptions(),
+            // Deep link dalle notifiche push: apre lo sheet di quella scadenza.
+            'focusedDeadline' => $request->integer('deadline') > 0
+                ? $this->deadlines->forFocus($request->integer('deadline'))
+                : null,
         ]);
     }
 

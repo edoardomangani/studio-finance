@@ -177,3 +177,33 @@ it('richiede onboarding e autenticazione', function () {
         ->get(route('deadlines.index'))
         ->assertRedirect(route('onboarding.show'));
 });
+
+it('passa la scadenza del deep link anche se esclusa dai filtri', function () {
+    $user = userWithOpenYear();
+    $deadline = Deadline::query()->where('name', 'Assicurazione professionale')->firstOrFail();
+
+    $this->get(route('deadlines.index', ['deadline' => $deadline->id, 'state' => 'closed']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('focusedDeadline.id', $deadline->id)
+            ->where('focusedDeadline.expected_amount', 350)
+            ->etc());
+});
+
+it('ignora il deep link verso scadenze inesistenti, altrui o archiviate', function () {
+    userWithOpenYear();
+    $mine = Deadline::factory()->create(['year_id' => Year::query()->firstOrFail()->id]);
+    $mine->delete();
+
+    $other = User::factory()->create();
+    $foreign = Deadline::withoutEvents(fn () => Deadline::factory()->for($other)->create([
+        'year_id' => Year::factory()->for($other)->create()->id,
+    ]));
+    expect($foreign->user_id)->toBe($other->id);
+
+    foreach ([999999, $mine->id, $foreign->id] as $id) {
+        $this->get(route('deadlines.index', ['deadline' => $id]))
+            ->assertOk()
+            ->assertInertia(fn (Assert $page) => $page->where('focusedDeadline', null)->etc());
+    }
+});
