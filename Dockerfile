@@ -6,7 +6,7 @@
 FROM serversideup/php:8.4.27-fpm-nginx AS php-build
 
 USER root
-RUN install-php-extensions pdo_pgsql
+RUN install-php-extensions pdo_pgsql gmp
 USER www-data
 
 WORKDIR /var/www/html
@@ -46,9 +46,10 @@ RUN npm run build
 # può restare in cache sul builder di Render.
 FROM serversideup/php:8.4.27-fpm-nginx AS app
 
-# pdo_pgsql per Neon (Postgres)
+# pdo_pgsql per Neon (Postgres); gmp per la cifratura Web Push (senza,
+# minishlink/web-push emette un notice che Laravel trasforma in eccezione)
 USER root
-RUN install-php-extensions pdo_pgsql
+RUN install-php-extensions pdo_pgsql gmp
 USER www-data
 
 WORKDIR /var/www/html
