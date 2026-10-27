@@ -7,6 +7,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DeadlineController;
 use App\Http\Controllers\ImportXmlController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\NotificationDispatchController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\PaymentController;
 use App\Http\Controllers\YearController;
@@ -34,6 +35,12 @@ Route::get('build/serviceworker.js', function () {
         'Cache-Control' => 'no-cache',
     ]);
 })->name('sw');
+
+// Invio promemoria push del giorno (cron-job.org, Bearer token). Esclusa dal
+// CSRF in bootstrap/app.php.
+Route::post('internal/notifications/dispatch', NotificationDispatchController::class)
+    ->middleware('throttle:10,1')
+    ->name('notifications.dispatch');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Onboarding: NON protetto da EnsureOnboarded (loop). Il controller fa

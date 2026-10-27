@@ -18,6 +18,9 @@ return Application::configure(basePath: dirname(__DIR__))
         // Dietro il proxy di Render: fidati degli header X-Forwarded-* per generare URL https.
         $middleware->trustProxies(at: '*');
 
+        // Endpoint del cron: autenticato col Bearer token, non ha sessione.
+        $middleware->preventRequestForgery(except: ['internal/notifications/dispatch']);
+
         $middleware->encryptCookies(except: ['appearance', 'sidebar_state']);
 
         $middleware->web(append: [
