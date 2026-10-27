@@ -11,6 +11,7 @@ use Database\Factories\DeadlineFactory;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -84,5 +85,13 @@ class Deadline extends Model
     public function payment(): HasOne
     {
         return $this->hasOne(Payment::class);
+    }
+
+    /**
+     * Log degli invii push (uno al giorno al massimo).
+     */
+    public function notificationLogs(): HasMany
+    {
+        return $this->hasMany(DeadlineNotification::class);
     }
 }
