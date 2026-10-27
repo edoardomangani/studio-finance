@@ -19,6 +19,8 @@ return new class extends Migration
             $table->timestamps();
 
             $table->unique(['deadline_id', 'sent_on']);
+            // Postgres non indicizza le FK: serve al cascade sulla cancellazione utente.
+            $table->index('user_id');
         });
     }
 

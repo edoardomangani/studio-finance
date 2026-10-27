@@ -76,36 +76,46 @@ class DeadlineReminderService
             $context = $this->contextBuilder->build($deadlines);
 
             foreach ($deadlines as $deadline) {
-                $daysUntilDue = $this->daysUntilDue($deadline, $today);
-
-                // Prima il log, poi l'invio: con due chiamate concorrenti vince l'unique.
-                try {
-                    DeadlineNotification::query()->create([
-                        'user_id' => $deadline->user_id,
-                        'deadline_id' => $deadline->id,
-                        'days_until_due' => $daysUntilDue,
-                        'sent_on' => $today->toDateString(),
-                    ]);
-                } catch (UniqueConstraintViolationException) {
-                    continue;
+                if ($this->remind($deadline, $context, $today)) {
+                    $sent++;
                 }
-
-                $body = $this->body($deadline, $daysUntilDue, $this->expectation->for($deadline, $context));
-
-                try {
-                    $deadline->user->notify(new DeadlineReminder($deadline->id, $deadline->name, $body));
-                } catch (Throwable $e) {
-                    Log::warning('Invio promemoria scadenza fallito', [
-                        'deadline_id' => $deadline->id,
-                        'error' => $e->getMessage(),
-                    ]);
-                }
-
-                $sent++;
             }
         }
 
         return $sent;
+    }
+
+    /**
+     * Logga e invia il promemoria di una scadenza; false se già notificata oggi.
+     */
+    private function remind(Deadline $deadline, DeadlineContext $context, CarbonImmutable $today): bool
+    {
+        $daysUntilDue = $this->daysUntilDue($deadline, $today);
+
+        // Prima il log, poi l'invio: con due chiamate concorrenti vince l'unique.
+        try {
+            DeadlineNotification::query()->create([
+                'user_id' => $deadline->user_id,
+                'deadline_id' => $deadline->id,
+                'days_until_due' => $daysUntilDue,
+                'sent_on' => $today->toDateString(),
+            ]);
+        } catch (UniqueConstraintViolationException) {
+            return false;
+        }
+
+        $body = $this->body($deadline, $daysUntilDue, $this->expectation->for($deadline, $context));
+
+        try {
+            $deadline->user->notify(new DeadlineReminder($deadline->id, $deadline->name, $body));
+        } catch (Throwable $e) {
+            Log::warning('Invio promemoria scadenza fallito', [
+                'deadline_id' => $deadline->id,
+                'error' => $e->getMessage(),
+            ]);
+        }
+
+        return true;
     }
 
     /**
