@@ -2,7 +2,13 @@
 // (workbox.importScripts). File statico: niente bundling, niente hash.
 
 self.addEventListener('push', (event) => {
-    const payload = event.data ? event.data.json() : {};
+    let payload = {};
+
+    try {
+        payload = event.data ? event.data.json() : {};
+    } catch {
+        // Payload non JSON: notifica generica.
+    }
 
     event.waitUntil(
         self.registration.showNotification(payload.title || 'StudioFinance', {

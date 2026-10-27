@@ -52,10 +52,11 @@ const statusText = computed<string | null>(() => {
                 <Button
                     type="button"
                     size="sm"
-                    :disabled="busy"
+                    :disabled="busy !== null"
+                    :aria-busy="busy === 'activate'"
                     @click="activate"
                 >
-                    <Spinner v-if="busy" />
+                    <Spinner v-if="busy === 'activate'" />
                     <PhBell v-else :size="14" />
                     Attiva notifiche
                 </Button>
@@ -65,19 +66,22 @@ const statusText = computed<string | null>(() => {
                     type="button"
                     variant="outline"
                     size="sm"
-                    :disabled="busy"
+                    :disabled="busy !== null"
+                    :aria-busy="busy === 'deactivate'"
                     @click="deactivate"
                 >
-                    <PhBellSlash :size="14" />
+                    <Spinner v-if="busy === 'deactivate'" />
+                    <PhBellSlash v-else :size="14" />
                     Disattiva
                 </Button>
                 <Button
                     type="button"
                     size="sm"
-                    :disabled="busy"
+                    :disabled="busy !== null"
+                    :aria-busy="busy === 'test'"
                     @click="sendTest"
                 >
-                    <Spinner v-if="busy" />
+                    <Spinner v-if="busy === 'test'" />
                     <PhPaperPlaneTilt v-else :size="14" />
                     Invia notifica di prova
                 </Button>

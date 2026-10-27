@@ -62,8 +62,13 @@ async function onActivate(): Promise<void> {
         <span class="flex-1 text-13 text-foreground">
             Ricevi un promemoria prima di ogni scadenza
         </span>
-        <Button size="sm" :disabled="busy" @click="onActivate">
-            <Spinner v-if="busy" />
+        <Button
+            size="sm"
+            :disabled="busy !== null"
+            :aria-busy="busy !== null"
+            @click="onActivate"
+        >
+            <Spinner v-if="busy !== null" />
             Attiva
         </Button>
         <Button

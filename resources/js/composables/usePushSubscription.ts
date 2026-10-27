@@ -46,7 +46,8 @@ async function currentSubscription(): Promise<PushSubscription | null> {
 export function usePushSubscription() {
     const page = usePage();
     const state = ref<PushState>('checking');
-    const busy = ref(false);
+    // Azione in corso: un solo pulsante attivo alla volta, spinner su quello giusto.
+    const busy = ref<'activate' | 'deactivate' | 'test' | null>(null);
 
     const http = useHttp({
         endpoint: '',
@@ -99,7 +100,7 @@ export function usePushSubscription() {
     }
 
     async function activate(): Promise<boolean> {
-        busy.value = true;
+        busy.value = 'activate';
 
         try {
             // iOS: requestPermission va chiamato subito dentro il gesto.
@@ -129,12 +130,12 @@ export function usePushSubscription() {
 
             return false;
         } finally {
-            busy.value = false;
+            busy.value = null;
         }
     }
 
     async function deactivate(): Promise<void> {
-        busy.value = true;
+        busy.value = 'deactivate';
 
         try {
             const subscription = await currentSubscription();
@@ -150,12 +151,12 @@ export function usePushSubscription() {
         } catch {
             toast.error(ERROR_MESSAGE);
         } finally {
-            busy.value = false;
+            busy.value = null;
         }
     }
 
     async function sendTest(): Promise<void> {
-        busy.value = true;
+        busy.value = 'test';
 
         try {
             await http.post(PushSubscriptionController.test.url());
@@ -163,7 +164,7 @@ export function usePushSubscription() {
         } catch {
             toast.error(ERROR_MESSAGE);
         } finally {
-            busy.value = false;
+            busy.value = null;
         }
     }
 
