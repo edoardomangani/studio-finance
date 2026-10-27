@@ -4,6 +4,7 @@ use App\Http\Controllers\Settings\ExpenseFamilyController;
 use App\Http\Controllers\Settings\ExpenseItemController;
 use App\Http\Controllers\Settings\ProfessionalController;
 use App\Http\Controllers\Settings\ProfileController;
+use App\Http\Controllers\Settings\PushSubscriptionController;
 use App\Http\Controllers\Settings\RecurringDeadlineController;
 use App\Http\Controllers\Settings\SecurityController;
 use Illuminate\Http\RedirectResponse;
@@ -44,6 +45,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::put('settings/password', [SecurityController::class, 'update'])
         ->middleware('throttle:6,1')
         ->name('user-password.update');
+
+    // Notifiche push del dispositivo corrente (sezione Notifiche della pagina monolite).
+    Route::post('settings/notifications/subscriptions', [PushSubscriptionController::class, 'store'])
+        ->middleware('throttle:30,1')
+        ->name('settings.notifications.subscribe');
+    Route::delete('settings/notifications/subscriptions', [PushSubscriptionController::class, 'destroy'])
+        ->middleware('throttle:30,1')
+        ->name('settings.notifications.unsubscribe');
+    Route::post('settings/notifications/test', [PushSubscriptionController::class, 'test'])
+        ->middleware('throttle:6,1')
+        ->name('settings.notifications.test');
 
     // Profilo professionale: editato dentro la pagina monolite,
     // submit dedicato. Richiede onboarding completato.

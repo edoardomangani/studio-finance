@@ -60,3 +60,16 @@ it('il conteggio è isolato per utente', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->where('nav.upcomingDeadlines', 0));
 });
+
+it('condivide la chiave pubblica VAPID solo da autenticato', function () {
+    config(['webpush.vapid.public_key' => 'public-vapid-key']);
+    onboardedUserWithTemplates();
+
+    $this->get(route('dashboard'))
+        ->assertInertia(fn (Assert $page) => $page->where('webPush.publicKey', 'public-vapid-key'));
+
+    auth()->logout();
+
+    $this->get(route('login'))
+        ->assertInertia(fn (Assert $page) => $page->where('webPush', null));
+});

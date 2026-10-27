@@ -50,6 +50,10 @@ class HandleInertiaRequests extends Middleware
                 'upcomingDeadlines' => app(DeadlineService::class)->upcomingCount(),
                 'currentYear' => app(YearService::class)->currentYear(),
             ] : null,
+            // Chiave pubblica VAPID per pushManager.subscribe() (sezione Notifiche).
+            'webPush' => $request->user() ? [
+                'publicKey' => config('webpush.vapid.public_key'),
+            ] : null,
         ];
     }
 }

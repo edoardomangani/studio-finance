@@ -23,6 +23,9 @@ declare module '@inertiajs/core' {
                 upcomingDeadlines: number;
                 currentYear: number | null;
             } | null;
+            webPush: {
+                publicKey: string | null;
+            } | null;
             [key: string]: unknown;
         };
     }
