@@ -58,7 +58,7 @@ Infrastruttura esistente rilevante:
   - `tag`: `deadline-{id}` — una nuova notifica della stessa scadenza sostituisce la precedente nel centro notifiche (niente pila di solleciti).
   - `url`: `/deadlines?deadline={id}`.
 - **RN8 — Destinatari:** tutte le subscription push dell'utente proprietario della scadenza. Utenti senza subscription vengono saltati (nessun log scritto).
-- **RN9 — Notifica di prova:** titolo "StudioFinance", corpo "Le notifiche funzionano su questo dispositivo.", `url` `/dashboard`. Non scrive log.
+- **RN9 — Notifica di prova:** titolo "Notifica di prova", corpo "Le notifiche funzionano su questo dispositivo.", `url` `/dashboard`. Non scrive log.
 - **RN10 — Subscription scadute:** se il push service risponde 404/410, la subscription viene eliminata (gestito dal pacchetto).
 - **RN11 — Fuso orario:** tutti i calcoli "oggi / giorni mancanti" usano `Europe/Rome`, indipendentemente dal timezone dell'app.
 

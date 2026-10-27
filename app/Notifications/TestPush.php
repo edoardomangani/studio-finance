@@ -19,7 +19,7 @@ class TestPush extends Notification
     public function toWebPush(object $notifiable, Notification $notification): WebPushMessage
     {
         return (new WebPushMessage)
-            ->title('StudioFinance')
+            ->title('Notifica di prova')
             ->body('Le notifiche funzionano su questo dispositivo.')
             ->tag('test')
             ->icon('/pwa-192x192.png')
