@@ -35,4 +35,8 @@ return [
         ],
     ],
 
+    'notifications' => [
+        'dispatch_token' => env('NOTIFICATIONS_DISPATCH_TOKEN'),
+    ],
+
 ];
