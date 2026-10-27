@@ -1,4 +1,5 @@
 import { onMounted, onUnmounted, ref } from 'vue';
+import { isIos, isStandalone } from '@/lib/pwa';
 
 /**
  * Gestione installazione PWA.
@@ -57,21 +58,19 @@ export function useInstallPrompt() {
         // eventuale render SSR del layout.
         dismissed.value = localStorage.getItem(DISMISS_KEY) === '1';
 
-        const isStandalone =
-            window.matchMedia('(display-mode: standalone)').matches ||
-            (window.navigator as { standalone?: boolean }).standalone === true;
-        const isIos = /iphone|ipad|ipod/i.test(window.navigator.userAgent);
-
         // iOS: nessun evento beforeinstallprompt, decidiamo subito se mostrare
         // l'hint manuale.
-        showIosHint.value = isIos && !isStandalone && !dismissed.value;
+        showIosHint.value = isIos() && !isStandalone() && !dismissed.value;
 
         window.addEventListener('beforeinstallprompt', onBeforeInstallPrompt);
         window.addEventListener('appinstalled', onInstalled);
     });
 
     onUnmounted(() => {
-        window.removeEventListener('beforeinstallprompt', onBeforeInstallPrompt);
+        window.removeEventListener(
+            'beforeinstallprompt',
+            onBeforeInstallPrompt,
+        );
         window.removeEventListener('appinstalled', onInstalled);
     });
 

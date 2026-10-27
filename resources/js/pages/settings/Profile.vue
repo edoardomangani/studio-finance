@@ -44,6 +44,7 @@ import {
 } from '@/components/ui/number-field';
 import { Spinner } from '@/components/ui/spinner';
 import { useShortcut } from '@/composables/useShortcut';
+import NotificationsSection from '@/pages/settings/NotificationsSection.vue';
 import PropagateProfileDialog from '@/pages/settings/PropagateProfileDialog.vue';
 import { send } from '@/routes/verification';
 import type { ProfessionalProfile } from '@/types';
@@ -383,6 +384,9 @@ useShortcut(
                 />
             </div>
         </FormSection>
+
+        <!-- Notifiche push del dispositivo corrente -->
+        <NotificationsSection />
 
         <!-- Aspetto -->
         <FormSection id="appearance" title="Aspetto">

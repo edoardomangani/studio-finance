@@ -25,6 +25,7 @@ import { formatDateIT, formatEUR } from '@/lib/format';
 import AnnualTrendBars from '@/pages/dashboard/AnnualTrendBars.vue';
 import DashboardCover from '@/pages/dashboard/DashboardCover.vue';
 import DashboardHero from '@/pages/dashboard/DashboardHero.vue';
+import PushBanner from '@/pages/dashboard/PushBanner.vue';
 import { index as deadlinesIndex } from '@/routes/deadlines';
 import { index as invoicesIndex } from '@/routes/invoices';
 import { index as paymentsIndex } from '@/routes/payments';
@@ -84,6 +85,8 @@ const monthExpenseItems = computed(() =>
     <Head title="Dashboard" />
 
     <div class="flex flex-col gap-6 lg:gap-8">
+        <PushBanner />
+
         <!-- Empty state: nessun anno aperto. -->
         <div
             v-if="!data"

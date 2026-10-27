@@ -72,6 +72,8 @@ const plugins = [
             ],
         },
         workbox: {
+            // Handler push/notificationclick (file statico in public/).
+            importScripts: ['/sw-push.js'],
             navigateFallback: null,
             cleanupOutdatedCaches: true,
             clientsClaim: true,
