@@ -17,8 +17,23 @@ async function wakeRender() {
   }
 }
 
+// I cron UTC non seguono l'ora legale: si filtra sull'ora di Roma.
+const ROME_WARMUP_TIMES = ["06:50", "07:10", "07:40"];
+
+function isRomeWarmupTime(time) {
+  const romeTime = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Rome",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(new Date(time));
+  return ROME_WARMUP_TIMES.includes(romeTime);
+}
+
 export default {
   async scheduled(controller, env, ctx) {
+    if (!isRomeWarmupTime(controller.scheduledTime)) {
+      return;
+    }
     ctx.waitUntil(wakeRender());
   },
 };

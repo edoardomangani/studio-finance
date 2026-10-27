@@ -3,7 +3,7 @@
 # --- Stage 1: app PHP + dipendenze composer + file Wayfinder ---
 # serversideup/php include composer; qui installiamo le dipendenze e
 # generiamo i file TS di Wayfinder (servono allo stage Node per il build Vite).
-FROM serversideup/php:8.4-fpm-nginx AS php-build
+FROM serversideup/php:8.4.27-fpm-nginx AS php-build
 
 USER root
 RUN install-php-extensions pdo_pgsql
@@ -42,7 +42,9 @@ ENV WAYFINDER_SKIP=1
 RUN npm run build
 
 # --- Stage 3: immagine finale (nginx + php-fpm già pronti) ---
-FROM serversideup/php:8.4-fpm-nginx AS app
+# Patch pinnata (>= 8.4.27, fix CVE-2026-109618/109619): il tag 8.4 flottante
+# può restare in cache sul builder di Render.
+FROM serversideup/php:8.4.27-fpm-nginx AS app
 
 # pdo_pgsql per Neon (Postgres)
 USER root

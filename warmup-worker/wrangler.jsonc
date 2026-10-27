@@ -7,8 +7,8 @@
   "compatibility_date": "2024-11-01",
   "triggers": {
     // Cron in UTC (Cloudflare gira solo in UTC). Free = max 3 trigger.
-    // 04:50 / 05:10 / 05:40 UTC = 06:50 / 07:10 / 07:40 ora di Roma (estate):
-    // tre colpi a cavallo dell'avvio del cron principale.
-    "crons": ["50 4 * * *", "10 5 * * *", "40 5 * * *"]
+    // Ogni trigger scatta a due ore UTC (offset estate e inverno); index.js
+    // tiene solo il colpo che cade alle 06:50 / 07:10 / 07:40 ora di Roma.
+    "crons": ["50 4,5 * * *", "10 5,6 * * *", "40 5,6 * * *"]
   }
 }
