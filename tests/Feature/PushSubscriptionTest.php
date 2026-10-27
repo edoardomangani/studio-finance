@@ -4,7 +4,7 @@ use App\Models\User;
 use App\Notifications\TestPush;
 use Illuminate\Support\Facades\Notification;
 
-function subscribeDevice(User $user, string $endpoint = 'https://push.example.com/abc'): void
+function subscribeDevice(User $user, string $endpoint = 'https://fcm.googleapis.com/fcm/send/abc'): void
 {
     $user->updatePushSubscription($endpoint, 'p256dh-key', 'auth-token', 'aes128gcm');
 }
@@ -13,15 +13,15 @@ it('elimina le subscription push quando si cancella l\'utente', function () {
     $user = User::factory()->create();
     $other = User::factory()->create();
     subscribeDevice($user);
-    subscribeDevice($other, 'https://push.example.com/other');
+    subscribeDevice($other, 'https://fcm.googleapis.com/fcm/send/other');
 
     $user->delete();
 
-    $this->assertDatabaseMissing('push_subscriptions', ['endpoint' => 'https://push.example.com/abc']);
-    $this->assertDatabaseHas('push_subscriptions', ['endpoint' => 'https://push.example.com/other']);
+    $this->assertDatabaseMissing('push_subscriptions', ['endpoint' => 'https://fcm.googleapis.com/fcm/send/abc']);
+    $this->assertDatabaseHas('push_subscriptions', ['endpoint' => 'https://fcm.googleapis.com/fcm/send/other']);
 });
 
-function subscriptionPayload(string $endpoint = 'https://push.example.com/device'): array
+function subscriptionPayload(string $endpoint = 'https://fcm.googleapis.com/fcm/send/device'): array
 {
     return [
         'endpoint' => $endpoint,
@@ -46,7 +46,7 @@ it('registra la subscription del dispositivo senza duplicarla', function () {
 it('riassegna all\'utente corrente un dispositivo già registrato da un altro', function () {
     $previous = User::factory()->create();
     $current = User::factory()->create();
-    subscribeDevice($previous, 'https://push.example.com/device');
+    subscribeDevice($previous, 'https://fcm.googleapis.com/fcm/send/device');
 
     $this->actingAs($current)
         ->postJson(route('settings.notifications.subscribe'), subscriptionPayload())
@@ -63,21 +63,22 @@ it('valida il corpo della subscription', function (array $payload, string $field
         ->assertJsonValidationErrors($field);
 })->with([
     'endpoint non https' => [['endpoint' => 'http://push.example.com/x', 'keys' => ['p256dh' => 'a', 'auth' => 'b']], 'endpoint'],
-    'chiavi mancanti' => [['endpoint' => 'https://push.example.com/x'], 'keys.p256dh'],
+    'chiavi mancanti' => [['endpoint' => 'https://fcm.googleapis.com/fcm/send/x'], 'keys.p256dh'],
+    'host non di un push service' => [[...subscriptionPayload('https://internal.example.com/hook')], 'endpoint'],
     'encoding sconosciuto' => [[...subscriptionPayload(), 'contentEncoding' => 'gzip'], 'contentEncoding'],
 ]);
 
 it('rimuove solo le proprie subscription', function () {
     $user = User::factory()->create();
     $other = User::factory()->create();
-    subscribeDevice($user, 'https://push.example.com/mine');
-    subscribeDevice($other, 'https://push.example.com/theirs');
+    subscribeDevice($user, 'https://fcm.googleapis.com/fcm/send/mine');
+    subscribeDevice($other, 'https://fcm.googleapis.com/fcm/send/theirs');
 
     $this->actingAs($user)
-        ->deleteJson(route('settings.notifications.unsubscribe'), ['endpoint' => 'https://push.example.com/theirs'])
+        ->deleteJson(route('settings.notifications.unsubscribe'), ['endpoint' => 'https://fcm.googleapis.com/fcm/send/theirs'])
         ->assertNoContent();
     $this->actingAs($user)
-        ->deleteJson(route('settings.notifications.unsubscribe'), ['endpoint' => 'https://push.example.com/mine'])
+        ->deleteJson(route('settings.notifications.unsubscribe'), ['endpoint' => 'https://fcm.googleapis.com/fcm/send/mine'])
         ->assertNoContent();
 
     expect($user->pushSubscriptions()->count())->toBe(0)
